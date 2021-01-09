@@ -73,3 +73,5 @@ declare module '*.module.sass' {
 declare module "react-router-dom"
 declare module "react-grid-layout"
 declare module "recoil-persist"
+declare module "react-super-treeview"
+declare module "react-table"

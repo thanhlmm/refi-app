@@ -24,3 +24,6 @@ yarn-error.log*
 
 # Tailwind processed CSS 
 index.css
+
+# Pack file
+out

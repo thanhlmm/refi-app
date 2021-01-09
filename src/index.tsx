@@ -7,9 +7,6 @@ import recoilPersist from "recoil-persist";
 import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter } from "react-router-dom";
 
-import "react-grid-layout/css/styles.css";
-import "react-resizable/css/styles.css";
-
 const { RecoilPersist, updateState } = recoilPersist();
 
 ReactDOM.render(
