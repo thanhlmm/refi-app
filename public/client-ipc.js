@@ -20,6 +20,10 @@ function connectSocket(name, onOpen) {
     client.on("message", (data) => {
       const msg = JSON.parse(data);
 
+      if (window.IS_DEV) {
+        console.log("Received from server", msg);
+      }
+
       if (msg.type === "error") {
         // Up to you whether or not to care about the error
         const { id } = msg;

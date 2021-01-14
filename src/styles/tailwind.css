@@ -1,3 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@200;400;600&display=swap");
+
+body {
+  font-size: 14px;
+}
+
 @tailwind base;
 
 /* Your own custom base styles */
@@ -7,6 +13,23 @@
 /* Stop purging. */
 
 /* Your own custom component styles */
+@layer components {
+  .input-field {
+    @apply block w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+  }
+
+  .primary-btn {
+    @apply inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm cursor-pointer hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+  }
+
+  .secondary-btn {
+    @apply inline-flex justify-center px-4 py-2 text-sm font-medium text-indigo-600 border border-transparent rounded-md shadow-sm cursor-pointer bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+  }
+
+  .text-select-right {
+    text-align-last: right;
+  }
+}
 
 /* Start purging... */
 @tailwind utilities;

@@ -75,3 +75,13 @@ declare module "react-grid-layout"
 declare module "recoil-persist"
 declare module "react-super-treeview"
 declare module "react-table"
+declare module "react-window"
+
+type SendFuncType = (name: string, args: any) => Promise<any>
+type ListenFuncType = (name: string, cb: Function) => Function
+
+interface Window {
+  send: SendFuncType,
+  listen: ListenFuncType
+  form: any // DEBUG
+}
