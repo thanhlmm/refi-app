@@ -8,7 +8,7 @@
       "projectFolder": "client"
     },
     {
-      "packageName": "@shoelace-style/shoelace",
+      "packageName": "shoelace",
       "projectFolder": "shoelace"
     }
   ]

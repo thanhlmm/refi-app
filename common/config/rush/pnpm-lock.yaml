@@ -44,6 +44,7 @@ dependencies:
   chalk: 4.1.0
   color: 3.1.3
   concurrently: 5.3.0
+  copy-webpack-plugin: 6.4.1_webpack@4.44.2
   cross-env: 7.0.3
   css-loader: 4.3.0_webpack@4.44.2
   dayjs: 1.10.4
@@ -5517,6 +5518,27 @@ packages:
     dev: false
     resolution:
       integrity: sha512-i13qo6kIHTTpCm8/Wup+0b1mVWETvu2kIMzKoK8FpkLkFxlt0znUAHcMzox+T8sPlqtZXq3CulEjQHsYiGFJUw==
+  /copy-webpack-plugin/6.4.1_webpack@4.44.2:
+    dependencies:
+      cacache: 15.0.5
+      fast-glob: 3.2.5
+      find-cache-dir: 3.3.1
+      glob-parent: 5.1.1
+      globby: 11.0.2
+      loader-utils: 2.0.0
+      normalize-path: 3.0.0
+      p-limit: 3.1.0
+      schema-utils: 3.0.0
+      serialize-javascript: 5.0.1
+      webpack: 4.44.2
+      webpack-sources: 1.4.3
+    dev: false
+    engines:
+      node: '>= 10.13.0'
+    peerDependencies:
+      webpack: ^4.37.0 || ^5.0.0
+    resolution:
+      integrity: sha512-MXyPCjdPVx5iiWyl40Va3JGh27bKzOTNY3NjUTrosD2q7dR/cLD0013uqJ3BpFbUjyONINjb6qI7nDIJujrMbA==
   /core-js-compat/3.8.3:
     dependencies:
       browserslist: 4.16.1
@@ -7296,7 +7318,7 @@ packages:
       object.fromentries: 2.0.3
       object.values: 1.1.2
       prop-types: 15.7.2
-      resolve: 1.18.1
+      resolve: 1.19.0
       string.prototype.matchall: 4.0.3
     dev: false
     engines:
@@ -18239,6 +18261,7 @@ packages:
       bfj: 7.0.2
       camelcase: 6.2.0
       case-sensitive-paths-webpack-plugin: 2.3.0
+      copy-webpack-plugin: 6.4.1_webpack@4.44.2
       cross-env: 7.0.3
       css-loader: 4.3.0_webpack@4.44.2
       dayjs: 1.10.4
@@ -18316,7 +18339,7 @@ packages:
     dev: false
     name: '@rush-temp/refi-client'
     resolution:
-      integrity: sha512-yiKQnVaGv0blxB8YTkAJbuhjPyWxBXdB6wDcEArFpzyA3kAmppYnFwjUCRpOcdLkrvOQYvVhfduxPJiMwqZDMw==
+      integrity: sha512-yg0Su6ogq6z84bki3vkemwgeXgCHL5Yj3cCIaQW63FwL30dw2+mLKyFfROLWc7quWbJjbjJlxgygjs7/+dZkPg==
       tarball: file:projects/refi-client.tgz
     version: 0.0.0
   file:projects/shoelace.tgz:
@@ -18362,6 +18385,7 @@ packages:
       integrity: sha512-DboIutrbPTFEUlP51H/tb50CqAJrR9zQLFI3DXl2SDuJkb5gsunZ4QLj7iNxjnM418D73e9UQfDrWi1Egh5CUg==
       tarball: file:projects/shoelace.tgz
     version: 0.0.0
+registry: ''
 specifiers:
   '@babel/core': 7.12.3
   '@electron-forge/cli': ^6.0.0-beta.54
@@ -18408,6 +18432,7 @@ specifiers:
   chalk: ^4.0.0
   color: ^3.1.2
   concurrently: ^5.1.0
+  copy-webpack-plugin: ^6.2.1
   cross-env: ^7.0.3
   css-loader: 4.3.0
   dayjs: ^1.10.3
