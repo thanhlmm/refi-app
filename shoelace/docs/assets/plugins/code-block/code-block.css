@@ -1,0 +1,167 @@
+.code-block {
+  position: relative;
+  border-radius: 3px;
+  background: var(--sl-color-gray-50);
+  margin-bottom: 1.5rem;
+}
+
+.code-block__preview {
+  position: relative;
+  border: solid 1px var(--sl-color-gray-200);
+  border-bottom: none;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  background-color: white;
+  min-width: 20rem;
+  max-width: 100%;
+  padding: 1.5rem 3.25rem 1.5rem 1.5rem;
+}
+
+/* Block the preview while dragging to prevent iframes from intercepting drag events */
+.code-block__preview--dragging::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+.code-block__resizer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1.75rem;
+  font-size: 20px;
+  color: var(--sl-color-gray-500);
+  background-color: white;
+  border-left: solid 1px var(--sl-color-gray-200);
+  border-top-right-radius: 3px;
+  cursor: ew-resize;
+  transition: 250ms background-color;
+}
+
+.code-block__resizer:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--sl-color-primary-400), 0 0 0 var(--sl-focus-ring-width) var(--sl-focus-ring-color-primary);
+  background-color: var(--sl-color-primary-50);
+  color: var(--sl-color-primary-500);
+  z-index: 2;
+}
+
+@media screen and (max-width: 600px) {
+  .code-block__preview {
+    padding-right: 1.5rem;
+  }
+
+  .code-block__resizer {
+    display: none;
+  }
+}
+
+.code-block__source {
+  border: solid 1px var(--sl-color-gray-200);
+  border-bottom: none;
+  border-radius: 0 !important;
+  margin: 0;
+  display: none;
+}
+
+.code-block__source .docsify-copy-code-button {
+  border-top-right-radius: 0;
+}
+
+.code-block--expanded .code-block__source {
+  display: block;
+}
+
+.code-block__toggle {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 2.5rem;
+  border: solid 1px var(--sl-color-gray-200);
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+  background: var(--sl-color-white);
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-600);
+  cursor: pointer;
+  transition: 250ms background-color;
+  -webkit-appearance: none;
+}
+
+.code-block__toggle:hover,
+.code-block__toggle:active {
+  border-color: var(--sl-color-primary-400);
+  background-color: var(--sl-color-primary-50);
+  color: var(--sl-color-primary-500);
+}
+
+.code-block__toggle:focus {
+  outline: none;
+  border-color: var(--sl-color-primary-400);
+  background-color: var(--sl-color-primary-50);
+  color: var(--sl-color-primary-500);
+  box-shadow: 0 0 0 var(--sl-focus-ring-width) var(--sl-focus-ring-color-primary);
+}
+
+.code-block__toggle svg {
+  width: 1em;
+  height: 1em;
+  margin-left: 0.25rem;
+  transition: 250ms transform;
+}
+
+.code-block--expanded .code-block__toggle svg {
+  transform: rotate(180deg);
+}
+
+/* Dark theme */
+.sl-theme-dark .code-block {
+  background-color: var(--sl-color-gray-800);
+}
+
+.sl-theme-dark .code-block__preview {
+  background-color: var(--sl-color-gray-900);
+  border-color: var(--sl-color-gray-800);
+}
+
+.sl-theme-dark .code-block__source {
+  border-color: var(--sl-color-gray-800);
+}
+
+.sl-theme-dark .code-block__resizer {
+  border-left-color: var(--sl-color-gray-800);
+  background-color: var(--sl-color-gray-900);
+  color: var(--sl-color-gray-400);
+}
+
+.sl-theme-dark .code-block__toggle {
+  background-color: var(--sl-color-gray-900);
+  border-color: var(--sl-color-gray-800);
+  color: var(--sl-color-gray-400);
+}
+
+.sl-theme-dark .code-block__toggle:hover,
+.sl-theme-dark .code-block__toggle:active {
+  background-color: var(--sl-color-gray-900);
+  border-color: var(--sl-color-gray-800);
+  color: var(--sl-color-gray-400);
+}
+
+.sl-theme-dark .code-block__toggle:focus {
+  border-color: var(--sl-color-primary-500);
+  background-color: var(--sl-color-primary-900);
+  color: var(--sl-color-primary-500);
+}

@@ -1,0 +1,11 @@
+.github
+.cache
+.stencil
+dist
+docs/assets
+docs/**/*.md
+loader
+node_modules
+src/components/**/readme.md
+src/components.d.ts
+package-lock.json

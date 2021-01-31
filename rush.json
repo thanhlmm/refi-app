@@ -1,0 +1,15 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/rush.schema.json",
+  "rushVersion": "5.37.0",
+  "pnpmVersion": "5.15.2",
+  "projects": [
+    {
+      "packageName": "refi-client",
+      "projectFolder": "client"
+    },
+    {
+      "packageName": "@shoelace-style/shoelace",
+      "projectFolder": "shoelace"
+    }
+  ]
+}

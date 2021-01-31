@@ -1,0 +1,13 @@
+@import 'component';
+
+:host {
+  display: block;
+}
+
+.menu {
+  padding: var(--sl-spacing-x-small) 0;
+
+  &:focus {
+    outline: none;
+  }
+}
