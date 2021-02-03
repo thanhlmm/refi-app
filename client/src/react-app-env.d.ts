@@ -76,6 +76,7 @@ declare module "recoil-persist"
 declare module "react-super-treeview"
 declare module "react-table"
 declare module "react-window"
+declare module "@shoelace-style/react-wrapper"
 
 type SendFuncType = (name: string, args: any) => Promise<any>
 type ListenFuncType = (name: string, cb: Function) => Function

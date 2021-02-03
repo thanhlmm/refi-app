@@ -6,18 +6,14 @@ import { RecoilRoot } from "recoil";
 import recoilPersist from "recoil-persist";
 import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter } from "react-router-dom";
-import 'shoelace/dist/shoelace/shoelace.css';
-import { defineCustomElements, setAssetPath } from 'shoelace';
-
-setAssetPath((document.currentScript as HTMLScriptElement).src);
-defineCustomElements();
 
 const { RecoilPersist, updateState } = recoilPersist();
 
 ReactDOM.render(
   <BrowserRouter>
     <RecoilRoot initializeState={updateState}>
-      <RecoilPersist />
+      {/* <RecoilPersist /> */}
+      {/* // TODO: Check again about recoil persist */}
       <App />
     </RecoilRoot>
   </BrowserRouter>,

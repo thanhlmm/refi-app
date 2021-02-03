@@ -6,10 +6,6 @@
     {
       "packageName": "refi-client",
       "projectFolder": "client"
-    },
-    {
-      "packageName": "shoelace",
-      "projectFolder": "shoelace"
     }
   ]
 }
