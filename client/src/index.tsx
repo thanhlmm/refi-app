@@ -6,16 +6,18 @@ import { RecoilRoot } from "recoil";
 import recoilPersist from "recoil-persist";
 import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from '@zendeskgarden/react-theming';
 
 const { RecoilPersist, updateState } = recoilPersist();
 
 ReactDOM.render(
   <BrowserRouter>
-    <RecoilRoot initializeState={updateState}>
-      {/* <RecoilPersist /> */}
-      {/* // TODO: Check again about recoil persist */}
-      <App />
-    </RecoilRoot>
+    <ThemeProvider>
+      <RecoilRoot initializeState={updateState}>
+        {/* <RecoilPersist /> */}
+        <App />
+      </RecoilRoot>
+    </ThemeProvider>
   </BrowserRouter>,
   document.getElementById("root")
 );
