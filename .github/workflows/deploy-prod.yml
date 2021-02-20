@@ -13,7 +13,7 @@ jobs:
       - name: Install package
         run: cd vite && yarn
       - name: Build
-        run: yarn run build
+        run: cd vite && yarn run build
       - uses: actions/upload-artifact@v1
         with:
           name: build_file
