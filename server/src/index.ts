@@ -2,6 +2,7 @@ import { app, BrowserWindow } from 'electron';
 const isDev = require("electron-is-dev");
 const { fork } = require("child_process");
 import * as path from 'path';
+import fs from 'fs';
 import findOpenSocket from './utils/find-open-socket';
 
 let serverProcess: any;
@@ -54,7 +55,9 @@ function createBackgroundProcess(socketName: string) {
     "--subprocess",
     app.getVersion(),
     socketName,
-  ]);
+  ], {
+    cwd: app.getPath('userData')
+  });
 
   if (isDev) {
     // Print console.log of child process
@@ -68,10 +71,16 @@ function createBackgroundProcess(socketName: string) {
   });
 }
 
+function bootstrap() {
+  const keyFolder = path.join(app.getPath('userData'), 'Keys');
+  fs.mkdirSync(keyFolder, { recursive: true });
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
+  bootstrap();
   serverSocket = serverSocket || (await findOpenSocket());
   createWindow(serverSocket);
 

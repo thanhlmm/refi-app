@@ -23,4 +23,12 @@ declare namespace FireService {
   interface IUnsubscribe {
     id: string
   }
+
+  interface IFSInit {
+    projectId: string;
+  }
+
+  interface IStoreKey {
+    file: string;
+  }
 }

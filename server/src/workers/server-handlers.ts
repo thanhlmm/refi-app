@@ -1,7 +1,8 @@
-import fsClient from './firebaseClient';
+import fs from 'fs';
+import path from "path";
 const uuid = require("uuid");
-const { send } = require("./server-ipc");
-const admin = require("firebase-admin");
+import { send } from "./server-ipc";
+import * as admin from "firebase-admin";
 const { getDocMetaData, postConverter } = require("../utils/converter");
 
 // QueryOptions
@@ -12,23 +13,33 @@ const { getDocMetaData, postConverter } = require("../utils/converter");
 // parentPath: {[]}
 
 let handlers: Record<string, Function> = {};
-
 let listListeners: FireService.IListenerEntity[] = []; // ID in here MUST unique
+let app = null;
+const fsClient = () => admin.firestore();
 
-handlers["fs.init"] = async (file: any) => {
+handlers["fs.init"] = async ({ projectId }: FireService.IFSInit) => {
+  const storagePath = process.cwd();
+  const keyPath = path.join(storagePath, 'Keys', `${projectId}.json`);
+  const serviceAccount = require(keyPath);
+  app = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+
+  console.log("Initiated firebase app");
+}
+
+handlers["fs.storeKey"] = async ({ file }: FireService.IStoreKey) => {
   console.log(file);
-  // const app = admin.initializeApp({
-  //   credential: admin.credential.cert({
-  //     projectId: credentials.project_id,
-  //     clientEmail: credentials.client_email,
-  //     privateKey: credentials.private_key,
-  //   }),
-  // });
+  const base64data = file.split(';base64,').pop();
+  const storagePath = process.cwd();
+  const keyPath = path.join(storagePath, 'Keys', 'foo.json');
+  fs.writeFileSync(keyPath, base64data, { encoding: 'base64' });
+  return true;
 }
 
 handlers["fs.queryDoc.subscribe"] = async ({ path, topic }: FireService.IDocSubscribe) => {
   console.log("received event fs.query.subscribe", { path, topic });
-  const close = fsClient
+  const close = fsClient()
     .doc(path)
     .withConverter(postConverter)
     .onSnapshot(
@@ -62,7 +73,7 @@ handlers["fs.queryDoc.subscribe"] = async ({ path, topic }: FireService.IDocSubs
 
 handlers["fs.queryCollection.subscribe"] = async ({ path, topic }: FireService.ICollectionSubscribe) => {
   console.log("received event fs.query.subscribe", { path, topic });
-  const close = fsClient
+  const close = fsClient()
     .collection(path)
     .withConverter(postConverter)
     .onSnapshot(
@@ -91,7 +102,7 @@ handlers["fs.queryCollection.subscribe"] = async ({ path, topic }: FireService.I
 
 handlers["fs.pathExplorer.subscribe"] = async function ({ path, topic }: FireService.IPathSubscribe) {
   console.log("received event fs.pathExplorer", { path, topic });
-  const close = fsClient
+  const close = fsClient()
     .collection(path)
     .withConverter(postConverter)
     .onSnapshot(

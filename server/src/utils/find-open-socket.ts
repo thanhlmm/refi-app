@@ -1,6 +1,3 @@
-const net = require('net');
-const os = require('os');
-const { join } = require('path');
 const ipc = require('node-ipc');
 
 ipc.config.silent = true;
@@ -29,5 +26,5 @@ export default async function findOpenSocket() {
     console.log('checking', currentSocket);
   }
   console.log('found socket', currentSocket);
-  return 'myapp' + currentSocket;
+  return `refiapp_${currentSocket}`;
 }

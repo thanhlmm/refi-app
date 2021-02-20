@@ -1,6 +1,6 @@
 const ipc = require('node-ipc')
 
-function init(socketName: string, handlers: Record<string, Function>, buffer = false) {
+export function init(socketName: string, handlers: Record<string, Function>, buffer = false) {
   ipc.config.id = socketName;
   ipc.config.silent = true;
   ipc.config.rawBuffer = buffer;
@@ -44,7 +44,7 @@ function init(socketName: string, handlers: Record<string, Function>, buffer = f
   ipc.server.start()
 }
 
-function send(name: string, args: any) {
+export function send(name: string, args: any) {
   ipc.server.broadcast('message', JSON.stringify({ type: 'push', name, args }))
 }
 

@@ -18,12 +18,11 @@ ipcRenderer.on('set-socket', (event, { name }) => {
 })
 
 window.ipcConnect = (id, func, buffer = false) => {
-  const ipcInstance = new RawIPC.IPC;
-  ipcInstance.config.silent = true;
-  ipcInstance.config.rawBuffer = buffer;
+  ipc.config.silent = true;
+  ipc.config.rawBuffer = buffer;
 
-  ipcInstance.connectTo(id, () => {
-    func(ipcInstance.of[id])
+  ipc.connectTo(id, () => {
+    func(ipc.of[id])
   })
 }
 

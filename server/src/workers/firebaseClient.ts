@@ -8,7 +8,7 @@ const app = admin.initializeApp({
     clientEmail: credentials.client_email,
     privateKey: credentials.private_key,
   }),
-}); // TODO: Map to config here
+});
 const db = app.firestore();
 
 // Log function
