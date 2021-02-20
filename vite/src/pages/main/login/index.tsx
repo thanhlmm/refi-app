@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@zendeskgarden/react-buttons";
 import {
   Modal,
@@ -20,6 +20,7 @@ import {
 import { toBase64 } from "@/utils/common";
 
 const LoginPage: React.FC = () => {
+  const [notificationError, setNotificationError] = useState<string>("");
   const ignoreBackgdropEvent = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => {
@@ -27,12 +28,24 @@ const LoginPage: React.FC = () => {
     event.stopPropagation();
   };
 
-  const onDrop = React.useCallback(async (acceptedFiles: File[]) => {
-    console.log(acceptedFiles);
+  useEffect(() => {
+    if (notificationError) {
+      setTimeout(() => {
+        setNotificationError("");
+      }, 500);
+    }
+  }, [notificationError]);
+
+  const onDrop = async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length <= 0) {
+      setNotificationError("Invalid file");
+      return;
+    }
+
     const fileBase64 = await toBase64(acceptedFiles[0]);
     console.log(fileBase64);
-    window.send("fs.init", { file: fileBase64, foo: "bar" });
-  }, []);
+    window.send("fs.storeKey", { file: fileBase64, foo: "bar" });
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: ["application/json"],
@@ -40,17 +53,16 @@ const LoginPage: React.FC = () => {
     multiple: false,
   });
 
-  const error = (
+  const ErrorNotify = (
     <Notification type="error">
-    <Title>Error</Title>
-      Celery quandong swiss chard chicory earthnut pea potato. Salsify taro
-      catsear garlic
-      <Close aria-label="Close Alert" />
+      <Title>Error</Title>
+      {notificationError}
     </Notification>
   );
 
   return (
     <div>
+      {notificationError && ErrorNotify}
       <p>Some contents...</p>
       <p>Some contents...</p>
       <p>Some contents...</p>
