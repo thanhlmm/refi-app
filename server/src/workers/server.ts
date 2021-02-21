@@ -19,4 +19,4 @@ if (process.argv[2] === "--subprocess") {
   });
 }
 
-console.log({ version, isDev });
+console.log(`Initiated IPC server v${version}`);

@@ -44,7 +44,7 @@ const LoginPage: React.FC = () => {
 
     const fileBase64 = await toBase64(acceptedFiles[0]);
     console.log(fileBase64);
-    window.send("fs.storeKey", { file: fileBase64, foo: "bar" });
+    window.send("cert.storeKey", { file: fileBase64, foo: "bar" });
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

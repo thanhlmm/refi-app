@@ -1,9 +1,10 @@
 import { app, BrowserWindow } from 'electron';
-const isDev = require("electron-is-dev");
-const { fork } = require("child_process");
+import isDev from "electron-is-dev";
+import { fork } from "child_process";
 import * as path from 'path';
 import fs from 'fs';
 import findOpenSocket from './utils/find-open-socket';
+import db from './client/db';
 
 let serverProcess: any;
 let serverSocket: string;
@@ -61,7 +62,7 @@ function createBackgroundProcess(socketName: string) {
 
   if (isDev) {
     // Print console.log of child process
-    serverProcess.stdout.on("data", function (data: any) {
+    serverProcess?.stdout?.on("data", function (data: any) {
       console.log(data.toString());
     });
   }
@@ -72,8 +73,12 @@ function createBackgroundProcess(socketName: string) {
 }
 
 function bootstrap() {
+  // Init key store
   const keyFolder = path.join(app.getPath('userData'), 'Keys');
   fs.mkdirSync(keyFolder, { recursive: true });
+
+  // Init db
+  db(app.getPath('userData'));
 }
 
 // This method will be called when Electron has finished

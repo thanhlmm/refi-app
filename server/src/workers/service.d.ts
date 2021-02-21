@@ -1,34 +1,22 @@
-declare namespace FireService {
-  interface IDocSubscribe {
-    path: string;
-    topic: string;
-  }
+import Lowdb from 'lowdb';
 
-  interface ICollectionSubscribe {
-    path: string;
-    topic: string;
-  }
-
-  interface IPathSubscribe {
-    path: string;
-    topic: string;
-  }
-
-  interface IListenerEntity {
-    id: string;
-    topic: string;
-    close: Function;
-  }
-
-  interface IUnsubscribe {
-    id: string
-  }
-
-  interface IFSInit {
+declare namespace LocalDB {
+  interface IKey {
+    keyPath: string;
     projectId: string;
   }
 
-  interface IStoreKey {
-    file: string;
+  interface IDatabase {
+    keys: Array<IKey>;
   }
+}
+
+interface IIpcTransport {
+  send: (topic: string, arg: any) => void
+}
+
+interface IServiceContext {
+  userDataPath: string;
+  localDB: Lowdb.LowdbSync<LocalDB.IDatabase>
+  ipc: IIpcTransport
 }
