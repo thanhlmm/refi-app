@@ -17,4 +17,4 @@ jobs:
       - uses: actions/upload-artifact@v1
         with:
           name: build_file
-          path: vite/build
+          path: vite/dist

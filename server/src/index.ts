@@ -29,7 +29,7 @@ const createWindow = (socketName: string): void => {
   mainWindow.loadURL(
     true
       ? "http://localhost:3000"
-      : `file://${path.join(__dirname, "../client/build/index.html")}` // TODO: Map to right path
+      : `file://${path.join(__dirname, "./build/index.html")}` // TODO: Map to right path
   );
 
   // Open the DevTools.

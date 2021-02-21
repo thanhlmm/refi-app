@@ -9,6 +9,7 @@
     "types": [
       "vite/client"
     ],
+    "noImplicitAny": false,
     "allowJs": false,
     "skipLibCheck": false,
     "esModuleInterop": false,
@@ -20,7 +21,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "@/*": [
@@ -30,5 +31,10 @@
   },
   "include": [
     "./src"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.mock.ts"
   ]
 }

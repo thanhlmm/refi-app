@@ -20,5 +20,7 @@ module.exports = {
   ],
   rules: {
     "@typescript-eslint/ban-types": "warn",
+    "@typescript-eslint/triple-slash-reference": "off",
+    "react/react-in-jsx-scope": "off",
   },
 };

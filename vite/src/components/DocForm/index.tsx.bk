@@ -1,9 +1,9 @@
 import { useForm, useFieldArray, FormProvider } from "react-hook-form";
-import FieldForm from "@/components/FieldForm";
 import { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
-import Form from "@rjsf/core";
-import ThemeForm from "../ThemeForm/index";
+import React from "react";
+// import Form from "@rjsf/core";
+// import ThemeForm from "../ThemeForm/index";
 
 const fieldTypes = [
   "string",
@@ -49,7 +49,7 @@ const DocForm = () => {
           }}
         />
       </div>
-      <div className="flex-1">
+      {/* <div className="flex-1">
         <ThemeForm
           schema={{
             type: "array",
@@ -127,7 +127,7 @@ const DocForm = () => {
           formData={docValue}
           onChange={(value) => setDocValue(value.formData)}
         />
-      </div>
+      </div> */}
     </div>
   );
 };
