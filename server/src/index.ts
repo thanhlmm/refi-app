@@ -1,3 +1,6 @@
+require('source-map-support').install();
+process.on('unhandledRejection', console.log);
+
 import { app, BrowserWindow } from 'electron';
 import isDev from "electron-is-dev";
 import { fork } from "child_process";

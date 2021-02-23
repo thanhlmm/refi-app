@@ -21,10 +21,12 @@ const certService = new CertService(ctx);
 const fsService = new FireStoreService(ctx);
 
 handlers["cert.storeKey"] = certService.storeKey.bind(fsService);
-handlers["fs.init"] = fsService.init.bind(certService);
-handlers["fs.queryDoc.subscribe"] = fsService.subscribeDoc.bind(certService);
-handlers["fs.queryCollection.subscribe"] = fsService.subscribeCollection.bind(certService);
-handlers["fs.pathExplorer.subscribe"] = fsService.subscribePathExplorer.bind(certService);
-handlers["fs.unsubscribe"] = fsService.unsubscribe.bind(certService);
+handlers["cert.getKeys"] = certService.getKeys.bind(fsService);
+
+handlers["fs.init"] = fsService.init.bind(fsService);
+handlers["fs.queryDoc.subscribe"] = fsService.subscribeDoc.bind(fsService);
+handlers["fs.queryCollection.subscribe"] = fsService.subscribeCollection.bind(fsService);
+handlers["fs.pathExplorer.subscribe"] = fsService.subscribePathExplorer.bind(fsService);
+handlers["fs.unsubscribe"] = fsService.unsubscribe.bind(fsService);
 
 export default handlers;

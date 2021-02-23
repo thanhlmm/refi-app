@@ -1,0 +1,5 @@
+tests/*
+node_modules/*
+build.sh
+src/*
+.nyc_output/*

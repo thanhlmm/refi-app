@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as immutable from "object-path-immutable";
 import Tree from "rc-tree";
 import "rc-tree/assets/index.css";
@@ -75,8 +75,6 @@ function TreeView() {
           }) as Promise<string>;
       })
     );
-
-    console.log(ids);
 
     return () => {
       listeners.forEach((listener) => listener());

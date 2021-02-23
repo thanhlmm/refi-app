@@ -1,3 +1,6 @@
+require('source-map-support').install();
+process.on('unhandledRejection', console.log);
+
 import serverHandlers from './server-handlers';
 import ipc from './server-ipc';
 

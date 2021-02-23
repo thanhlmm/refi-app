@@ -1,6 +1,8 @@
+import React from "react";
 import { navigatorPath } from "@/atoms/navigator";
 import { KeyboardEvent, ChangeEvent, useState, useEffect } from "react";
 import { useRecoilState } from "recoil";
+import { Input } from "@zendeskgarden/react-forms";
 
 function PathInput() {
   const [path, setPath] = useRecoilState(navigatorPath);
@@ -22,14 +24,12 @@ function PathInput() {
 
   return (
     <div>
-      <input
-        name="pathInput"
-        type="text"
+      <Input
+        isCompact
         value={pathInput}
         onChange={handleChangeValue}
         onKeyDown={handlePathChange}
-        className="block w-full mt-1 bg-gray-100 border-transparent rounded focus:border-gray-500 focus:bg-white focus:ring-0"
-      ></input>
+      />
     </div>
   );
 }

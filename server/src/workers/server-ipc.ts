@@ -44,8 +44,12 @@ export function init(socketName: string, handlers: Record<string, Function>, buf
   ipc.server.start()
 }
 
-export function send(name: string, args: any) {
-  ipc.server.broadcast('message', JSON.stringify({ type: 'push', name, args }))
+interface ISendOption {
+  firestore: boolean
+}
+
+export function send(name: string, args: any, option: ISendOption = { firestore: false }) {
+  ipc.server.broadcast('message', JSON.stringify({ type: 'push', name, args, option }))
 }
 
 export default { init, send }

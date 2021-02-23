@@ -1,7 +1,8 @@
 import * as admin from "firebase-admin";
 import { IServiceContext } from "../service";
-import { getDocMetaData, postConverter } from "../../utils/converter";
+import { getDocMetaData } from "../../utils/converter";
 import uuid from 'uuid';
+import { serializeDocumentSnapshot, serializeQuerySnapshot } from "firestore-serializers";
 
 
 export default class FireStoreService implements NSFireStore.IService {
@@ -9,20 +10,37 @@ export default class FireStoreService implements NSFireStore.IService {
   private app: admin.app.App;
   private listListeners: NSFireStore.IListenerEntity[] = [];
 
+  static addMetadata(doc: any) {
+    doc.metadata = {
+      hasPendingWrites: false,
+      fromCache: false,
+      isEqual(arg: any) {
+        return true;
+      }
+    }
+
+    return doc;
+  }
+
   constructor(ctx: IServiceContext) {
     this.ctx = ctx;
   }
 
   private fsClient() {
-    return admin.firestore();
+    return admin.firestore(this.app)
   }
 
   public async init({ projectId }: NSFireStore.IFSInit) {
+    if (this.app?.name === projectId) {
+      console.log(`${projectId} already initiated`);
+      return;
+    }
+
     const cert = this.ctx.localDB.get('keys').find({ projectId }).value();
     const serviceAccount = require(cert.keyPath);
     this.app = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
+      credential: admin.credential.cert(serviceAccount),
+    }, projectId);
 
     console.log("Initiated firebase app");
     return true;
@@ -33,11 +51,13 @@ export default class FireStoreService implements NSFireStore.IService {
     console.log("received event fs.query.subscribe", { path, topic });
     const close = this.fsClient()
       .doc(path)
-      .withConverter(postConverter)
+      // .withConverter(postConverter)
       .onSnapshot(
-        async function (doc) {
-          this.ctx.ipc.send(topic, doc.data());
+        async (doc) => {
+          const docData = serializeDocumentSnapshot(doc as any);
+          this.ctx.ipc.send(topic, docData, { firestore: true });
 
+          // TODO: Consider fetch `listCollections` outsite
           const collections = await doc.ref.listCollections();
           this.ctx.ipc.send(
             `${topic}_metadata`,
@@ -67,15 +87,11 @@ export default class FireStoreService implements NSFireStore.IService {
     console.log("received event fs.query.subscribe", { path, topic });
     const close = this.fsClient()
       .collection(path)
-      .withConverter(postConverter)
       .onSnapshot(
-        async function (querySnapshot) {
-          const data: any[] = [];
-          querySnapshot.forEach((doc) => {
-            data.push(doc.data());
-          });
+        async (querySnapshot) => {
+          const data = serializeQuerySnapshot(querySnapshot as any);
 
-          this.ctx.ipc.send(topic, data);
+          this.ctx.ipc.send(topic, data, { firestore: true });
         },
         (error) => {
           // TODO: Handle error
@@ -96,15 +112,14 @@ export default class FireStoreService implements NSFireStore.IService {
     console.log("received event fs.pathExplorer", { path, topic });
     const close = this.fsClient()
       .collection(path)
-      .withConverter(postConverter)
       .onSnapshot(
-        async function (querySnapshot) {
+        async (querySnapshot) => {
           const data: any[] = [];
           querySnapshot.forEach((doc) => {
             data.push(getDocMetaData(doc));
           });
 
-          this.ctx.ipc.send(topic, data);
+          this.ctx.ipc.send(topic, data, { firestore: true });
         },
         (error) => {
           // TODO: Handle error

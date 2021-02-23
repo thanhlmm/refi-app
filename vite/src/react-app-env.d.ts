@@ -17,10 +17,8 @@ declare module "*.svg" {
   >;
 }
 
-declare module "react-router-dom";
 declare module "react-grid-layout";
 declare module "recoil-persist";
-declare module "react-table";
 declare module "react-window";
 
 type SendFuncType = (name: string, args: any) => Promise<any>;

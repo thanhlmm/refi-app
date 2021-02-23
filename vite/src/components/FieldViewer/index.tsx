@@ -49,7 +49,7 @@ const fieldValueMapper: Record<string, Function> = {
 };
 
 // TODO: Implement highlight when update here
-function FieldViewer({ value, type = "Map" }: { value: any; type?: string }) {
+function FieldViewer({ value }: { value: any }) {
   const [isUpdated, setUpdated] = useState(false);
 
   // useEffect(() => {
@@ -64,10 +64,11 @@ function FieldViewer({ value, type = "Map" }: { value: any; type?: string }) {
     return null;
   }
 
-  const FieldComp = fieldValueMapper[type] || fieldValueMapper["Map"];
+  // const FieldComp = fieldValueMapper[type] || fieldValueMapper["Map"];
   return (
     <div className={isUpdated ? "updated" : ""}>
-      <FieldComp value={value} />
+      {String(value)}
+      {/* <FieldComp value={value} /> */}
     </div>
   );
 }

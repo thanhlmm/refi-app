@@ -37,12 +37,12 @@ function connectSocket(name, onOpen) {
           handler.resolve(result);
         }
       } else if (msg.type === "push") {
-        const { name, args } = msg;
+        const { name, args, option } = msg;
 
         const listens = listeners.get(name);
         if (listens) {
           listens.forEach((listener) => {
-            listener(args);
+            listener(args, msg, option);
           });
         }
       } else {

@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "target": "ES3"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["tests/**/*"]
+}

@@ -11,8 +11,12 @@ declare namespace LocalDB {
   }
 }
 
+interface ISendOption {
+  firestore: boolean
+}
+
 interface IIpcTransport {
-  send: (topic: string, arg: any) => void
+  send: (topic: string, arg: any, option?: ISendOption) => void
 }
 
 interface IServiceContext {

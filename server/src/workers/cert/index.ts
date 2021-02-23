@@ -16,8 +16,9 @@ export default class CertService implements NSCert.IService {
     return keyContent;
   }
 
-  public async storeKey({ file }: NSCert.IStoreKey) {
+  public async storeKey({ file }: NSCert.IStoreKey): Promise<boolean> {
     const base64data = file.split(';base64,').pop();
+    // TODO: Return error if cert is already existed
 
     const keyPath = path.join(this.ctx.userDataPath, 'Keys', `${uuid.v4()}.json`);
     fs.writeFileSync(keyPath, base64data, { encoding: 'base64' });
@@ -30,5 +31,10 @@ export default class CertService implements NSCert.IService {
       .write();
 
     return true;
+  }
+
+  public async getKeys(): Promise<NSCert.ICertificateData[]> {
+    return this.ctx.localDB.get('keys')
+      .value()
   }
 }

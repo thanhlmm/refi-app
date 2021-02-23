@@ -10,7 +10,12 @@ declare namespace NSCert {
     client_email: string;
   }
 
+  interface ICertificateData {
+    projectId: string;
+  }
+
   interface IService {
     storeKey(params: IStoreKey): Promise<boolean>;
+    getKeys(): Promise<ICertificateData[]>;
   }
 }

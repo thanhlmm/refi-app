@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@zendeskgarden/react-buttons";
 import {
   Modal,
@@ -18,9 +18,15 @@ import {
   FileUpload,
 } from "@zendeskgarden/react-forms";
 import { toBase64 } from "@/utils/common";
+import { useSetRecoilState, useRecoilValueLoadable } from "recoil";
+import { certs, certsQueryID } from "@/atoms/cert";
+import { useHistory } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
+  const userCertsLoadable = useRecoilValueLoadable(certs);
+  const reloadCerts = useSetRecoilState(certsQueryID);
   const [notificationError, setNotificationError] = useState<string>("");
+  const history = useHistory();
   const ignoreBackgdropEvent = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => {
@@ -43,8 +49,9 @@ const LoginPage: React.FC = () => {
     }
 
     const fileBase64 = await toBase64(acceptedFiles[0]);
-    console.log(fileBase64);
-    window.send("cert.storeKey", { file: fileBase64, foo: "bar" });
+    window.send("cert.storeKey", { file: fileBase64, foo: "bar" }).then(() => {
+      reloadCerts((val) => val + 1);
+    });
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -60,13 +67,31 @@ const LoginPage: React.FC = () => {
     </Notification>
   );
 
+  const handleOpenConnection = (projectId: string) => {
+    window.send("fs.init", { projectId }).then(() => {
+      history.push(`/${projectId}`);
+    });
+  };
+
+  const listCerts = useMemo(() => {
+    if (userCertsLoadable.state === "hasValue") {
+      console.log(userCertsLoadable.contents);
+
+      return userCertsLoadable.contents.map((cert) => (
+        <Well
+          key={cert.projectId}
+          onDoubleClick={() => handleOpenConnection(cert.projectId)}
+        >
+          <Title>{cert.projectId}</Title>
+          Lorem ipsum
+        </Well>
+      ));
+    }
+  }, [userCertsLoadable.contents]);
+
   return (
     <div>
       {notificationError && ErrorNotify}
-      <p>Some contents...</p>
-      <p>Some contents...</p>
-      <p>Some contents...</p>
-      <Button>Button</Button>
       <Modal
         isAnimated={false}
         isLarge
@@ -75,16 +100,12 @@ const LoginPage: React.FC = () => {
       >
         <Header>Choose your project</Header>
         <Body>
-          <Well>
-            <Title>What is a Garden?</Title>
-            Turnip greens yarrow endive cauliflower sea lettuce kohlrabi
-            amaranth water
-          </Well>
+          {listCerts}
           <FileUpload {...getRootProps()} isDragging={isDragActive}>
             {isDragActive ? (
               <span>Drop files here</span>
             ) : (
-              <span>Choose a file or drag and drop here</span>
+              <span>Choose a certificate file or drag and drop here</span>
             )}
             <Input {...getInputProps()} />
           </FileUpload>

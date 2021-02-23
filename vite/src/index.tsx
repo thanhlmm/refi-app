@@ -5,24 +5,8 @@ import App from "./App";
 import { RecoilRoot } from "recoil";
 import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter } from "react-router-dom";
-import {
-  ThemeProvider,
-  DEFAULT_THEME,
-  IGardenTheme,
-} from "@zendeskgarden/react-theming";
-
-const theme = {
-  ...DEFAULT_THEME,
-  space: {
-    ...DEFAULT_THEME.space,
-    base: 4,
-  },
-  components: {
-    "modals.header": ({ theme }: { theme: IGardenTheme }) => ({
-      padding: `${theme.space.base * 3}px ${theme.space.base * 4}px`,
-    }),
-  },
-};
+import { ThemeProvider } from "@zendeskgarden/react-theming";
+import { theme } from "./styles/theme";
 
 ReactDOM.render(
   <BrowserRouter>
