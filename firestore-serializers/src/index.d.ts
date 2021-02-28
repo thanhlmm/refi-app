@@ -1,30 +1,43 @@
 import firebase from "firebase";
 
+type DocumentData = { [field: string]: any };
+declare class IDocRef {
+    public path: string;
+    public constructor(path: string);
+}
+declare class DocumentSnapshot<T = DocumentData> {
+    readonly ref: IDocRef
+    readonly id: string;
+    data(): T | undefined;
+}
+
+declare class QuerySnapshot<T = DocumentSnapshot> {
+    readonly docs: Array<T>;
+}
+
 declare function serializeDocumentSnapshot(
-    documentSnapshot: firebase.firestore.DocumentSnapshot
+    documentSnapshot: DocumentSnapshot
 ): string;
 
 declare function serializeQuerySnapshot(
-    querySnapshot: firebase.firestore.QuerySnapshot
+    querySnapshot: QuerySnapshot
 ): string;
 
 declare function deserializeDocumentSnapshot<
-    T = firebase.firestore.DocumentData
+    T = DocumentData
 >(
     input: string,
     geoPoint: typeof firebase.firestore.GeoPoint,
-    timestamp: typeof firebase.firestore.Timestamp
-): firebase.firestore.DocumentSnapshot<T>;
+    timestamp: typeof firebase.firestore.Timestamp,
+    firestore?: (path: string) => any
+): DocumentSnapshot<T>;
 
 declare function deserializeDocumentSnapshotArray<
-    T = firebase.firestore.DocumentData
+    T = DocumentData
 >(
     input: string,
     geoPoint: typeof firebase.firestore.GeoPoint,
-    timestamp: typeof firebase.firestore.Timestamp
-): firebase.firestore.DocumentSnapshot<T>[];
+    timestamp: typeof firebase.firestore.Timestamp,
+    firestore?: (path: string) => any
+): DocumentSnapshot<T>[];
 
-declare class IDocRef {
-    public path;
-    public constructor(path: string);
-}

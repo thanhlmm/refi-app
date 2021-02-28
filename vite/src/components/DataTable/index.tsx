@@ -1,7 +1,5 @@
-import { navigatorPath } from "@/atoms/navigator";
-import FieldViewer from "@/components/FieldViewer";
-import { NSFireStore } from "@/types/FS";
-import { getSampleColumn, isCollection, transformFSDoc } from "@/utils/common";
+import { navigatorPathAtom } from "@/atoms/navigator";
+import { getSampleColumn, isCollection } from "@/utils/common";
 import firebase from "firebase";
 import "firebase/firestore";
 import {
@@ -15,9 +13,7 @@ import {
   useExpanded,
   useResizeColumns,
 } from "react-table";
-import { VariableSizeList } from "react-window";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import scrollbarWidth from "./scroll-bar-width";
 
 import {
@@ -31,8 +27,8 @@ import {
   Table,
 } from "@zendeskgarden/react-tables";
 import EditableCell, { ReadOnlyField } from "../EditableCell";
-import { collectionAtom } from "@/atoms/firestore";
-import { DocSnapshot } from "@/types/DocSnapshot";
+import { collectionAtom, storeDocs } from "@/atoms/firestore";
+import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 
 function TableWrapper({
   columns,
@@ -40,15 +36,13 @@ function TableWrapper({
   renderRowSubComponent,
 }: {
   columns: any[];
-  data: any[];
+  data: ClientDocumentSnapshot[];
   renderRowSubComponent: Function;
 }) {
-  // Use the state and functions returned from useTable to build your UI
-
   const defaultColumn = React.useMemo(
     () => ({
       minWidth: 30, // minWidth is only used as a limit for resizing
-      width: 150, // width is used for both the flex-basis and flex-grow
+      width: 100, // width is used for both the flex-basis and flex-grow
       maxWidth: 200, // maxWidth is only used as a limit for resizing
     }),
     []
@@ -61,7 +55,6 @@ function TableWrapper({
     getTableBodyProps,
     headerGroups,
     rows,
-    totalColumnsWidth,
     prepareRow,
   } = useTable(
     {
@@ -87,14 +80,20 @@ function TableWrapper({
             className="tr"
           >
             {row.cells.map((cell) => {
+              const cellProps = cell.getCellProps();
               return (
-                <Cell {...cell.getCellProps()} isTruncated className="td">
+                <Cell
+                  {...cellProps}
+                  key={cellProps.key}
+                  isTruncated
+                  className="td"
+                >
                   {cell.render("Cell")}
                 </Cell>
               );
             })}
           </Row>
-          {row.isExpanded && (
+          {(row as any).isExpanded && (
             <Row className="tr">{renderRowSubComponent({ row })}</Row>
           )}
         </>
@@ -104,55 +103,11 @@ function TableWrapper({
   );
 
   // Render the UI for your table
-  const a = (
-    <Table {...getTableProps()} className="table">
-      <Head>
-        {headerGroups.map((headerGroup: any) => (
-          <HeaderRow {...headerGroup.getHeaderGroupProps()} className="tr">
-            {headerGroup.headers.map((column: any) => (
-              <SortableCell {...column.getHeaderProps()} className="th">
-                {column.render("Header")}
-              </SortableCell>
-            ))}
-          </HeaderRow>
-        ))}
-      </Head>
-
-      <Body {...getTableBodyProps()}>
-        {rows.map((row, index) => {
-          prepareRow(row);
-          return RenderRow({ index });
-        })}
-        {/* <VariableSizeList
-          height={600}
-          itemCount={rows.length}
-          // itemSize={getItemSize}
-          itemSize={() => 35}
-          width="100%"
-        >
-          {RenderRow}
-        </VariableSizeList> */}
-        {/* <AutoSizer>
-          {({ height, width }) => (
-            <VariableSizeList
-              height={height}
-              itemCount={rows.length}
-              // itemSize={getItemSize}
-              itemSize={() => 35}
-              width={width}
-            >
-              {RenderRow}
-            </VariableSizeList>
-          )}
-        </AutoSizer> */}
-      </Body>
-    </Table>
-  );
-
   return (
     <Table {...getTableProps()} size="small" className="table">
       <Head>
         {headerGroups.map((headerGroup) => (
+          // eslint-disable-next-line react/jsx-key
           <HeaderRow
             {...headerGroup.getHeaderGroupProps({
               // style: { paddingRight: '15px' },
@@ -160,17 +115,19 @@ function TableWrapper({
             className="tr"
           >
             {headerGroup.headers.map((column) => (
+              // eslint-disable-next-line react/jsx-key
               <HeaderCell {...column.getHeaderProps()} className="th">
                 {column.render("Header")}
+                {/* TODO: Integrate column resize */}
                 {/* Use column.getResizerProps to hook up the events correctly */}
-                {column.canResize && (
+                {/* {column.canResize && (
                   <div
                     {...column.getResizerProps()}
                     className={`resizer ${
                       column.isResizing ? "isResizing" : ""
                     }`}
                   />
-                )}
+                )} */}
               </HeaderCell>
             ))}
           </HeaderRow>
@@ -184,13 +141,14 @@ function TableWrapper({
               <Row {...row.getRowProps()} className="tr">
                 {row.cells.map((cell) => {
                   return (
+                    // eslint-disable-next-line react/jsx-key
                     <Cell {...cell.getCellProps()} className="td">
                       {cell.render("Cell")}
                     </Cell>
                   );
                 })}
               </Row>
-              {row.isExpanded && (
+              {(row as any).isExpanded && (
                 <Row className="tr">{renderRowSubComponent({ row })}</Row>
               )}
             </>
@@ -202,9 +160,10 @@ function TableWrapper({
 }
 
 function DataTable() {
-  const [path, setPath] = useRecoilState(navigatorPath);
-  const [data, setData] = useRecoilState(collectionAtom(path));
-  const [columns, setColumns] = useState<any[]>([]);
+  const [path, setPath] = useRecoilState(navigatorPathAtom);
+  const data = useRecoilValue(collectionAtom(path));
+  const [columns, setColumns] = useState<any[]>([]); // Let user decision which columns to keep
+  console.log({ data });
 
   const columnViewer = React.useMemo(() => {
     switch (true) {
@@ -217,31 +176,24 @@ function DataTable() {
           .map((key) => ({
             Header: key,
             accessor: key,
-            Cell: ({
-              row,
-              value,
-              column,
-            }: {
-              row: any;
-              value: any;
-              column: any;
-            }) => {
+            Cell: ({ row, column }: { row: any; column: any }) => {
               return <EditableCell row={row.original} column={column} />;
             },
           }));
 
         return [
           {
-            // Make an expander cell
-            Header: () => "_id", // No header
-            id: "__id", // It needs an ID
+            Header: () => "_id",
+            id: "__id",
             accessor: "id",
-            Cell: ({ value }) => <ReadOnlyField value={value} />,
+            Cell: ({ value }: { value: any }) => (
+              <ReadOnlyField value={value} />
+            ),
           },
           {
             Header: () => null,
             id: "expander",
-            Cell: ({ row }) => (
+            Cell: ({ row }: { row: any }) => (
               <span {...row.getToggleRowExpandedProps()}>
                 {row.isExpanded ? "👇" : "👉"}
               </span>
@@ -255,7 +207,7 @@ function DataTable() {
       default:
         return [];
     }
-  }, [data]);
+  }, [data.length, path]);
 
   useEffect(() => {
     const topicKey = `${path}.table`;
@@ -268,14 +220,14 @@ function DataTable() {
           firebase.firestore.Timestamp
         );
 
-        setData(DocSnapshot.transformFromFirebase(data));
+        storeDocs(ClientDocumentSnapshot.transformFromFirebase(data));
       } else {
         const data = deserializeDocumentSnapshot(
           response,
           firebase.firestore.GeoPoint,
           firebase.firestore.Timestamp
         );
-        setData(DocSnapshot.transformFromFirebase([data]));
+        storeDocs(ClientDocumentSnapshot.transformFromFirebase([data]));
       }
     });
     const handler = isCollectionType
@@ -305,7 +257,9 @@ function DataTable() {
           fontSize: "10px",
         }}
       >
-        <code>{JSON.stringify({ values: row.values }, null, 2)}</code>
+        <code>
+          {JSON.stringify({ values: row?.original?.data() }, null, 2)}
+        </code>
       </pre>
     ),
     []

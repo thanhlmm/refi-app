@@ -1,15 +1,17 @@
-import React, { useEffect } from "react";
+import React, { ReactElement, useEffect } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 import Main from "./main";
 import PathInput from "@/components/PathInput";
 import TreeView from "@/components/TreeView";
 
-import "react-grid-layout/css/styles.css";
 import { useParams } from "react-router-dom";
+import NavBar from "@/components/NavBar";
+import Background from "./background";
+import Property from "@/components/Property";
 
 const ReactGridLayout = WidthProvider(RGL);
 
-function MainLayout() {
+function MainLayout(): ReactElement {
   const { projectId } = useParams() as any;
   const layout = [
     { i: "nav-bar", x: 0, y: 0, w: 12, h: 1 },
@@ -25,27 +27,32 @@ function MainLayout() {
   }, []);
 
   return (
-    <ReactGridLayout
-      className="layout"
-      layout={layout}
-      cols={12}
-      rowHeight={64}
-      autoSize={true}
-      margin={[16, 16]}
-      isDraggable={false}
-      isResizable={false}
-    >
-      <div key="nav-bar">
-        <PathInput />
-      </div>
-      <div key="sidebar">
-        <TreeView />
-      </div>
-      <div key="main">
-        <Main />
-      </div>
-      <div key="property">Property</div>
-    </ReactGridLayout>
+    <div>
+      <ReactGridLayout
+        className="transition-none layout"
+        layout={layout}
+        cols={12}
+        rowHeight={64}
+        autoSize={true}
+        margin={[16, 16]}
+        isDraggable={false}
+        isResizable={false}
+      >
+        <div key="nav-bar">
+          <NavBar />
+        </div>
+        <div key="sidebar">
+          <TreeView />
+        </div>
+        <div key="main">
+          <Main />
+        </div>
+        <div key="property">
+          <Property />
+        </div>
+      </ReactGridLayout>
+      <Background />
+    </div>
   );
 }
 

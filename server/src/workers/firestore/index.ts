@@ -2,8 +2,7 @@ import * as admin from "firebase-admin";
 import { IServiceContext } from "../service";
 import { getDocMetaData } from "../../utils/converter";
 import uuid from 'uuid';
-import { serializeDocumentSnapshot, serializeQuerySnapshot } from "firestore-serializers";
-
+import { deserializeDocumentSnapshotArray, serializeDocumentSnapshot, serializeQuerySnapshot } from "firestore-serializers";
 
 export default class FireStoreService implements NSFireStore.IService {
   private ctx: IServiceContext;
@@ -89,7 +88,11 @@ export default class FireStoreService implements NSFireStore.IService {
       .collection(path)
       .onSnapshot(
         async (querySnapshot) => {
-          const data = serializeQuerySnapshot(querySnapshot as any);
+          const data = serializeQuerySnapshot({
+            docs: querySnapshot.docChanges().map(changes => changes.doc)
+          })
+          // TODO: How about hte case when we remove some things
+          console.log({ data });
 
           this.ctx.ipc.send(topic, data, { firestore: true });
         },
@@ -134,6 +137,25 @@ export default class FireStoreService implements NSFireStore.IService {
     this.listListeners.push(listenerData);
 
     return { id: listenerData.id };
+  };
+
+  public async updateDocs({ docs }: NSFireStore.IUpdateDocs): Promise<boolean> {
+    const fs = this.fsClient();
+    const docsSnapshot = deserializeDocumentSnapshotArray(docs, admin.firestore.GeoPoint, admin.firestore.Timestamp, path => fs.doc(path))
+    try {
+      await fs.runTransaction(async (tx) => {
+        docsSnapshot.forEach(docSnapshot => {
+          console.log(docSnapshot.data());
+          tx.set(fs.doc(docSnapshot.ref.path), docSnapshot.data())
+        })
+      });
+
+      console.log('Transaction success!');
+    } catch (e) {
+      console.log('Transaction failure:', e);
+      throw e;
+    }
+    return true;
   };
 
   public async unsubscribe({ id }: NSFireStore.IListenerKey) {

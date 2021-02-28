@@ -1,4 +1,4 @@
-require('source-map-support').install();
+// require('source-map-support').install();
 process.on('unhandledRejection', console.log);
 
 import serverHandlers from './server-handlers';

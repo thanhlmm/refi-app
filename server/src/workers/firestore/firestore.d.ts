@@ -28,13 +28,16 @@ declare namespace NSFireStore {
     projectId: string;
   }
 
-
+  interface IUpdateDocs {
+    docs: string;
+  }
 
   interface IService {
     init(params: NSFireStore.IFSInit): Promise<boolean>;
     subscribeDoc(params: NSFireStore.IDocSubscribe): Promise<IListenerKey>;
     subscribeCollection(params: NSFireStore.ICollectionSubscribe): Promise<IListenerKey>;
     subscribePathExplorer(params: NSFireStore.IPathSubscribe): Promise<IListenerKey>;
+    updateDocs({ docs }: NSFireStore.IUpdateDocs): Promise<boolean>;
     unsubscribe(params: IListenerKey): Promise<boolean>;
   }
 }

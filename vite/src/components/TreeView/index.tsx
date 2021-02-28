@@ -3,7 +3,8 @@ import * as immutable from "object-path-immutable";
 import Tree from "rc-tree";
 import "rc-tree/assets/index.css";
 import { useRecoilState, useResetRecoilState } from "recoil";
-import { navigatorPath } from "@/atoms/navigator";
+import { navigatorPathAtom } from "@/atoms/navigator";
+import { Input } from "@zendeskgarden/react-forms";
 
 interface TreeNode {
   key: string;
@@ -36,7 +37,7 @@ function buildTree(
 }
 
 function TreeView() {
-  const [path, setPath] = useRecoilState(navigatorPath);
+  const [path, setPath] = useRecoilState(navigatorPathAtom);
   const [data, setData] = useState<TreeNode[]>([]);
   const structTree = useRef({});
 
@@ -96,6 +97,7 @@ function TreeView() {
 
   return (
     <div>
+      <Input placeholder="Search for item..." isCompact />
       <Tree showLine treeData={data} onSelect={handleSelectTree} height={500} />
     </div>
   );

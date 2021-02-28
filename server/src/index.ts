@@ -1,8 +1,12 @@
-require('source-map-support').install();
+import installExtension, { REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
+
+import isDev from "electron-is-dev";
+if (isDev) {
+  require('source-map-support').install();
+}
 process.on('unhandledRejection', console.log);
 
 import { app, BrowserWindow } from 'electron';
-import isDev from "electron-is-dev";
 import { fork } from "child_process";
 import * as path from 'path';
 import fs from 'fs';
@@ -31,9 +35,9 @@ const createWindow = (socketName: string): void => {
 
   // and load the index.html of the app.
   mainWindow.loadURL(
-    true
+    isDev
       ? "http://localhost:3000"
-      : `file://${path.join(__dirname, "./build/index.html")}` // TODO: Map to right path
+      : `file://${path.join(__dirname, "../build/index.html")}` // TODO: Map to right path
   );
 
   // Open the DevTools.
@@ -91,8 +95,14 @@ app.whenReady().then(async () => {
   bootstrap();
   serverSocket = serverSocket || (await findOpenSocket());
   createWindow(serverSocket);
-
   createBackgroundProcess(serverSocket);
+
+  installExtension(REDUX_DEVTOOLS)
+    .then((name) => console.log(`Added Extension:  ${name}`))
+    .catch((err) => console.log('An error occurred: ', err));
+  installExtension(REACT_DEVELOPER_TOOLS)
+    .then((name) => console.log(`Added Extension:  ${name}`))
+    .catch((err) => console.log('An error occurred: ', err));
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common
