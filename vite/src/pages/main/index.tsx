@@ -8,6 +8,8 @@ import { useParams } from "react-router-dom";
 import NavBar from "@/components/NavBar";
 import Background from "./background";
 import Property from "@/components/Property";
+import { useSetRecoilState } from "recoil";
+import { actionAddPathExpander, pathExpanderAtom } from "@/atoms/firestore";
 
 const ReactGridLayout = WidthProvider(RGL);
 
@@ -21,8 +23,9 @@ function MainLayout(): ReactElement {
   ];
 
   useEffect(() => {
-    window.send("fs.init", { projectId }).then(() => {
-      console.log("inited");
+    window.send("fs.init", { projectId }).then((response: string[]) => {
+      console.log("Inited fs");
+      actionAddPathExpander(response);
     });
   }, []);
 

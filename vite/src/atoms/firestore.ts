@@ -5,9 +5,15 @@ import {
   getRecoilExternalLoadable,
   setRecoilExternalState,
 } from "./RecoilExternalStatePortal";
-import { getParentPath } from "@/utils/common";
-import { serializeQuerySnapshot } from "firestore-serializers";
+import { getParentPath, prettifyPath } from "@/utils/common";
+import {
+  deserializeDocumentSnapshotArray,
+  serializeQuerySnapshot,
+} from "firestore-serializers";
 import { useCallback } from "react";
+import firebase from "firebase";
+import "firebase/firestore";
+import { uniq } from "lodash";
 
 type IFireStorePath = string;
 interface IPathDetail {
@@ -71,6 +77,18 @@ export const collectionAtom = selectorFamily<
     const docsLibrary = get(docsLibraryAtom);
     return docsLibrary
       .filter((docPath) => getParentPath(docPath) === path)
+      .map((docPath) => get(docAtom(docPath)))
+      .filter(
+        (docValue): docValue is ClientDocumentSnapshot => docValue !== null
+      );
+  },
+});
+
+export const allDocsAtom = selector<ClientDocumentSnapshot[]>({
+  key: "FireStore_all_docs",
+  get: ({ get }) => {
+    const docsLibrary = get(docsLibraryAtom);
+    return docsLibrary
       .map((docPath) => get(docAtom(docPath)))
       .filter(
         (docValue): docValue is ClientDocumentSnapshot => docValue !== null
@@ -150,3 +168,38 @@ export const useActionCommitChange = (deps: React.DependencyList = []) =>
   useCallback(() => {
     actionCommitChange();
   }, [deps]);
+
+export const actionReverseChange = async (): Promise<any> => {
+  const docsChange = await getRecoilExternalLoadable(
+    changedDocAtom
+  ).toPromise();
+
+  return window
+    .send("fs.getDocs", {
+      docs: docsChange.map((doc) => doc.ref.path),
+    })
+    .then((response) => {
+      const data = deserializeDocumentSnapshotArray(
+        response,
+        firebase.firestore.GeoPoint,
+        firebase.firestore.Timestamp
+      );
+      storeDocs(ClientDocumentSnapshot.transformFromFirebase(data));
+    });
+};
+
+export const useActionReverseChange = (deps: React.DependencyList = []) =>
+  useCallback(() => {
+    actionReverseChange();
+  }, [deps]);
+
+export const pathExpanderAtom = atom<string[]>({
+  key: "FireStore_path_expander",
+  default: [],
+});
+
+export const actionAddPathExpander = (paths: string[]) => {
+  setRecoilExternalState(pathExpanderAtom, (currentValue) =>
+    uniq([...currentValue, ...paths.map((path) => prettifyPath(path))])
+  );
+};

@@ -32,12 +32,22 @@ declare namespace NSFireStore {
     docs: string;
   }
 
+  interface IGetDocs {
+    docs: string[];
+  }
+
+  interface IPathExpander {
+    path: string;
+  }
+
   interface IService {
-    init(params: NSFireStore.IFSInit): Promise<boolean>;
+    init(params: NSFireStore.IFSInit): Promise<string[]>;
     subscribeDoc(params: NSFireStore.IDocSubscribe): Promise<IListenerKey>;
     subscribeCollection(params: NSFireStore.ICollectionSubscribe): Promise<IListenerKey>;
     subscribePathExplorer(params: NSFireStore.IPathSubscribe): Promise<IListenerKey>;
     updateDocs({ docs }: NSFireStore.IUpdateDocs): Promise<boolean>;
+    getDocs(params: NSFireStore.IGetDocs): Promise<string>;
     unsubscribe(params: IListenerKey): Promise<boolean>;
+    pathExpander(params: NSFireStore.IPathExpander): Promise<string[]>;
   }
 }

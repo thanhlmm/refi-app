@@ -1,24 +1,21 @@
 import { Button } from "@zendeskgarden/react-buttons";
 import React, { useCallback } from "react";
 import PathInput from "@/components/PathInput";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { isShowPreviewChangeModal } from "@/atoms/ui";
 import {
   actionCommitChange,
   changedDocAtom,
   useActionCommitChange,
+  useActionReverseChange,
 } from "@/atoms/firestore";
 
 const NavBar = () => {
-  const [isShowChangeModal, setShowChangeModal] = useRecoilState(
-    isShowPreviewChangeModal
-  );
-
+  const setShowChangeModal = useSetRecoilState(isShowPreviewChangeModal);
   const changedDocs = useRecoilValue(changedDocAtom);
-
   const actable = changedDocs.length > 0;
-
   const handleCommit = useActionCommitChange();
+  const handleReverse = useActionReverseChange();
 
   return (
     <div className="flex flex-row space-x-3">
@@ -39,7 +36,7 @@ const NavBar = () => {
           Commit
         </Button>
         {/* // TODO: Cmd + S */}
-        <Button size="small" disabled={!actable}>
+        <Button size="small" disabled={!actable} onClick={handleReverse}>
           <div className="w-5">
             <svg
               xmlns="http://www.w3.org/2000/svg"

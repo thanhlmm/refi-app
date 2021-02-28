@@ -19,7 +19,7 @@ export const prettifyPath = (path: string): string => {
   return prettiedPath;
 };
 
-export const getPathEntites = (path: string): string[] => {
+export const getPathEntities = (path: string): string[] => {
   const entities = prettifyPath(path).split("/");
   return entities.filter((entity) => entity !== "");
 };
@@ -29,6 +29,30 @@ export const getParentPath = (url: string) => {
   entities.pop();
 
   return prettifyPath(entities.join("/"));
+};
+
+export const getAllCollectionsPath = (url: string) => {
+  const collections = prettifyPath(url)
+    .split("/")
+    .reduce((prev: string[], current: string) => {
+      const lastPath = prev[prev.length - 1];
+      return [...prev, [lastPath, current].join("/").replace("//", "/")];
+    }, [])
+    .filter((collection, index) => index % 2);
+  return ["/", ...collections];
+};
+
+export const getListCollections = (
+  path: string,
+  availablePaths: string[]
+): string[] => {
+  const normalPath = prettifyPath(path);
+  return availablePaths.filter(
+    (availablePath) =>
+      availablePath.startsWith(normalPath) &&
+      getPathEntities(normalPath).length + 1 ===
+        getPathEntities(availablePath).length
+  );
 };
 
 export const toBase64 = (file: File): Promise<string | ArrayBuffer | null> =>

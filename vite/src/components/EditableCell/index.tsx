@@ -1,4 +1,10 @@
-import React, { ReactElement, ReactNode, useEffect, useState } from "react";
+import React, {
+  ReactElement,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Input } from "@zendeskgarden/react-forms";
 import { useRecoilState, useRecoilValue } from "recoil";
 import {
@@ -9,6 +15,7 @@ import {
 } from "@/atoms/firestore";
 import classNames from "classnames";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import { useClickAway } from "ahooks";
 
 interface IReadonlyCell {
   value?: string;
@@ -20,18 +27,23 @@ interface IEditableCell {
   column: {
     id: string;
   };
+  tabIndex: number;
 }
 
 const EditableCell = ({
   row,
   column: { id },
+  tabIndex,
 }: IEditableCell): React.ReactElement => {
   const fieldPath = buildFSUrl({ path: row.ref.path, field: id });
   const [value, setValue] = useRecoilState(fieldAtom(fieldPath));
   const isFieldChanged = useRecoilValue(fieldChangedAtom(fieldPath));
   const [isFocus, setFocus] = useState(false);
+  const [isEditable, setEditable] = useState(false);
   const [instanceValue, setInstanceValue] = useState(value);
   const [isHighlight, toggleHighlight] = useState(false);
+  const wrapperEl = useRef(null);
+  const inputEl = useRef<HTMLInputElement>(null);
 
   const onChange = (e) => {
     setInstanceValue(e.target.value);
@@ -54,7 +66,8 @@ const EditableCell = ({
   // Sync the external into instanceValue
   useEffect(() => {
     if (value !== instanceValue) {
-      setInstanceValue(value);
+      // TODO: Check if value return is null, 0, ""
+      setInstanceValue(value || "");
       toggleHight();
     }
   }, [value]);
@@ -63,28 +76,39 @@ const EditableCell = ({
     setFocus(true);
   };
 
-  if (!isFocus) {
-    return (
-      <div className="w-full h-full px-px">
-        <input
-          className={classNames(
-            "focus:ring-1 focus:ring-blue-400 w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5",
-            {
-              ["bg-red-300"]: isFieldChanged,
-              ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
-            }
-          )}
-          value={instanceValue}
-          onChange={onChange}
-          onBlur={onBlur}
-        />
-      </div>
-    );
-  }
+  useClickAway(() => {
+    setFocus(false);
+  }, wrapperEl);
+
+  const handleKeyDownCapture = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // TODO: Capture copy command here
+    inputEl.current?.focus();
+  };
 
   return (
-    <div onClick={onFocus} className="w-full h-full px-px">
-      {instanceValue}
+    <div
+      className="w-full h-full outline-none"
+      onClick={() => setFocus(true)}
+      onFocus={() => setFocus(true)}
+      onBlur={() => setFocus(false)}
+      onKeyDownCapture={handleKeyDownCapture}
+      ref={wrapperEl}
+      tabIndex={tabIndex}
+    >
+      <input
+        ref={inputEl}
+        className={classNames(
+          "w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5",
+          {
+            ["bg-red-300"]: isFieldChanged,
+            ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
+            ["ring-1 ring-blue-400 bg-blue-100 ring-inset"]: isFocus,
+          }
+        )}
+        value={instanceValue}
+        onChange={onChange}
+        onBlur={onBlur}
+      />
     </div>
   );
 };
@@ -98,6 +122,7 @@ export const ReadOnlyField = ({ value, children }: IReadonlyCell) => {
       <input
         className="focus:ring-1 focus:ring-blue-400 w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5"
         value={value}
+        readOnly
       />
     </div>
   );
@@ -109,6 +134,8 @@ export const IDField = ({ value }: { value: string }) => {
       <input
         className="focus:ring-1 focus:ring-blue-400 w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5"
         value={value}
+        readOnly
+        disabled
       />
 
       <div className="absolute w-3 transform -translate-y-1/2 cursor-pointer right-2 top-1/2">

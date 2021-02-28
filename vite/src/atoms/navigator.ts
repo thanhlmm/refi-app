@@ -6,7 +6,7 @@ import produce from "immer";
 
 export const navigatorPathAtom = atom({
   key: "navigator.path",
-  default: "/users/Yx41lxY7FleBekLSHZAC/friends/3leZCKrEKUelBP3EEKAw",
+  default: "/",
 });
 
 export const filtersOptions = [

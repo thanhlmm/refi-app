@@ -1,8 +1,9 @@
 import * as admin from "firebase-admin";
 import { IServiceContext } from "../service";
 import { getDocMetaData } from "../../utils/converter";
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { deserializeDocumentSnapshotArray, serializeDocumentSnapshot, serializeQuerySnapshot } from "firestore-serializers";
+import { isCollection } from "../../utils/navigator";
 
 export default class FireStoreService implements NSFireStore.IService {
   private ctx: IServiceContext;
@@ -29,10 +30,11 @@ export default class FireStoreService implements NSFireStore.IService {
     return admin.firestore(this.app)
   }
 
-  public async init({ projectId }: NSFireStore.IFSInit) {
+  public async init({ projectId }: NSFireStore.IFSInit) : Promise<string[]> {
     if (this.app?.name === projectId) {
       console.log(`${projectId} already initiated`);
-      return;
+      const collections = await this.fsClient().listCollections();
+      return collections.map(collection => collection.path)
     }
 
     const cert = this.ctx.localDB.get('keys').find({ projectId }).value();
@@ -42,8 +44,8 @@ export default class FireStoreService implements NSFireStore.IService {
     }, projectId);
 
     console.log("Initiated firebase app");
-    return true;
-
+    const collections = await this.fsClient().listCollections();
+    return collections.map(collection => collection.path)
   }
 
   public async subscribeDoc({ path, topic }: NSFireStore.IDocSubscribe) {
@@ -73,7 +75,7 @@ export default class FireStoreService implements NSFireStore.IService {
       );
 
     const listenerData = {
-      id: uuid.v4(),
+      id: uuidv4(),
       topic,
       close,
     };
@@ -83,7 +85,7 @@ export default class FireStoreService implements NSFireStore.IService {
   }
 
   public async subscribeCollection({ path, topic }: NSFireStore.ICollectionSubscribe) {
-    console.log("received event fs.query.subscribe", { path, topic });
+    console.log("received event fs.queryCollection.subscribe", { path, topic });
     const close = this.fsClient()
       .collection(path)
       .onSnapshot(
@@ -102,7 +104,7 @@ export default class FireStoreService implements NSFireStore.IService {
       );
 
     const listenerData = {
-      id: uuid.v4(),
+      id: uuidv4(),
       topic,
       close,
     };
@@ -130,7 +132,7 @@ export default class FireStoreService implements NSFireStore.IService {
       );
 
     const listenerData = {
-      id: uuid.v4(),
+      id: uuidv4(),
       topic,
       close,
     };
@@ -168,4 +170,30 @@ export default class FireStoreService implements NSFireStore.IService {
     console.log("Success unsubscribe this stream");
     return true;
   };
+
+  public async getDocs({ docs }: NSFireStore.IGetDocs): Promise<string> {
+    const fs = this.fsClient();
+    const docsSnapshot = await Promise.all(docs.map(doc => fs.doc(doc).get()))
+    return serializeQuerySnapshot({
+      docs: docsSnapshot
+    });
+  };
+
+  public async getDocsByCollection({ path }: { path: string }): Promise<string> {
+    const fs = this.fsClient();
+    const docsSnapshot = await fs.collection(path).get()
+    return serializeQuerySnapshot(docsSnapshot);
+  };
+
+  public async pathExpander({ path }: { path: string }): Promise<string[]> {
+    const fs = this.fsClient();
+    const isCollectionPath = isCollection(path);
+    if (isCollection) {
+      const docsSnapshot = await fs.collection(path).get()
+      return docsSnapshot.docs.map(doc => doc.ref.path);
+    }
+
+    const listCollections = await fs.doc(path).listCollections();
+    return listCollections.map(collection => collection.path);
+  }
 }

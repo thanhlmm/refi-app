@@ -163,21 +163,25 @@ function DataTable() {
   const [path, setPath] = useRecoilState(navigatorPathAtom);
   const data = useRecoilValue(collectionAtom(path));
   const [columns, setColumns] = useState<any[]>([]); // Let user decision which columns to keep
-  console.log({ data });
 
   const columnViewer = React.useMemo(() => {
     switch (true) {
       case data.length > 1:
         const sampleColumns = getSampleColumn(data);
-        console.log({ data, sampleColumns });
 
         const docColumns = sampleColumns
           .sort((a, b) => a.localeCompare(b))
-          .map((key) => ({
+          .map((key, index) => ({
             Header: key,
             accessor: key,
             Cell: ({ row, column }: { row: any; column: any }) => {
-              return <EditableCell row={row.original} column={column} />;
+              return (
+                <EditableCell
+                  row={row.original}
+                  column={column}
+                  tabIndex={row.index * row.cells.length + index}
+                />
+              );
             },
           }));
 
@@ -210,6 +214,11 @@ function DataTable() {
   }, [data.length, path]);
 
   useEffect(() => {
+    if (path === "/") {
+      // TODO: Show empty state for choosing collection on the left side
+      return;
+    }
+
     const topicKey = `${path}.table`;
     const isCollectionType = isCollection(path);
     const listener = window.listen(topicKey, (response: string) => {
@@ -233,12 +242,10 @@ function DataTable() {
     const handler = isCollectionType
       ? "fs.queryCollection.subscribe"
       : "fs.queryDoc.subscribe";
-    const id = window
-      .send(handler, {
-        topic: topicKey,
-        path,
-      })
-      .then((a) => console.log(a));
+    const id = window.send(handler, {
+      topic: topicKey,
+      path,
+    });
 
     return () => {
       listener();
@@ -266,11 +273,13 @@ function DataTable() {
   );
 
   return (
-    <TableWrapper
-      columns={columnViewer}
-      data={data}
-      renderRowSubComponent={renderRowSubComponent}
-    />
+    <div className="overflow-auto">
+      <TableWrapper
+        columns={columnViewer}
+        data={data}
+        renderRowSubComponent={renderRowSubComponent}
+      />
+    </div>
   );
 }
 

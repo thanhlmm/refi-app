@@ -6,17 +6,10 @@ import {
   Body,
   Footer,
   FooterItem,
-  Close,
 } from "@zendeskgarden/react-modals";
 import { Well, Title, Notification } from "@zendeskgarden/react-notifications";
 import { useDropzone } from "react-dropzone";
-import {
-  Field,
-  Label,
-  Hint,
-  Input,
-  FileUpload,
-} from "@zendeskgarden/react-forms";
+import { Input, FileUpload } from "@zendeskgarden/react-forms";
 import { toBase64 } from "@/utils/common";
 import { useSetRecoilState, useRecoilValueLoadable } from "recoil";
 import { certs, certsQueryID } from "@/atoms/cert";
@@ -68,9 +61,7 @@ const LoginPage: React.FC = () => {
   );
 
   const handleOpenConnection = (projectId: string) => {
-    window.send("fs.init", { projectId }).then(() => {
-      history.push(`/${projectId}`);
-    });
+    history.push(`/${projectId}`);
   };
 
   const listCerts = useMemo(() => {
@@ -81,6 +72,7 @@ const LoginPage: React.FC = () => {
         <Well
           key={cert.projectId}
           onDoubleClick={() => handleOpenConnection(cert.projectId)}
+          className="cursor-pointer"
         >
           <Title>{cert.projectId}</Title>
           Lorem ipsum

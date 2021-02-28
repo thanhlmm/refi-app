@@ -42,7 +42,7 @@ const createWindow = (socketName: string): void => {
 
   // Open the DevTools.
   if (isDev) {
-    mainWindow.webContents.openDevTools({ mode: "detach" });
+    mainWindow.webContents.openDevTools();
   }
 
   mainWindow.webContents.on("did-finish-load", () => {

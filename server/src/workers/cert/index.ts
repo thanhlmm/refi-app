@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
+
 import { IServiceContext } from "../service";
 
 export default class CertService implements NSCert.IService {
@@ -20,7 +21,7 @@ export default class CertService implements NSCert.IService {
     const base64data = file.split(';base64,').pop();
     // TODO: Return error if cert is already existed
 
-    const keyPath = path.join(this.ctx.userDataPath, 'Keys', `${uuid.v4()}.json`);
+    const keyPath = path.join(this.ctx.userDataPath, 'Keys', `${uuidv4()}.json`);
     fs.writeFileSync(keyPath, base64data, { encoding: 'base64' });
     const cert = CertService.parseCertificateFile(keyPath);
     this.ctx.localDB.get('keys')

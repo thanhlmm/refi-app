@@ -6,7 +6,7 @@ import { Input } from "@zendeskgarden/react-forms";
 import { Tooltip } from "@zendeskgarden/react-tooltips";
 import { Breadcrumb } from "@zendeskgarden/react-breadcrumbs";
 import { Anchor } from "@zendeskgarden/react-buttons";
-import { getPathEntites } from "@/utils/common";
+import { getPathEntities } from "@/utils/common";
 import { Span } from "@zendeskgarden/react-typography";
 
 function PathInput() {
@@ -36,7 +36,7 @@ function PathInput() {
   }, [isViewMode]);
 
   const PathViewer = useMemo(() => {
-    const entities = getPathEntites(path);
+    const entities = getPathEntities(path);
     const currentEntity = entities.pop();
     return (
       <Breadcrumb
