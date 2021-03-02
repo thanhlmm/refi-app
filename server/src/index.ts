@@ -24,6 +24,7 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 const createWindow = (socketName: string): void => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
+    show: false,
     width: 1000,
     height: 800,
     backgroundColor: "#fff",
@@ -32,6 +33,9 @@ const createWindow = (socketName: string): void => {
       preload: __dirname + "/client-preload.js",
     },
   });
+
+  mainWindow.maximize();
+  mainWindow.show();
 
   // and load the index.html of the app.
   mainWindow.loadURL(
@@ -42,7 +46,7 @@ const createWindow = (socketName: string): void => {
 
   // Open the DevTools.
   if (isDev) {
-    mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools({ mode: 'bottom' });
   }
 
   mainWindow.webContents.on("did-finish-load", () => {

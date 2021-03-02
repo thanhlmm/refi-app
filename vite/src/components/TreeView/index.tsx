@@ -126,7 +126,7 @@ function TreeView() {
   const allDocs = useRecoilValue(allDocsAtom);
   const pathAvailable = useRecoilValue(pathExpanderAtom);
   const [searchInput, setSearchInput] = useState("");
-  const structTree = useRef({});
+  const treeWrapperRef = useRef<HTMLDivElement>(null);
 
   const constructData = (paths: string[]) => {
     const newObject = immutable.wrap({});
@@ -167,6 +167,11 @@ function TreeView() {
     return constructData(allPaths);
   }, [allDocs, pathAvailable, searchInput]);
 
+  const handleOnFocus = () => {
+    // TODO: Handle select active node when user select a node for keyboard interactive
+    treeWrapperRef?.current?.querySelector("input")?.focus();
+  };
+
   return (
     <div>
       <Input
@@ -175,13 +180,21 @@ function TreeView() {
         value={searchInput}
         onChange={(e) => setSearchInput(e.target.value)}
       />
-      <div className="mt-2">
+      <div
+        className="mt-2"
+        tabIndex={1}
+        ref={treeWrapperRef}
+        onFocus={handleOnFocus}
+      >
         <Tree
+          tabIndex={2}
           showLine
           treeData={treeData}
           onSelect={handleSelectTree}
           height={500}
           loadData={handleExpandData}
+          virtual
+          focusable
         />
       </div>
     </div>

@@ -41,3 +41,13 @@ declare function deserializeDocumentSnapshotArray<
     firestore?: (path: string) => any
 ): DocumentSnapshot<T>[];
 
+
+declare function itemIsInternalDocumentReference(item: any): item is IDocRef
+
+declare function itemIsFSDocumentReference(item: any): item is firebase.firestore.DocumentReference
+
+declare function itemIsDocumentReference(item: any): item is firebase.firestore.DocumentReference | IDocRef
+
+declare function itemIsGeoPoint(item: any): item is firebase.firestore.GeoPoint
+
+declare function itemIsTimestamp(item: any): item is firebase.firestore.Timestamp

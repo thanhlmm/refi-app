@@ -6,7 +6,11 @@ module.exports = {
       sans: ["Inter", "sans-serif"],
     },
   },
-  variants: {},
+  variants: {
+    extend: {
+      borderWidth: ["last"],
+    },
+  },
   plugins: [require("@tailwindcss/typography"), require("@tailwindcss/forms")],
   purge: {
     // Filenames to scan for classes

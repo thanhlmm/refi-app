@@ -117,12 +117,43 @@ export const fieldAtom = selectorFamily<unknown, string>({
         doc.id,
         path
       );
-      console.log(newDoc);
       newDoc.addChange([...doc.changedFields(), field]);
       set(docAtom(path), newDoc);
     }
   },
 });
+
+export const actionUpdateFieldKey = async (
+  oldPath: string,
+  newField: string
+): Promise<void> => {
+  const { path, field: oldField } = parseFSUrl(oldPath);
+  const curDocAtom = docAtom(path);
+  const doc = await getRecoilExternalLoadable(curDocAtom).toPromise();
+  if (doc) {
+    const docData = immutable.wrap(doc.data());
+    const oldFieldData = immutable.get(doc.data(), oldField);
+    const newData = docData.del(oldField).set(newField, oldFieldData);
+
+    const newDoc = new ClientDocumentSnapshot(newData.value(), doc.id, path);
+    newDoc.addChange([...doc.changedFields(), oldField, newField]);
+    setRecoilExternalState(docAtom(path), newDoc);
+  }
+};
+
+export const actionRemoveFieldKey = async (oldPath: string): Promise<void> => {
+  const { path, field: oldField } = parseFSUrl(oldPath);
+  const curDocAtom = docAtom(path);
+  const doc = await getRecoilExternalLoadable(curDocAtom).toPromise();
+  if (doc) {
+    const docData = immutable.wrap(doc.data());
+    const newData = docData.del(oldField);
+
+    const newDoc = new ClientDocumentSnapshot(newData.value(), doc.id, path);
+    newDoc.addChange([...doc.changedFields(), oldField]);
+    setRecoilExternalState(docAtom(path), newDoc);
+  }
+};
 
 export const fieldChangedAtom = selectorFamily<boolean, string>({
   key: "FireStore_doc_field",

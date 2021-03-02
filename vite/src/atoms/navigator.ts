@@ -1,12 +1,33 @@
 import { atom, selector, selectorFamily } from "recoil";
 import * as immutable from "object-path-immutable";
 import { collectionAtom } from "./firestore";
-import { getAllColumns } from "@/utils/common";
+import { getAllColumns, getParentPath, isCollection } from "@/utils/common";
 import produce from "immer";
 
-export const navigatorPathAtom = atom({
+export const FIELD_TYPES: RefiFS.IFieldType[] = [
+  "string",
+  "number",
+  "boolean",
+  "map",
+  "array",
+  "null",
+  "timestamp",
+  "geopoint",
+  "reference",
+];
+
+export const navigatorPathAtom = atom<string>({
   key: "navigator.path",
   default: "/",
+});
+
+export const navigatorCollectionPathAtom = selector<string>({
+  key: "navigator.collectionPath",
+  get: ({ get }) => {
+    const path = get(navigatorPathAtom);
+    const isCollectionType = isCollection(path);
+    return isCollectionType ? path : getParentPath(path);
+  },
 });
 
 export const filtersOptions = [

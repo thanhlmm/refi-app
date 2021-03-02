@@ -2,7 +2,7 @@ import { Button } from "@zendeskgarden/react-buttons";
 import React, { useCallback } from "react";
 import PathInput from "@/components/PathInput";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import { isShowPreviewChangeModal } from "@/atoms/ui";
+import { isShowPreviewChangeModalAtom } from "@/atoms/ui";
 import {
   actionCommitChange,
   changedDocAtom,
@@ -11,7 +11,7 @@ import {
 } from "@/atoms/firestore";
 
 const NavBar = () => {
-  const setShowChangeModal = useSetRecoilState(isShowPreviewChangeModal);
+  const setShowChangeModal = useSetRecoilState(isShowPreviewChangeModalAtom);
   const changedDocs = useRecoilValue(changedDocAtom);
   const actable = changedDocs.length > 0;
   const handleCommit = useActionCommitChange();

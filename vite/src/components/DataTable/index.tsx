@@ -1,54 +1,54 @@
-import { navigatorPathAtom } from "@/atoms/navigator";
-import { getSampleColumn, isCollection } from "@/utils/common";
+import { collectionAtom, storeDocs } from "@/atoms/firestore";
+import {
+  navigatorCollectionPathAtom,
+  navigatorPathAtom,
+} from "@/atoms/navigator";
+import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import { getSampleColumn } from "@/utils/common";
 import firebase from "firebase";
 import "firebase/firestore";
+import { deserializeDocumentSnapshotArray } from "firestore-serializers";
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
-  deserializeDocumentSnapshot,
-  deserializeDocumentSnapshotArray,
-} from "firestore-serializers";
-import React, { useEffect, useState } from "react";
-import {
-  useFlexLayout,
-  useTable,
+  useBlockLayout,
   useExpanded,
+  useFlexLayout,
   useResizeColumns,
+  useTable,
 } from "react-table";
-import { useRecoilState, useRecoilValue } from "recoil";
-import scrollbarWidth from "./scroll-bar-width";
-
-import {
-  Body,
-  Cell,
-  Head,
-  HeaderCell,
-  HeaderRow,
-  SortableCell,
-  Row,
-  Table,
-} from "@zendeskgarden/react-tables";
+import { FixedSizeList } from "react-window";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { ReadOnlyField } from "../EditableCell";
-import { collectionAtom, storeDocs } from "@/atoms/firestore";
-import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import scrollbarWidth from "./scroll-bar-width";
 
 function TableWrapper({
   columns,
   data,
   renderRowSubComponent,
+  onRowClick,
 }: {
   columns: any[];
   data: ClientDocumentSnapshot[];
   renderRowSubComponent: Function;
+  onRowClick: (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    doc: ClientDocumentSnapshot
+  ) => void;
 }) {
   const defaultColumn = React.useMemo(
     () => ({
-      minWidth: 30, // minWidth is only used as a limit for resizing
-      width: 100, // width is used for both the flex-basis and flex-grow
-      maxWidth: 200, // maxWidth is only used as a limit for resizing
+      minWidth: 30,
+      width: 100,
+      maxWidth: 200,
     }),
     []
   );
-
-  const scrollBarSize = React.useMemo(() => scrollbarWidth(), []);
 
   const {
     getTableProps,
@@ -62,189 +62,165 @@ function TableWrapper({
       data,
       defaultColumn,
     },
-    useResizeColumns,
-    useFlexLayout,
-    useExpanded
+    // useBlockLayout
+    // useResizeColumns,
+    useFlexLayout
   );
 
-  const RenderRow = React.useCallback(
+  const RenderRow = useCallback(
     ({ index, style }) => {
       const row = rows[index];
       prepareRow(row);
       return (
-        <>
-          <Row
-            {...row.getRowProps({
-              style,
-            })}
-            className="tr"
-          >
-            {row.cells.map((cell) => {
-              const cellProps = cell.getCellProps();
-              return (
-                <Cell
-                  {...cellProps}
-                  key={cellProps.key}
-                  isTruncated
-                  className="td"
-                >
-                  {cell.render("Cell")}
-                </Cell>
-              );
-            })}
-          </Row>
-          {(row as any).isExpanded && (
-            <Row className="tr">{renderRowSubComponent({ row })}</Row>
-          )}
-        </>
+        <div
+          {...row.getRowProps({
+            style,
+          })}
+          className="border-b border-gray-300"
+          key={row.original.id}
+          onClick={(e) => onRowClick(e, row.original)}
+        >
+          {row.cells.map((cell) => {
+            return (
+              // eslint-disable-next-line react/jsx-key
+              <div
+                {...cell.getCellProps()}
+                className="border-r border-gray-200 last:border-r-0"
+              >
+                {cell.render("Cell")}
+              </div>
+            );
+          })}
+        </div>
       );
     },
     [prepareRow, rows]
   );
 
-  // Render the UI for your table
+  const scrollBarSize = useMemo(() => scrollbarWidth(), []);
+
+  // TODO: Integrate column resize
   return (
-    <Table {...getTableProps()} size="small" className="table">
-      <Head>
+    <table
+      {...getTableProps()}
+      className="w-full max-w-full overflow-auto border-l border-r border-gray-300"
+    >
+      <thead>
         {headerGroups.map((headerGroup) => (
           // eslint-disable-next-line react/jsx-key
-          <HeaderRow
-            {...headerGroup.getHeaderGroupProps({
-              // style: { paddingRight: '15px' },
-            })}
-            className="tr"
+          <div
+            {...headerGroup.getHeaderGroupProps()}
+            className="border-t border-b border-gray-300"
           >
             {headerGroup.headers.map((column) => (
               // eslint-disable-next-line react/jsx-key
-              <HeaderCell {...column.getHeaderProps()} className="th">
+              <th
+                {...column.getHeaderProps()}
+                className="text-left text-gray-500 border-r border-gray-200 px-1.5 py-1"
+              >
                 {column.render("Header")}
-                {/* TODO: Integrate column resize */}
-                {/* Use column.getResizerProps to hook up the events correctly */}
-                {/* {column.canResize && (
-                  <div
-                    {...column.getResizerProps()}
-                    className={`resizer ${
-                      column.isResizing ? "isResizing" : ""
-                    }`}
-                  />
-                )} */}
-              </HeaderCell>
+              </th>
             ))}
-          </HeaderRow>
+          </div>
         ))}
-      </Head>
-      <Body className="tbody">
-        {rows.map((row) => {
-          prepareRow(row);
-          return (
-            <>
-              <Row {...row.getRowProps()} className="tr">
-                {row.cells.map((cell) => {
-                  return (
-                    // eslint-disable-next-line react/jsx-key
-                    <Cell {...cell.getCellProps()} className="td">
-                      {cell.render("Cell")}
-                    </Cell>
-                  );
-                })}
-              </Row>
-              {(row as any).isExpanded && (
-                <Row className="tr">{renderRowSubComponent({ row })}</Row>
-              )}
-            </>
-          );
-        })}
-      </Body>
-    </Table>
+      </thead>
+      <tbody {...getTableBodyProps()}>
+        <FixedSizeList
+          height={400}
+          itemCount={rows.length}
+          itemSize={35}
+          width="100%"
+        >
+          {RenderRow}
+        </FixedSizeList>
+      </tbody>
+    </table>
   );
 }
 
 function DataTable() {
-  const [path, setPath] = useRecoilState(navigatorPathAtom);
-  const data = useRecoilValue(collectionAtom(path));
+  const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
+  const setPath = useSetRecoilState(navigatorPathAtom);
+  const data = useRecoilValue(collectionAtom(collectionPath));
   const [columns, setColumns] = useState<any[]>([]); // Let user decision which columns to keep
 
   const columnViewer = React.useMemo(() => {
-    switch (true) {
-      case data.length > 1:
-        const sampleColumns = getSampleColumn(data);
+    if (data.length) {
+      const sampleColumns = getSampleColumn(data);
 
-        const docColumns = sampleColumns
-          .sort((a, b) => a.localeCompare(b))
-          .map((key, index) => ({
-            Header: key,
-            accessor: key,
-            Cell: ({ row, column }: { row: any; column: any }) => {
-              return (
-                <EditableCell
-                  row={row.original}
-                  column={column}
-                  tabIndex={row.index * row.cells.length + index}
+      const docColumns = sampleColumns
+        .sort((a, b) => a.localeCompare(b))
+        .map((key, index) => ({
+          Header: key,
+          accessor: key,
+          Cell: ({ row, column }: { row: any; column: any }) => {
+            return (
+              <EditableCell
+                // key={column.id}
+                row={row.original}
+                column={column}
+                tabIndex={row.index * row.cells.length + index}
+              />
+            );
+          },
+        }));
+
+      return [
+        {
+          Header: "_id",
+          id: "__id",
+          accessor: "id",
+          Cell: ({ value }: { value: any }) => <ReadOnlyField value={value} />,
+        },
+        ...docColumns,
+        {
+          Header: () => (
+            <div className="w-5 text-gray-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
-              );
-            },
-          }));
-
-        return [
-          {
-            Header: () => "_id",
-            id: "__id",
-            accessor: "id",
-            Cell: ({ value }: { value: any }) => (
-              <ReadOnlyField value={value} />
-            ),
-          },
-          {
-            Header: () => null,
-            id: "expander",
-            Cell: ({ row }: { row: any }) => (
-              <span {...row.getToggleRowExpandedProps()}>
-                {row.isExpanded ? "👇" : "👉"}
-              </span>
-            ),
-          },
-          ...docColumns,
-        ];
-      case data.length === 1:
-        // return Object.keys(data[0]);
-        return [];
-      default:
-        return [];
+              </svg>
+            </div>
+          ),
+          width: 50,
+          id: "addColumn",
+          Cell: () => null,
+        },
+      ];
     }
-  }, [data.length, path]);
+
+    return [];
+  }, [data]);
 
   useEffect(() => {
-    if (path === "/") {
+    if (collectionPath === "/") {
       // TODO: Show empty state for choosing collection on the left side
       return;
     }
 
-    const topicKey = `${path}.table`;
-    const isCollectionType = isCollection(path);
-    const listener = window.listen(topicKey, (response: string) => {
-      if (isCollectionType) {
-        const data = deserializeDocumentSnapshotArray(
-          response,
-          firebase.firestore.GeoPoint,
-          firebase.firestore.Timestamp
-        );
+    const topicKey = `${collectionPath}.table`;
 
-        storeDocs(ClientDocumentSnapshot.transformFromFirebase(data));
-      } else {
-        const data = deserializeDocumentSnapshot(
-          response,
-          firebase.firestore.GeoPoint,
-          firebase.firestore.Timestamp
-        );
-        storeDocs(ClientDocumentSnapshot.transformFromFirebase([data]));
-      }
+    const listener = window.listen(topicKey, (response: string) => {
+      const data = deserializeDocumentSnapshotArray(
+        response,
+        firebase.firestore.GeoPoint,
+        firebase.firestore.Timestamp
+      );
+
+      storeDocs(ClientDocumentSnapshot.transformFromFirebase(data));
     });
-    const handler = isCollectionType
-      ? "fs.queryCollection.subscribe"
-      : "fs.queryDoc.subscribe";
-    const id = window.send(handler, {
+    const id = window.send("fs.queryCollection.subscribe", {
       topic: topicKey,
-      path,
+      path: collectionPath,
     });
 
     return () => {
@@ -253,9 +229,7 @@ function DataTable() {
         id,
       });
     };
-  }, [path]);
-
-  // const tableData = data.map((row) => transformFSDoc(row));
+  }, [collectionPath]);
 
   const renderRowSubComponent = React.useCallback(
     ({ row }) => (
@@ -272,12 +246,23 @@ function DataTable() {
     []
   );
 
+  const handleRowClick = useCallback(
+    (
+      e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+      doc: ClientDocumentSnapshot
+    ) => {
+      setPath(doc.ref.path);
+    },
+    []
+  );
+
   return (
-    <div className="overflow-auto">
+    <div className="mt-2 overflow-auto">
       <TableWrapper
         columns={columnViewer}
         data={data}
         renderRowSubComponent={renderRowSubComponent}
+        onRowClick={handleRowClick}
       />
     </div>
   );

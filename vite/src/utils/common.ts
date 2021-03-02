@@ -1,5 +1,6 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { chunk, flatten, intersection, uniq } from "lodash";
+import { isObject } from "./simplifr";
 
 export const isCollection = (path = ""): boolean => {
   return !Boolean(path.split("/").length % 2);
@@ -84,4 +85,38 @@ export const transformFSDoc = (doc: ClientDocumentSnapshot) => {
     __path: doc.ref.path,
     __id: doc.id,
   };
+};
+
+interface ITableSubRow {
+  field: string;
+  value: any | { type: RefiFS.IFieldType };
+  subRows?: any[];
+}
+
+export const buildTableSubRows = (
+  rows: { field: string; value: any }[],
+  level = 1
+): ITableSubRow[] => {
+  return rows
+    .filter(({ field }) => field.split(".").length === level && field !== "")
+    .reduce((rowWithSub: ITableSubRow[], { field, value }) => {
+      if (isObject(value)) {
+        rowWithSub.push({
+          field,
+          value,
+          subRows: ["map", "array"].includes(value?.type)
+            ? buildTableSubRows(
+                rows.filter(
+                  (row) => row.field.startsWith(field) && row.field !== field
+                ),
+                level + 1
+              )
+            : undefined,
+        });
+        return rowWithSub;
+      }
+
+      rowWithSub.push({ field, value });
+      return rowWithSub;
+    }, []);
 };

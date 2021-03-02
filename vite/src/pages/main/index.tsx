@@ -1,26 +1,63 @@
-import React, { ReactElement, useEffect } from "react";
-import RGL, { WidthProvider } from "react-grid-layout";
+import React, { ReactElement, useEffect, useMemo } from "react";
+import RGL, { WidthProvider, Responsive } from "react-grid-layout";
 import Main from "./main";
 import PathInput from "@/components/PathInput";
 import TreeView from "@/components/TreeView";
+import { withSize } from "react-sizeme";
 
 import { useParams } from "react-router-dom";
 import NavBar from "@/components/NavBar";
 import Background from "./background";
-import Property from "@/components/Property";
+import Property from "@/components/Property/index.tsx";
 import { useSetRecoilState } from "recoil";
 import { actionAddPathExpander, pathExpanderAtom } from "@/atoms/firestore";
 
 const ReactGridLayout = WidthProvider(RGL);
 
-function MainLayout(): ReactElement {
+interface IMainLayoutProps {
+  size: {
+    width: number;
+    height: number;
+  };
+}
+
+const BASE_HEIGHT = 32;
+const BASE_SPACE = 16;
+
+function MainLayout({ size }: IMainLayoutProps): ReactElement {
   const { projectId } = useParams() as any;
-  const layout = [
-    { i: "nav-bar", x: 0, y: 0, w: 12, h: 1 },
-    { i: "sidebar", x: 0, y: 0, w: 3, h: 8 },
-    { i: "main", x: 3, y: 0, w: 7, h: 8 },
-    { i: "property", x: 10, y: 0, w: 2, h: 8 },
-  ];
+  const layout = useMemo(() => {
+    const remainHeight = Math.ceil(size.height / BASE_HEIGHT);
+    const remainSpace = Math.ceil(
+      ((remainHeight + 1) * BASE_SPACE) / BASE_HEIGHT
+    );
+
+    // console.log({ remainHeight, remainSpace });
+    return [
+      { i: "nav-bar", x: 0, y: 0, w: 12, h: 1 },
+      {
+        i: "sidebar",
+        x: 0,
+        y: 0,
+        w: 2,
+        h: 18,
+      },
+      {
+        i: "main",
+        x: 2,
+        y: 0,
+        w: 7,
+        h: 18,
+      },
+      {
+        i: "property",
+        x: 10,
+        y: 0,
+        w: 3,
+        h: 18,
+      },
+    ];
+  }, [size]);
 
   useEffect(() => {
     window.send("fs.init", { projectId }).then((response: string[]) => {
@@ -30,14 +67,14 @@ function MainLayout(): ReactElement {
   }, []);
 
   return (
-    <div>
+    <div className="w-screen h-screen">
       <ReactGridLayout
         className="transition-none layout"
         layout={layout}
         cols={12}
-        rowHeight={64}
+        rowHeight={BASE_HEIGHT}
         autoSize={true}
-        margin={[16, 16]}
+        margin={[BASE_SPACE, BASE_SPACE]}
         isDraggable={false}
         isResizable={false}
       >
@@ -59,4 +96,6 @@ function MainLayout(): ReactElement {
   );
 }
 
-export default MainLayout;
+export default withSize({ monitorWidth: true, monitorHeight: true })(
+  MainLayout
+);

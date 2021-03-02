@@ -1,5 +1,8 @@
 import { changedDocAtom } from "@/atoms/firestore";
-import { isShowPreviewChangeModal } from "@/atoms/ui";
+import {
+  isShowPreviewChangeModalAtom,
+  isShowDocFinderModalCommandAtom,
+} from "@/atoms/ui";
 import { ReadOnlyField } from "@/components/EditableCell";
 import { getParentPath } from "@/utils/common";
 import { Button } from "@zendeskgarden/react-buttons";
@@ -8,7 +11,7 @@ import {
   Header,
   Footer,
   FooterItem,
-  Body as ModalMody,
+  Body as ModalBody,
 } from "@zendeskgarden/react-modals";
 import {
   Body,
@@ -27,8 +30,12 @@ import { useRecoilState, useRecoilValue } from "recoil";
 
 const Background = () => {
   const [isShowChangeModal, setShowChangeModal] = useRecoilState(
-    isShowPreviewChangeModal
+    isShowPreviewChangeModalAtom
   );
+  const [
+    isShowDocFinderModalCommand,
+    setShowDocFinderModalCommand,
+  ] = useRecoilState(isShowDocFinderModalCommandAtom);
   const changedDocs = useRecoilValue(changedDocAtom);
 
   const groupSimilarDoc = useMemo(() => {
@@ -45,7 +52,7 @@ const Background = () => {
           backdropProps={{ onClick: () => setShowChangeModal(false) }}
         >
           <Header>Preview changes</Header>
-          <ModalMody>
+          <ModalBody>
             {Object.keys(groupSimilarDoc).map((collection) => {
               const sameParentDocs = groupSimilarDoc[collection];
 
@@ -89,7 +96,7 @@ const Background = () => {
                 </div>
               );
             })}
-          </ModalMody>
+          </ModalBody>
           <Footer>
             <FooterItem>
               <Button size="small">Reverse</Button>
@@ -100,6 +107,33 @@ const Background = () => {
               </Button>
             </FooterItem>
           </Footer>
+        </Modal>
+      )}
+
+      {isShowDocFinderModalCommand && (
+        <Modal
+          isAnimated={false}
+          isLarge
+          focusOnMount
+          backdropProps={{ onClick: () => setShowDocFinderModalCommand(false) }}
+        >
+          <ModalBody>
+            <div
+              className="py-1"
+              role="menu"
+              aria-orientation="vertical"
+              aria-labelledby="options-menu"
+            >
+              <a
+                href="#"
+                key="Hello"
+                className="block px-3 py-1 text-sm text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+                role="menuitem"
+              >
+                Hello
+              </a>
+            </div>
+          </ModalBody>
         </Modal>
       )}
     </div>
