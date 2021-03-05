@@ -1,3 +1,4 @@
+import { uniq } from "lodash";
 import { propertyListAtom } from "./navigator";
 import { setRecoilExternalState } from "./RecoilExternalStatePortal";
 
@@ -14,8 +15,7 @@ export const actionAddProperty = (
   collectionPath: string,
   property: string
 ): void => {
-  setRecoilExternalState(propertyListAtom(collectionPath), (propertyList) => [
-    property,
-    ...propertyList,
-  ]);
+  setRecoilExternalState(propertyListAtom(collectionPath), (propertyList) =>
+    uniq([property, ...propertyList])
+  );
 };

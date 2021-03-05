@@ -1,12 +1,5 @@
 import { allColumnsRecursiveAtom, propertyListAtom } from "@/atoms/navigator";
-import React, {
-  ChangeEvent,
-  ReactElement,
-  Ref,
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+import React, { ChangeEvent, ReactElement, useMemo } from "react";
 import Autosuggest from "react-autosuggest";
 import { useRecoilValue } from "recoil";
 
@@ -20,7 +13,7 @@ const dumpFnc = () => {};
 
 const autoCompleteTheme = {
   container: "relative",
-  input: "p-1.5 w-full text-sm",
+  input: "p-1.5 w-full text-sm border-gray-300 border-1",
   suggestionsContainer: "absolute t-2 l-2 w-full ",
   suggestionsList: "bg-white border border-gray-300",
   suggestionHighlighted: "bg-gray-200",
@@ -30,7 +23,7 @@ interface IFieldFinderInputProps {
   collectionPath: string;
   value: string;
   onChange: (string) => void;
-  inputRef: HTMLInputElement;
+  inputRef?: HTMLInputElement;
 }
 
 const FieldFinderInput = ({
@@ -48,7 +41,7 @@ const FieldFinderInput = ({
     value,
     ref: inputRef,
     onChange: (e: ChangeEvent<HTMLInputElement>, { newValue }) =>
-      onChange(newValue),
+      onChange(e.target.value),
   };
 
   const suggestions = useMemo(() => {
@@ -66,6 +59,7 @@ const FieldFinderInput = ({
       suggestions={suggestions}
       onSuggestionsFetchRequested={dumpFnc}
       onSuggestionsClearRequested={dumpFnc}
+      onSuggestionSelected={(e, { suggestion }) => onChange(suggestion)}
       getSuggestionValue={getSuggestionValue}
       renderSuggestion={renderSuggestion}
       inputProps={inputProps}

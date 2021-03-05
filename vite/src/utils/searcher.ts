@@ -1,5 +1,3 @@
-import MiniSearch from "minisearch";
-
 interface IOperatorSearchItem {
   value: string;
   label: string;
