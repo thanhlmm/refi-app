@@ -6,15 +6,18 @@ if (isDev) {
 }
 process.on('unhandledRejection', console.log);
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import { fork } from "child_process";
 import * as path from 'path';
 import fs from 'fs';
 import findOpenSocket from './utils/find-open-socket';
 import db from './client/db';
+import ContextMenu from 'secure-electron-context-menu'
+import { contextConfig } from './contextMenu';
 
 let serverProcess: any;
 let serverSocket: string;
+let mainWindow: any;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -23,16 +26,20 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 
 const createWindow = (socketName: string): void => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     show: false,
     width: 1000,
     height: 800,
     backgroundColor: "#fff",
     webPreferences: {
+      enableRemoteModule: false,
+      contextIsolation: false,
       nodeIntegration: false,
       preload: __dirname + "/client-preload.js",
     },
   });
+
+  ContextMenu.mainBindings(ipcMain, mainWindow, Menu, isDev, contextConfig);
 
   mainWindow.maximize();
   mainWindow.show();
@@ -117,11 +124,23 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 
+  ContextMenu.clearMainBindings(ipcMain);
+
   if (isDev && serverProcess) {
     console.log("kill server");
     serverProcess.kill();
     serverProcess = null;
   }
+});
+
+app.on('web-contents-created', (e, contents) => {
+  contents.on('new-window', (e, url) => {
+    e.preventDefault();
+    require('open')(url);
+  });
+  contents.on('will-navigate', (e, url) => {
+    if (url !== contents.getURL()) e.preventDefault(), require('open')(url);
+  });
 });
 
 app.on("before-quit", () => {

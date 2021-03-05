@@ -1,41 +1,31 @@
-import { collectionAtom, storeDocs } from "@/atoms/firestore";
+import { collectionAtom } from "@/atoms/firestore";
+import { actionStoreDocs } from "@/atoms/firestore.action";
 import {
   navigatorCollectionPathAtom,
   navigatorPathAtom,
+  propertyListAtom,
 } from "@/atoms/navigator";
+import { actionRemoveProperty } from "@/atoms/navigator.action";
+import { actionToggleModalPickProperty } from "@/atoms/ui.action";
+import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import { getSampleColumn } from "@/utils/common";
 import firebase from "firebase";
 import "firebase/firestore";
 import { deserializeDocumentSnapshotArray } from "firestore-serializers";
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import {
-  useBlockLayout,
-  useExpanded,
-  useFlexLayout,
-  useResizeColumns,
-  useTable,
-} from "react-table";
+import React, { useCallback, useEffect, useMemo } from "react";
+import { useFlexLayout, useTable } from "react-table";
 import { FixedSizeList } from "react-window";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { ReadOnlyField } from "../EditableCell";
 import scrollbarWidth from "./scroll-bar-width";
 
 function TableWrapper({
   columns,
   data,
-  renderRowSubComponent,
   onRowClick,
 }: {
   columns: any[];
   data: ClientDocumentSnapshot[];
-  renderRowSubComponent: Function;
   onRowClick: (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
     doc: ClientDocumentSnapshot
@@ -138,68 +128,89 @@ function TableWrapper({
   );
 }
 
+function ColumnHeader({
+  fieldPath,
+  collectionPath,
+}: {
+  fieldPath: string;
+  collectionPath: string;
+}) {
+  useContextMenu("ADD", () => {
+    actionToggleModalPickProperty(true);
+  });
+
+  useContextMenu("HIDE", ({ column }) => {
+    actionRemoveProperty(collectionPath, column);
+  });
+
+  return (
+    <div cm-template="columnHeaderContext" cm-payload-column={fieldPath}>
+      {fieldPath}
+    </div>
+  );
+}
+
 function DataTable() {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
   const setPath = useSetRecoilState(navigatorPathAtom);
   const data = useRecoilValue(collectionAtom(collectionPath));
-  const [columns, setColumns] = useState<any[]>([]); // Let user decision which columns to keep
+  const properties = useRecoilValue(propertyListAtom(collectionPath));
 
-  const columnViewer = React.useMemo(() => {
-    if (data.length) {
-      const sampleColumns = getSampleColumn(data);
+  const columnViewer = useMemo(() => {
+    const docColumns = properties.map((key, index) => ({
+      Header: () => (
+        <ColumnHeader fieldPath={key} collectionPath={collectionPath} />
+      ),
+      accessor: key,
+      Cell: ({ row, column, value }: { row: any; column: any; value: any }) => {
+        return (
+          <EditableCell
+            value={value}
+            // key={column.id}
+            row={row.original}
+            column={column}
+            tabIndex={row.index * row.cells.length + index}
+          />
+        );
+      },
+    }));
 
-      const docColumns = sampleColumns
-        .sort((a, b) => a.localeCompare(b))
-        .map((key, index) => ({
-          Header: key,
-          accessor: key,
-          Cell: ({ row, column }: { row: any; column: any }) => {
-            return (
-              <EditableCell
-                // key={column.id}
-                row={row.original}
-                column={column}
-                tabIndex={row.index * row.cells.length + index}
+    return [
+      {
+        Header: "_id",
+        id: "__id",
+        accessor: "id",
+        Cell: ({ value }: { value: any }) => <ReadOnlyField value={value} />,
+      },
+      ...docColumns,
+      {
+        Header: () => (
+          <div
+            className="w-5 text-gray-400 cursor-pointer"
+            role="presentation"
+            onClick={() => actionToggleModalPickProperty(true)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
-            );
-          },
-        }));
-
-      return [
-        {
-          Header: "_id",
-          id: "__id",
-          accessor: "id",
-          Cell: ({ value }: { value: any }) => <ReadOnlyField value={value} />,
-        },
-        ...docColumns,
-        {
-          Header: () => (
-            <div className="w-5 text-gray-400">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-            </div>
-          ),
-          width: 50,
-          id: "addColumn",
-          Cell: () => null,
-        },
-      ];
-    }
-
-    return [];
-  }, [data]);
+            </svg>
+          </div>
+        ),
+        width: 50,
+        id: "addColumn",
+        Cell: () => null,
+      },
+    ];
+  }, [properties, collectionPath]);
 
   useEffect(() => {
     if (collectionPath === "/") {
@@ -216,7 +227,7 @@ function DataTable() {
         firebase.firestore.Timestamp
       );
 
-      storeDocs(ClientDocumentSnapshot.transformFromFirebase(data));
+      actionStoreDocs(ClientDocumentSnapshot.transformFromFirebase(data));
     });
     const id = window.send("fs.queryCollection.subscribe", {
       topic: topicKey,
@@ -230,21 +241,6 @@ function DataTable() {
       });
     };
   }, [collectionPath]);
-
-  const renderRowSubComponent = React.useCallback(
-    ({ row }) => (
-      <pre
-        style={{
-          fontSize: "10px",
-        }}
-      >
-        <code>
-          {JSON.stringify({ values: row?.original?.data() }, null, 2)}
-        </code>
-      </pre>
-    ),
-    []
-  );
 
   const handleRowClick = useCallback(
     (
@@ -261,7 +257,6 @@ function DataTable() {
       <TableWrapper
         columns={columnViewer}
         data={data}
-        renderRowSubComponent={renderRowSubComponent}
         onRowClick={handleRowClick}
       />
     </div>

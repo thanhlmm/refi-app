@@ -20,8 +20,9 @@ const ctx: IServiceContext = {
 const certService = new CertService(ctx);
 const fsService = new FireStoreService(ctx);
 
-handlers["cert.storeKey"] = certService.storeKey.bind(fsService);
-handlers["cert.getKeys"] = certService.getKeys.bind(fsService);
+handlers["cert.storeKey"] = certService.storeKey.bind(certService);
+handlers["cert.getKeys"] = certService.getKeys.bind(certService);
+handlers["cert.removeKey"] = certService.removeKey.bind(certService);
 
 handlers["fs.init"] = fsService.init.bind(fsService);
 handlers["fs.queryDoc.subscribe"] = fsService.subscribeDoc.bind(fsService);

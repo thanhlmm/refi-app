@@ -69,6 +69,41 @@ export const getAllColumns = (data: ClientDocumentSnapshot[]): string[] => {
   return uniq(flatten(allColumns));
 };
 
+export const getAllColumnsRecursive = (
+  data: ClientDocumentSnapshot[]
+): string[] => {
+  const allColumns = data.map((row) => objectPaths(row.data()));
+  return uniq(flatten(allColumns));
+};
+
+// Ref: https://lowrey.me/getting-all-paths-of-an-javascript-object/
+export function objectPaths(root: Record<string, unknown>): string[] {
+  const paths: string[][] = [];
+  const nodes = [
+    {
+      obj: root,
+      path: [],
+    },
+  ];
+  while (nodes.length > 0) {
+    const n = nodes.pop();
+    if (n && n.obj !== null) {
+      Object.keys(n.obj).forEach((k) => {
+        if (typeof n.obj[k] === "object") {
+          const path = n.path.concat(k);
+          paths.push(path);
+          nodes.unshift({
+            obj: n.obj[k],
+            path: path,
+          });
+        }
+      });
+    }
+  }
+
+  return paths.map((path) => path.join("."));
+}
+
 export const getSampleColumn = (data: ClientDocumentSnapshot[]): string[] => {
   const allColumns = data.map((row) => Object.keys(row.data()));
   const chunks = chunk(allColumns, 2);
@@ -76,7 +111,7 @@ export const getSampleColumn = (data: ClientDocumentSnapshot[]): string[] => {
     intersection(...smallChunks)
   );
   // TODO: Improve when we add more data
-  return uniq(flatten(chunksColumn));
+  return uniq(flatten(chunksColumn)).sort((a, b) => a.localeCompare(b));
 };
 
 export const transformFSDoc = (doc: ClientDocumentSnapshot) => {

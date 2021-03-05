@@ -1,3 +1,7 @@
+window.getServerSocket = window.ipc.getServerSocket;
+window.ipcConnect = window.ipc.ipcConnect;
+window.uuid = window.ipc.uuid;
+
 // Init
 async function init() {
   const socketName = await window.getServerSocket();
@@ -26,8 +30,13 @@ function connectSocket(name, onOpen) {
 
       if (msg.type === "error") {
         // Up to you whether or not to care about the error
-        const { id } = msg;
-        replyHandlers.delete(id);
+        const { id, message } = msg;
+
+        const handler = replyHandlers.get(id);
+        if (handler) {
+          replyHandlers.delete(id);
+          handler.reject(new Error(message || "Unknown error"));
+        }
       } else if (msg.type === "reply") {
         const { id, result } = msg;
 

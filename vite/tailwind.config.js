@@ -1,5 +1,5 @@
 module.exports = {
-  important: "#root",
+  important: "#root-body",
   theme: {
     extend: {},
     fontFamily: {

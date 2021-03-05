@@ -1,21 +1,18 @@
-import { Button } from "@zendeskgarden/react-buttons";
-import React, { useCallback } from "react";
-import PathInput from "@/components/PathInput";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import { isShowPreviewChangeModalAtom } from "@/atoms/ui";
+import { changedDocAtom } from "@/atoms/firestore";
 import {
   actionCommitChange,
-  changedDocAtom,
-  useActionCommitChange,
-  useActionReverseChange,
-} from "@/atoms/firestore";
+  actionReverseChange,
+} from "@/atoms/firestore.action";
+import { isShowPreviewChangeModalAtom } from "@/atoms/ui";
+import PathInput from "@/components/PathInput";
+import { Button } from "@zendeskgarden/react-buttons";
+import React from "react";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 
 const NavBar = () => {
   const setShowChangeModal = useSetRecoilState(isShowPreviewChangeModalAtom);
   const changedDocs = useRecoilValue(changedDocAtom);
   const actable = changedDocs.length > 0;
-  const handleCommit = useActionCommitChange();
-  const handleReverse = useActionReverseChange();
 
   return (
     <div className="flex flex-row space-x-3">
@@ -31,12 +28,12 @@ const NavBar = () => {
           isPrimary
           size="small"
           disabled={!actable}
-          onClick={handleCommit}
+          onClick={actionCommitChange}
         >
           Commit
         </Button>
         {/* // TODO: Cmd + S */}
-        <Button size="small" disabled={!actable} onClick={handleReverse}>
+        <Button size="small" disabled={!actable} onClick={actionReverseChange}>
           <div className="w-5">
             <svg
               xmlns="http://www.w3.org/2000/svg"

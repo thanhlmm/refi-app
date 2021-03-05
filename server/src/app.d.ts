@@ -1,0 +1,1 @@
+declare module 'secure-electron-context-menu'

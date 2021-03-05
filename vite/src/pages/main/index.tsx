@@ -1,16 +1,17 @@
-import React, { ReactElement, useEffect, useMemo } from "react";
-import RGL, { WidthProvider, Responsive } from "react-grid-layout";
-import Main from "./main";
-import PathInput from "@/components/PathInput";
-import TreeView from "@/components/TreeView";
-import { withSize } from "react-sizeme";
-
-import { useParams } from "react-router-dom";
+import { projectIdAtom } from "@/atoms/firestore";
+import { actionAddPathExpander } from "@/atoms/firestore.action";
+import { setRecoilExternalState } from "@/atoms/RecoilExternalStatePortal";
 import NavBar from "@/components/NavBar";
-import Background from "./background";
+import ProductBar from "@/components/ProductBar";
 import Property from "@/components/Property/index.tsx";
-import { useSetRecoilState } from "recoil";
-import { actionAddPathExpander, pathExpanderAtom } from "@/atoms/firestore";
+import TreeView from "@/components/TreeView";
+import React, { ReactElement, useEffect, useMemo } from "react";
+import RGL, { WidthProvider } from "react-grid-layout";
+import { useParams } from "react-router-dom";
+import { withSize } from "react-sizeme";
+import Background from "../background";
+import UniversalHotKey from "../hotkey";
+import Main from "./main";
 
 const ReactGridLayout = WidthProvider(RGL);
 
@@ -60,6 +61,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
   }, [size]);
 
   useEffect(() => {
+    setRecoilExternalState(projectIdAtom, projectId);
     window.send("fs.init", { projectId }).then((response: string[]) => {
       console.log("Inited fs");
       actionAddPathExpander(response);
@@ -68,6 +70,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
 
   return (
     <div className="w-screen h-screen">
+      <UniversalHotKey />
       <ReactGridLayout
         className="transition-none layout"
         layout={layout}
@@ -92,6 +95,9 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
         </div>
       </ReactGridLayout>
       <Background />
+      <div className="flex flex-row justify-end pr-3 text-white bg-gray-400">
+        <ProductBar />
+      </div>
     </div>
   );
 }

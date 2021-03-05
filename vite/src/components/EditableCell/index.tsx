@@ -1,3 +1,13 @@
+import { buildFSUrl, fieldAtom, fieldChangedAtom } from "@/atoms/firestore";
+import {
+  actionRemoveFieldKey,
+  actionUpdateFieldKey,
+} from "@/atoms/firestore.action";
+import { FIELD_TYPES } from "@/atoms/navigator";
+import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import { getFireStoreType, isObject } from "@/utils/simplifr";
+import { useClickAway } from "ahooks";
+import classNames from "classnames";
 import React, {
   ReactElement,
   ReactNode,
@@ -7,26 +17,10 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Input, Textarea } from "@zendeskgarden/react-forms";
 import { useRecoilState, useRecoilValue } from "recoil";
-import {
-  actionRemoveFieldKey,
-  actionUpdateFieldKey,
-  buildFSUrl,
-  docAtom,
-  fieldAtom,
-  fieldChangedAtom,
-} from "@/atoms/firestore";
-import classNames from "classnames";
-import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import { useClickAway } from "ahooks";
-import { Button } from "@zendeskgarden/react-buttons";
-import { Dropdown, Trigger, Menu, Item } from "@zendeskgarden/react-dropdowns";
-import DropdownMenu from "../DropdownMenu";
-import { FIELD_TYPES } from "@/atoms/navigator";
 import DataInput from "../DataInput";
-import { getFireStoreType, isObject } from "@/utils/simplifr";
 import DateTimePicker from "../DataInput/DateTimePicker";
+import DropdownMenu from "../DropdownMenu";
 
 interface IReadonlyCell {
   value?: string;

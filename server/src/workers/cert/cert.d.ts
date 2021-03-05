@@ -12,10 +12,16 @@ declare namespace NSCert {
 
   interface ICertificateData {
     projectId: string;
+    keyPath: string;
+  }
+
+  interface IRemoveKey {
+    projectId: string;
   }
 
   interface IService {
     storeKey(params: IStoreKey): Promise<boolean>;
     getKeys(): Promise<ICertificateData[]>;
+    removeKey(params: IRemoveKey): Promise<boolean>;
   }
 }

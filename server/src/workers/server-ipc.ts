@@ -25,7 +25,7 @@ export function init(socketName: string, handlers: Record<string, Function>, buf
             ipc.server.emit(
               socket,
               'message',
-              JSON.stringify({ type: 'error', id })
+              JSON.stringify({ type: 'error', id, message: error.message })
             )
             throw error
           }

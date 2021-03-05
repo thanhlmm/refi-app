@@ -8,7 +8,11 @@ import {
   Autocomplete,
 } from "@zendeskgarden/react-dropdowns";
 import { Input } from "@zendeskgarden/react-forms";
-import { allColumns, querierAtom, querierOptionAtom } from "@/atoms/navigator";
+import {
+  allColumnsAtom,
+  querierAtom,
+  querierOptionAtom,
+} from "@/atoms/navigator";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { operatorOptions } from "@/utils/searcher";
 import { useDebounceEffect } from "ahooks";
@@ -19,7 +23,7 @@ const FilterItem = ({ id }: { id: string }) => {
   const [filter, setFilter] = useRecoilState(querierOptionAtom(id));
   const [inputFieldValue, setFieldInputValue] = useState("");
   const setQueryOptions = useSetRecoilState(querierAtom);
-  const allColumnsInView = useRecoilValue(allColumns);
+  const allColumnsInView = useRecoilValue(allColumnsAtom);
   const [matchingFields, setMatchingFields] = useState(allColumnsInView);
   const [matchingOperators, setMatchingOperators] = useState(operatorOptions);
   const [inputOperatorValue, setOperatorInputValue] = useState("");

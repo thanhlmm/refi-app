@@ -5,12 +5,9 @@ import "./index.css";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { navigatorPathAtom } from "@/atoms/navigator";
 import { Input } from "@zendeskgarden/react-forms";
-import {
-  actionAddPathExpander,
-  allDocsAtom,
-  pathExpanderAtom,
-} from "@/atoms/firestore";
+import { allDocsAtom, pathExpanderAtom } from "@/atoms/firestore";
 import { EventDataNode } from "rc-tree/lib/interface";
+import { actionAddPathExpander } from "@/atoms/firestore.action";
 
 interface TreeNode {
   key: string;
@@ -149,7 +146,6 @@ function TreeView() {
     window
       .send("fs.pathExpander", { path: node.key })
       .then((response: string[]) => {
-        console.log(response);
         actionAddPathExpander(response);
       });
 

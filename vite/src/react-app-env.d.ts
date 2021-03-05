@@ -6,6 +6,7 @@ declare namespace NodeJS {
   interface ProcessEnv {
     readonly NODE_ENV: "development" | "production" | "test";
     readonly PUBLIC_URL: string;
+    readonly VITE_APP_VERSION: string;
   }
 }
 
@@ -24,8 +25,20 @@ declare module "react-window";
 type SendFuncType = (name: string, args: any) => Promise<any>;
 type ListenFuncType = (name: string, cb: Function) => Function;
 
+interface IContextMenu {
+  clearRendererBindings: () => void;
+  onReceive: <T>(
+    actionName: string,
+    cb: (T) => void,
+    elementId?: string
+  ) => void;
+}
+
 interface Window {
   send: SendFuncType;
   listen: ListenFuncType;
   form: any; // DEBUG
+  api: {
+    contextMenu: IContextMenu;
+  };
 }

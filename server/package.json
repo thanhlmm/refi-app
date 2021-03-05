@@ -58,7 +58,7 @@
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
     "devtron": "^1.4.0",
-    "electron": "11.3.0",
+    "electron": "12",
     "electron-devtools-installer": "^3.1.1",
     "eslint": "^7.6.0",
     "eslint-plugin-import": "^2.20.0",
@@ -74,6 +74,8 @@
     "firestore-serializers": "file:../firestore-serializers",
     "lowdb": "^1.0.0",
     "node-ipc": "^9.1.3",
+    "open": "^8.0.1",
+    "secure-electron-context-menu": "^1.2.2",
     "uuid": "^8.3.2"
   }
 }

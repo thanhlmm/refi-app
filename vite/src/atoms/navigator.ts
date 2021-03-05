@@ -1,8 +1,16 @@
-import { atom, selector, selectorFamily } from "recoil";
+import { atom, atomFamily, selector, selectorFamily } from "recoil";
 import * as immutable from "object-path-immutable";
 import { collectionAtom } from "./firestore";
-import { getAllColumns, getParentPath, isCollection } from "@/utils/common";
+import {
+  getAllColumns,
+  getAllColumnsRecursive,
+  getParentPath,
+  getSampleColumn,
+  isCollection,
+} from "@/utils/common";
 import produce from "immer";
+import { recoilPersist } from "recoil-persist";
+const { persistAtom } = recoilPersist(); // TODO: Mapping it by project id @important
 
 export const FIELD_TYPES: RefiFS.IFieldType[] = [
   "string",
@@ -120,12 +128,35 @@ export const querierOptionAtom = selectorFamily<
   },
 });
 
-export const allColumns = selector<string[]>({
+export const allColumnsAtom = selector<string[]>({
   key: "fs.allColumns",
   get: ({ get }) => {
-    const currentPath = get(navigatorPathAtom);
-    const collections = get(collectionAtom(currentPath));
+    const collectionPath = get(navigatorCollectionPathAtom);
+    const collections = get(collectionAtom(collectionPath));
 
     return getAllColumns(collections);
   },
+});
+
+export const allColumnsRecursiveAtom = selector<string[]>({
+  key: "fs.allColumns",
+  get: ({ get }) => {
+    const collectionPath = get(navigatorCollectionPathAtom);
+    const collections = get(collectionAtom(collectionPath));
+
+    return getAllColumnsRecursive(collections);
+  },
+});
+
+export const propertyListAtom = atomFamily<string[], string>({
+  key: "fs/propertyList",
+  default: selectorFamily({
+    key: "fs/propertyList:selector",
+    get: (path) => ({ get }) => {
+      const collectionDocs = get(collectionAtom(path));
+
+      return getSampleColumn(collectionDocs);
+    },
+  }),
+  effects_UNSTABLE: [persistAtom],
 });

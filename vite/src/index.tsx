@@ -8,10 +8,12 @@ import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@zendeskgarden/react-theming";
 import { theme } from "./styles/theme";
 import { RecoilExternalStatePortal } from "./atoms/RecoilExternalStatePortal";
+import "./config";
+import "./firebase";
 
 ReactDOM.render(
   <BrowserRouter>
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={theme} focusVisibleRef={null}>
       <RecoilRoot>
         <RecoilExternalStatePortal />
         <App />
