@@ -2253,6 +2253,11 @@ event-target-shim@^5.0.0:
   resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-5.0.1.tgz#5d4d3ebdf9583d63a5333ce2deb7480ab2b05789"
   integrity sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
 
+export-from-json@^1.3.4:
+  version "1.3.4"
+  resolved "https://registry.yarnpkg.com/export-from-json/-/export-from-json-1.3.4.tgz#d2febf6e3d70fb67695cf7b08c368c074c34ab36"
+  integrity sha512-upTnwNl5XIzzejEEzYOSkuJweT4qOXFK+IZyfSJj6rFJslUD70MGgs5pWJ7QXWHJWdkngqR4+N4zs3h4qy3MvA==
+
 extend@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/extend/-/extend-3.0.2.tgz#f8b1136b4071fbd8eb140aff858b1019ec2915fa"

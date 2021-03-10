@@ -1,5 +1,6 @@
 import { DocumentData, DocumentSnapshot, IDocRef } from "firestore-serializers";
 import { DocRef } from "firestore-serializers/src/DocRef";
+import * as immutable from "object-path-immutable";
 
 export class ClientDocumentSnapshot {
   readonly id: string;
@@ -7,20 +8,40 @@ export class ClientDocumentSnapshot {
   public exists = true;
   readonly ref: IDocRef;
   private changedField: string[] = [];
+  queryVersion?: number;
 
   static transformFromFirebase(
-    docs: DocumentSnapshot[]
+    docs: DocumentSnapshot[],
+    queryVersion?: number
   ): ClientDocumentSnapshot[] {
     return docs.map(
       (doc) =>
-        new ClientDocumentSnapshot(doc.data() || {}, doc.id, `/${doc.ref.path}`)
+        new ClientDocumentSnapshot(
+          doc.data() || {},
+          doc.id,
+          `/${doc.ref.path}`,
+          queryVersion
+        )
     );
   }
 
-  constructor(data: DocumentData, id: string, path: string) {
+  public mergeNewDoc(newDoc: ClientDocumentSnapshot): ClientDocumentSnapshot {
+    this.objectData = immutable.merge(newDoc.data(), "", this.objectData);
+    this.queryVersion = newDoc.queryVersion;
+
+    return this;
+  }
+
+  constructor(
+    data: DocumentData,
+    id: string,
+    path: string,
+    queryVersion?: number
+  ) {
     this.id = id;
     this.objectData = data;
     this.ref = new DocRef(path);
+    this.queryVersion = queryVersion;
   }
 
   public data(): DocumentData {

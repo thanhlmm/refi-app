@@ -3,6 +3,7 @@ import { getParentPath } from "@/utils/common";
 import "firebase/firestore";
 import * as immutable from "object-path-immutable";
 import { atom, atomFamily, selector, selectorFamily } from "recoil";
+import { queryVersionAtom } from "./navigator";
 import { setRecoilExternalState } from "./RecoilExternalStatePortal";
 
 type IFireStorePath = string;
@@ -72,6 +73,24 @@ export const collectionAtom = selectorFamily<
       .filter(
         (docValue): docValue is ClientDocumentSnapshot => docValue !== null
       );
+  },
+});
+
+export const collectionWithQueryAtom = selectorFamily<
+  ClientDocumentSnapshot[],
+  IFireStorePath
+>({
+  key: "FireStore_collection",
+  get: (path) => ({ get }) => {
+    const docsLibrary = get(docsLibraryAtom);
+    const queryVersion = get(queryVersionAtom);
+    return docsLibrary
+      .filter((docPath) => getParentPath(docPath) === path)
+      .map((docPath) => get(docAtom(docPath)))
+      .filter(
+        (docValue): docValue is ClientDocumentSnapshot => docValue !== null
+      )
+      .filter((docValue) => docValue.queryVersion === queryVersion);
   },
 });
 

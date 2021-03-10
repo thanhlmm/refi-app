@@ -1,5 +1,17 @@
+import { isCollection } from "@/utils/common";
 import { actionCommitChange } from "./firestore.action";
-import { setRecoilExternalState } from "./RecoilExternalStatePortal";
+import { navigatorPathAtom } from "./navigator";
+import {
+  actionExportDocCSV,
+  actionExportDocJSON,
+  actionExportViewCSV,
+  actionExportViewJSON,
+  actionSubmitQuery,
+} from "./navigator.action";
+import {
+  getRecoilExternalLoadable,
+  setRecoilExternalState,
+} from "./RecoilExternalStatePortal";
 import {
   isModalCommandAtom,
   isModalFeedbackAtom,
@@ -68,7 +80,55 @@ export const globalHotKeys: IGlobalHotKeys = {
     group: "action",
     sequences: "command+Enter",
     handler: () => {
-      // TODO: Send the query
+      actionSubmitQuery(true);
+    },
+  },
+  EXPORT_QUERY_JSON: {
+    name: "Export: Current table as JSON",
+    group: "action",
+    sequences: "",
+    handler: () => {
+      actionExportViewJSON();
+    },
+  },
+  EXPORT_QUERY_CSV: {
+    name: "Export: Current table as CSV",
+    group: "action",
+    sequences: "",
+    handler: () => {
+      actionExportViewCSV();
+    },
+  },
+  EXPORT_DOC_JSON: {
+    name: "Export: Current document as JSON",
+    group: "action",
+    sequences: "",
+    handler: async () => {
+      const docPath = await getRecoilExternalLoadable(
+        navigatorPathAtom
+      ).toPromise();
+      if (isCollection(docPath)) {
+        // TODO: Show error
+        return;
+      }
+
+      actionExportDocJSON(docPath);
+    },
+  },
+  EXPORT_DOC_CSV: {
+    name: "Export: Current document as CSV",
+    group: "action",
+    sequences: "",
+    handler: async () => {
+      const docPath = await getRecoilExternalLoadable(
+        navigatorPathAtom
+      ).toPromise();
+      if (isCollection(docPath)) {
+        // TODO: Show error
+        return;
+      }
+
+      actionExportDocCSV(docPath);
     },
   },
 };

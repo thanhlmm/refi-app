@@ -1,5 +1,4 @@
-import { collectionAtom } from "@/atoms/firestore";
-import { actionStoreDocs } from "@/atoms/firestore.action";
+import { collectionWithQueryAtom } from "@/atoms/firestore";
 import {
   navigatorCollectionPathAtom,
   navigatorPathAtom,
@@ -9,13 +8,10 @@ import { actionRemoveProperty } from "@/atoms/navigator.action";
 import { actionToggleModalPickProperty } from "@/atoms/ui.action";
 import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import firebase from "firebase";
-import "firebase/firestore";
-import { deserializeDocumentSnapshotArray } from "firestore-serializers";
-import React, { useCallback, useEffect, useMemo } from "react";
-import { useFlexLayout, useTable } from "react-table";
+import React, { useCallback, useMemo } from "react";
+import { useFlexLayout, useTable, useSortBy } from "react-table";
 import { FixedSizeList } from "react-window";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { ReadOnlyField } from "../EditableCell";
 import scrollbarWidth from "./scroll-bar-width";
 
@@ -51,9 +47,9 @@ function TableWrapper({
       columns,
       data,
       defaultColumn,
+      disableMultiSort: false,
     },
-    // useBlockLayout
-    // useResizeColumns,
+    useSortBy,
     useFlexLayout
   );
 
@@ -68,6 +64,8 @@ function TableWrapper({
           })}
           className="border-b border-gray-300"
           key={row.original.id}
+          cm-template="rowContext"
+          cm-id={row.original.id}
           onClick={(e) => onRowClick(e, row.original)}
         >
           {row.cells.map((cell) => {
@@ -105,10 +103,13 @@ function TableWrapper({
             {headerGroup.headers.map((column) => (
               // eslint-disable-next-line react/jsx-key
               <th
-                {...column.getHeaderProps()}
+                {...column.getHeaderProps(column.getSortByToggleProps())}
                 className="text-left text-gray-500 border-r border-gray-200 px-1.5 py-1"
               >
                 {column.render("Header")}
+                <span>
+                  {column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}
+                </span>
               </th>
             ))}
           </div>
@@ -153,7 +154,7 @@ function ColumnHeader({
 function DataTable() {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
   const setPath = useSetRecoilState(navigatorPathAtom);
-  const data = useRecoilValue(collectionAtom(collectionPath));
+  const data = useRecoilValue(collectionWithQueryAtom(collectionPath));
   const properties = useRecoilValue(propertyListAtom(collectionPath));
 
   const columnViewer = useMemo(() => {
@@ -211,36 +212,6 @@ function DataTable() {
       },
     ];
   }, [properties, collectionPath]);
-
-  useEffect(() => {
-    if (collectionPath === "/") {
-      // TODO: Show empty state for choosing collection on the left side
-      return;
-    }
-
-    const topicKey = `${collectionPath}.table`;
-
-    const listener = window.listen(topicKey, (response: string) => {
-      const data = deserializeDocumentSnapshotArray(
-        response,
-        firebase.firestore.GeoPoint,
-        firebase.firestore.Timestamp
-      );
-
-      actionStoreDocs(ClientDocumentSnapshot.transformFromFirebase(data));
-    });
-    const id = window.send("fs.queryCollection.subscribe", {
-      topic: topicKey,
-      path: collectionPath,
-    });
-
-    return () => {
-      listener();
-      window.send("fs.unsubscribe", {
-        id,
-      });
-    };
-  }, [collectionPath]);
 
   const handleRowClick = useCallback(
     (

@@ -2,7 +2,7 @@ import * as admin from "firebase-admin";
 import { IServiceContext } from "../service";
 import { getDocMetaData } from "../../utils/converter";
 import { v4 as uuidv4 } from 'uuid';
-import { deserializeDocumentSnapshotArray, serializeDocumentSnapshot, serializeQuerySnapshot } from "firestore-serializers";
+import { deserializeDocumentSnapshotArray, DocumentSnapshot, serializeDocumentSnapshot, serializeQuerySnapshot } from "firestore-serializers";
 import { isCollection } from "../../utils/navigator";
 
 export default class FireStoreService implements NSFireStore.IService {
@@ -30,7 +30,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return admin.firestore(this.app)
   }
 
-  public async init({ projectId }: NSFireStore.IFSInit) : Promise<string[]> {
+  public async init({ projectId }: NSFireStore.IFSInit): Promise<string[]> {
     if (this.app?.name === projectId) {
       console.log(`${projectId} already initiated`);
       const collections = await this.fsClient().listCollections();
@@ -84,24 +84,35 @@ export default class FireStoreService implements NSFireStore.IService {
     return { id: listenerData.id };
   }
 
-  public async subscribeCollection({ path, topic }: NSFireStore.ICollectionSubscribe) {
+  public async subscribeCollection({ path, topic, queryOptions, sortOptions }: NSFireStore.ICollectionSubscribe) {
     console.log("received event fs.queryCollection.subscribe", { path, topic });
-    const close = this.fsClient()
-      .collection(path)
-      .onSnapshot(
-        async (querySnapshot) => {
-          const data = serializeQuerySnapshot({
-            docs: querySnapshot.docChanges().map(changes => changes.doc)
-          })
-          // TODO: How about hte case when we remove some things
-          console.log({ data });
+    console.log(sortOptions);
 
-          this.ctx.ipc.send(topic, data, { firestore: true });
-        },
-        (error) => {
-          // TODO: Handle error
-        }
-      );
+    const collectionRef = this.fsClient()
+      .collection(path);
+
+    let querier: FirebaseFirestore.Query = collectionRef;
+
+    queryOptions.forEach(({ field, operator: { type, values } }) => {
+      querier = querier.where(field, type, values);
+    })
+
+    sortOptions.forEach(({ field, sort }) => {
+      querier = querier.orderBy(field, sort.toLowerCase() as FirebaseFirestore.OrderByDirection);
+    })
+
+    const close = querier.onSnapshot(
+      async (querySnapshot) => {
+        const data = serializeQuerySnapshot({
+          docs: querySnapshot.docChanges().map(changes => changes.doc)
+        })
+        // TODO: How about hte case when we remove some things
+        console.log({ data });
+
+        this.ctx.ipc.send(topic, data, { firestore: true });
+      }
+    );
+    // TODO: Handle error
 
     const listenerData = {
       id: uuidv4(),
@@ -163,6 +174,7 @@ export default class FireStoreService implements NSFireStore.IService {
   public async unsubscribe({ id }: NSFireStore.IListenerKey) {
     const dataSource = this.listListeners.filter((doc) => doc.id === id);
     dataSource.forEach((source) => {
+      console.log(source);
       source.close();
     });
 

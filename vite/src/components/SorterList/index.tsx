@@ -1,38 +1,35 @@
 import {
+  ISorterEntity,
   navigatorCollectionPathAtom,
-  propertyListAtom,
+  sorterAtom,
 } from "@/atoms/navigator";
+import { actionAddSorter, actionRemoveSorter } from "@/atoms/navigator.action";
+import { reorder } from "@/utils/common";
 import React, { ReactElement, useEffect } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import {
   DragDropContext,
-  Droppable,
   Draggable,
   DraggableProvided,
   DraggableStateSnapshot,
+  Droppable,
   DropResult,
 } from "react-beautiful-dnd";
 import ReactDOM from "react-dom";
-import { Input } from "@zendeskgarden/react-forms";
 import { Controller, useForm } from "react-hook-form";
+import { useRecoilState, useRecoilValue } from "recoil";
 import FieldFinderInput from "../FieldFinderInput";
-import {
-  actionAddProperty,
-  actionRemoveProperty,
-} from "@/atoms/navigator.action";
-import { reorder } from "@/utils/common";
 
 interface IPropertyItemProps {
   provided: DraggableProvided;
   snapshot: DraggableStateSnapshot;
-  property: string;
+  sorter: ISorterEntity;
   onRemove: (string) => void;
 }
 
-const PropertyItem = ({
+const SorterItem = ({
   snapshot,
   provided,
-  property,
+  sorter,
   onRemove,
 }: IPropertyItemProps) => {
   const usePortal: boolean = snapshot.isDragging;
@@ -59,11 +56,11 @@ const PropertyItem = ({
             d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
           />
         </svg>
-        {property}
+        {sorter.field} - {sorter.sort}
       </div>
       <button
         className="w-4 opacity-0 group-hover:opacity-100"
-        onClick={() => onRemove(property)}
+        onClick={() => onRemove(sorter.id)}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -89,16 +86,16 @@ const PropertyItem = ({
   // if dragging - put the item in a portal
   return ReactDOM.createPortal(
     child,
-    document.querySelector(".property-list-drag-portal") || document.body
+    document.querySelector(".sorter-list-drag-portal") || document.body
   );
 };
 
-const PropertyList = () => {
+const SorterList = () => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
-  const [propertyList, setPropertyList] = useRecoilState(
-    propertyListAtom(collectionPath)
+  const [sorterList, setSorterList] = useRecoilState(
+    sorterAtom(collectionPath)
   );
-  const { handleSubmit, reset, control } = useForm({
+  const { handleSubmit, reset, control, register } = useForm({
     defaultValues: { property: "" },
   });
 
@@ -107,38 +104,38 @@ const PropertyList = () => {
       return;
     }
 
-    const newPropertyOrder = reorder(
-      propertyList,
+    const newSorterOrder = reorder(
+      sorterList,
       result.source.index,
       result.destination.index
     );
 
-    setPropertyList(newPropertyOrder);
+    setSorterList(newSorterOrder);
   };
 
-  const handleRemoveProperty = (property: string) => {
-    actionRemoveProperty(collectionPath, property);
+  const handleRemoveSorter = (sorterId: string) => {
+    actionRemoveSorter(collectionPath, sorterId);
   };
 
-  const handleAddProperty = ({ property }: { property: string }) => {
-    actionAddProperty(collectionPath, property);
+  const handleAddSorter = (value: any) => {
+    actionAddSorter(collectionPath, value);
     reset();
   };
 
   useEffect(() => {
-    if (!document.querySelector(".property-list-drag-portal")) {
+    if (!document.querySelector(".sorter-list-drag-portal")) {
       const portal: HTMLElement = document.createElement("div");
-      portal.classList.add("property-list-drag-portal");
+      portal.classList.add("sorter-list-drag-portal");
       document.body.appendChild(portal);
     }
   }, []);
 
   return (
     <div className="overflow-y-auto w-54">
-      <form onSubmit={handleSubmit(handleAddProperty)}>
+      <form onSubmit={handleSubmit(handleAddSorter)}>
         <Controller
           control={control}
-          name="property"
+          name="field"
           defaultValue=""
           render={(
             { onChange, onBlur, value, name, ref },
@@ -152,24 +149,28 @@ const PropertyList = () => {
             />
           )}
         />
+        <select ref={register} name="sort">
+          <option value="ASC">ASC</option>
+          <option value="DESC">DESC</option>
+        </select>
       </form>
       <div className="mt-2">
         <DragDropContext onDragEnd={handleDropEnd}>
-          <Droppable droppableId="droppablePropertyList">
+          <Droppable droppableId="droppableSorterList">
             {(provided, snapshot) => (
               <div {...provided.droppableProps} ref={provided.innerRef}>
-                {propertyList.map((property, index) => (
+                {sorterList.map((sorter, index) => (
                   <Draggable
-                    key={property}
-                    draggableId={property}
+                    key={sorter.id}
+                    draggableId={sorter.id}
                     index={index}
                   >
                     {(provided, snapshot) => (
-                      <PropertyItem
-                        property={property}
+                      <SorterItem
+                        sorter={sorter}
                         provided={provided}
                         snapshot={snapshot}
-                        onRemove={handleRemoveProperty}
+                        onRemove={handleRemoveSorter}
                       />
                     )}
                   </Draggable>
@@ -184,4 +185,4 @@ const PropertyList = () => {
   );
 };
 
-export default PropertyList;
+export default SorterList;

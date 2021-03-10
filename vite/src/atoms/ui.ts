@@ -43,3 +43,8 @@ export const isModalPickProperty = atom<boolean>({
   key: "ui/propertyList",
   default: false,
 });
+
+export const isModalSorter = atom<boolean>({
+  key: "ui/sorterList",
+  default: false,
+});

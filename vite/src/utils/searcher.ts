@@ -1,37 +1,39 @@
+import { WhereFilterOp } from "@/atoms/navigator";
+
 interface IOperatorSearchItem {
-  value: string;
+  value: WhereFilterOp;
   label: string;
   keyword: string;
 }
 
 export const operatorOptions: IOperatorSearchItem[] = [
   {
-    value: "eq",
+    value: "==",
     label: "==",
     keyword: "equal to ==",
   },
   {
-    value: "lt",
+    value: "<",
     label: "<",
     keyword: "less than <",
   },
   {
-    value: "lte",
+    value: "<=",
     label: "<=",
     keyword: "less than or equal to <=",
   },
   {
-    value: "gt",
+    value: ">",
     label: ">",
     keyword: "greater than >",
   },
   {
-    value: "gte",
+    value: ">=",
     label: ">=",
     keyword: "greater than or equal to >=",
   },
   {
-    value: "ne",
+    value: "!=",
     label: "!=",
     keyword: "not equal to !=",
   },
@@ -46,8 +48,8 @@ export const operatorOptions: IOperatorSearchItem[] = [
     keyword: "not equal to any of",
   },
   {
-    value: "arrays-contains",
-    label: "arrays contains",
+    value: "array-contains",
+    label: "array contains",
     keyword: "array contains",
   },
   {

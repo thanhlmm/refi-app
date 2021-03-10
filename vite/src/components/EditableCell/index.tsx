@@ -114,6 +114,7 @@ const EditableCell = ({
         value={instanceValue}
         onChange={onChange}
         onBlur={onBlur}
+        cm-template="rowContext"
       />
     </div>
   );

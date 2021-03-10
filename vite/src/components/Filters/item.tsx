@@ -8,15 +8,16 @@ import FieldFinderInput from "@/components/FieldFinderInput";
 import { operatorOptions } from "@/utils/searcher";
 import { IconButton } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
-import { useDebounceEffect } from "ahooks";
 import immer from "immer";
-import React, { useState } from "react";
+import React from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 
 const FilterItem = ({ id }: { id: string }) => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
-  const [filter, setFilter] = useRecoilState(querierOptionAtom(id));
-  const setQueryOptions = useSetRecoilState(querierAtom);
+  const [filter, setFilter] = useRecoilState(
+    querierOptionAtom({ id, path: collectionPath })
+  );
+  const setQueryOptions = useSetRecoilState(querierAtom(collectionPath));
 
   const handleRemoveFilter = (id) => {
     setQueryOptions((filters) => filters.filter((filter) => filter.id !== id));
@@ -33,7 +34,6 @@ const FilterItem = ({ id }: { id: string }) => {
   };
 
   const handleSetOperatorType = (value) => {
-    console.log({ value });
     setFilter(
       immer((curFilter) => {
         curFilter.operator.type = value;
@@ -64,7 +64,7 @@ const FilterItem = ({ id }: { id: string }) => {
       </div>
       <div className="max-w-xs w-30">
         <InputComboBox
-          items={operatorOptions.map((option) => option.label)}
+          items={operatorOptions.map((option) => option.value)}
           selectedItem={filter.operator.type}
           handleSelectedItemChange={handleSetOperatorType}
         />

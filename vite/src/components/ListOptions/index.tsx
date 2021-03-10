@@ -59,6 +59,7 @@ const ListOptions = ({
           React.cloneElement(option.element, {
             key: option.key,
             isActive: currentOption?.key === option?.key,
+            onChange,
           })
         )}
       </ul>

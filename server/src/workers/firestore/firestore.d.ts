@@ -17,6 +17,37 @@ declare namespace NSFireStore {
   interface ICollectionSubscribe {
     path: string;
     topic: string;
+    queryOptions: IQueryEntity[]
+    sortOptions: ISorterEntity[]
+  }
+
+  interface IQueryEntity {
+    id: string;
+    field: string;
+    operator: IOperator;
+  }
+
+  export interface ISorterEntity {
+    id: string;
+    field: string;
+    sort: "ASC" | "DESC";
+  }
+
+  type WhereFilterOp =
+    | '<'
+    | '<='
+    | '=='
+    | '!='
+    | '>='
+    | '>'
+    | 'array-contains'
+    | 'in'
+    | 'not-in'
+    | 'array-contains-any';
+
+  interface IOperator {
+    type: WhereFilterOp;
+    values: any;
   }
 
   interface IPathSubscribe {

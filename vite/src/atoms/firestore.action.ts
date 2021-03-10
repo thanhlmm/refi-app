@@ -19,7 +19,17 @@ import {
 import * as immutable from "object-path-immutable";
 
 export const actionStoreDocs = (docs: ClientDocumentSnapshot[]): void => {
-  docs.forEach((doc) => setRecoilExternalState(docAtom(doc.ref.path), doc));
+  docs.forEach(async (doc) => {
+    const originalDoc = await getRecoilExternalLoadable(
+      docAtom(doc.ref.path)
+    ).toPromise();
+    if (originalDoc && originalDoc.isChanged()) {
+      // In-case user has modify the original docs
+      originalDoc.mergeNewDoc(doc);
+    } else {
+      setRecoilExternalState(docAtom(doc.ref.path), doc);
+    }
+  });
 };
 
 export const actionUpdateFieldKey = async (

@@ -1,21 +1,27 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Button } from "@zendeskgarden/react-buttons";
-import { debounce, uniqueId } from "lodash";
-import { Input } from "@zendeskgarden/react-forms";
-import { allColumnsAtom, querierAtom } from "@/atoms/navigator";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import FilterItem from "./item";
-import { isModalPickProperty } from "@/atoms/ui";
-import { TooltipModal } from "@zendeskgarden/react-modals";
+import { navigatorCollectionPathAtom, querierAtom } from "@/atoms/navigator";
+import { actionSubmitQuery } from "@/atoms/navigator.action";
+import { isModalPickProperty, isModalSorter } from "@/atoms/ui";
 import PropertyList from "@/components/PropertyList";
+import { Button } from "@zendeskgarden/react-buttons";
+import { TooltipModal } from "@zendeskgarden/react-modals";
+import { uniqueId } from "lodash";
+import React, { useRef } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
+import SorterList from "../SorterList";
+import FilterItem from "./item";
 
 const Filters = () => {
-  const [queryOptions, setQueryOptions] = useRecoilState(querierAtom);
-  const allColumnsInView = useRecoilValue(allColumnsAtom);
+  const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
+  const [queryOptions, setQueryOptions] = useRecoilState(
+    querierAtom(collectionPath)
+  );
   const [isShowPropertyList, setShowPropertyList] = useRecoilState(
     isModalPickProperty
   );
+
+  const [isShowSorterList, setShowSorterList] = useRecoilState(isModalSorter);
   const propertyBtnRef = useRef<HTMLButtonElement>(null);
+  const sorterBtnRef = useRef<HTMLButtonElement>(null);
 
   const handleAddFilter = () => {
     setQueryOptions((filters) => [
@@ -24,7 +30,7 @@ const Filters = () => {
         id: uniqueId("fs.querier"),
         field: "",
         operator: {
-          type: "eq",
+          type: "==",
           values: "",
         },
       },
@@ -62,8 +68,28 @@ const Filters = () => {
           >
             <PropertyList />
           </TooltipModal>
+
+          {/* <Button
+            size="small"
+            isBasic
+            ref={sorterBtnRef}
+            onClick={() => {
+              setShowSorterList(true);
+            }}
+          >
+            Sort
+          </Button> */}
+
+          <TooltipModal
+            referenceElement={isShowSorterList ? sorterBtnRef.current : null}
+            onClose={() => setShowSorterList(false)}
+            placement={"bottom-start"}
+            className="p-3 leading-normal"
+          >
+            <SorterList />
+          </TooltipModal>
         </div>
-        <Button size="small" isPrimary>
+        <Button size="small" isPrimary onClick={() => actionSubmitQuery(true)}>
           Query
         </Button>
       </div>

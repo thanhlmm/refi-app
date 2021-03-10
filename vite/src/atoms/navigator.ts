@@ -1,5 +1,4 @@
 import { atom, atomFamily, selector, selectorFamily } from "recoil";
-import * as immutable from "object-path-immutable";
 import { collectionAtom } from "./firestore";
 import {
   getAllColumns,
@@ -38,94 +37,96 @@ export const navigatorCollectionPathAtom = selector<string>({
   },
 });
 
-export const filtersOptions = [
-  {
-    value: "eq",
-    label: "==",
-  },
-  {
-    value: "lt",
-    label: "<",
-  },
-  {
-    value: "lte",
-    label: "<=",
-  },
-  {
-    value: "gt",
-    label: ">",
-  },
-  {
-    value: "gte",
-    label: ">=",
-  },
-  {
-    value: "ne",
-    label: "!=",
-  },
-  {
-    value: "contains",
-    label: "in",
-  },
-  {
-    value: "in",
-    label: "not in",
-  },
-  {
-    value: "array-contains-any",
-    label: "arrays contains any",
-  },
-];
+export type WhereFilterOp =
+  | "<"
+  | "<="
+  | "=="
+  | "!="
+  | ">="
+  | ">"
+  | "array-contains"
+  | "in"
+  | "not-in"
+  | "array-contains-any";
 
 interface IOperator {
-  type: string;
+  type: WhereFilterOp;
   values: any;
-}
-interface IOperatorCommons extends IOperator {
-  type: "eq" | "lt" | "lte" | "gt" | "gte" | "ne";
-  values: string | number | boolean | Date;
-}
-
-interface IOperatorNotEqual extends IOperator {
-  type: "array-contains";
-  values: string | number | boolean | Date;
-}
-
-interface IOperatorInList extends IOperator {
-  type: "in" | "not-in" | "array-contains-any";
-  values: any[];
 }
 
 interface IQueryEntity {
   id: string;
   field: string;
-  operator: IOperatorCommons | IOperatorNotEqual | IOperatorInList;
+  operator: IOperator;
 }
 
-export const querierAtom = atom<IQueryEntity[]>({
+export const querierAtom = atomFamily<IQueryEntity[], string>({
   key: "fs.querier",
-  default: [],
+  default: () => [],
+  effects_UNSTABLE: [persistAtom],
 });
 
 export const querierOptionAtom = selectorFamily<
   IQueryEntity | undefined,
-  string
+  { id: string; path: string }
 >({
   key: "fs.querierOption",
-  get: (id) => ({ get }) => {
-    return get(querierAtom).find((query) => query.id === id);
+  get: ({ id, path }) => ({ get }) => {
+    return get(querierAtom(path)).find((query) => query.id === id);
   },
-  set: (id) => ({ get, set }, newValue) => {
-    const optionIndex = get(querierAtom).findIndex((query) => query.id === id);
+  set: ({ id, path }) => ({ get, set }, newValue) => {
+    const optionIndex = get(querierAtom(path)).findIndex(
+      (query) => query.id === id
+    );
     if (optionIndex >= 0) {
       set(
-        querierAtom,
+        querierAtom(path),
         produce((querier) => {
           querier[optionIndex] = newValue;
         })
       );
     }
   },
+});
+
+export interface ISorterEntity {
+  id: string;
+  field: string;
+  sort: "ASC" | "DESC";
+}
+
+export const sorterAtom = atomFamily<ISorterEntity[], string>({
+  key: "fs.sorter",
+  default: () => [],
+  effects_UNSTABLE: [persistAtom],
+});
+
+export const sorterItemAtom = selectorFamily<
+  ISorterEntity | undefined,
+  { id: string; path: string }
+>({
+  key: "fs.sorterItem",
+  get: ({ id, path }) => ({ get }) => {
+    return get(sorterAtom(path)).find((query) => query.id === id);
+  },
+  set: ({ id, path }) => ({ get, set }, newValue) => {
+    const optionIndex = get(sorterAtom(path)).findIndex(
+      (query) => query.id === id
+    );
+    if (optionIndex >= 0) {
+      set(
+        sorterAtom(path),
+        produce((sorter) => {
+          sorter[optionIndex] = newValue;
+        })
+      );
+    }
+  },
+});
+
+export const queryVersionAtom = atom<number>({
+  key: "navigator.queryVersion",
+  default: 0,
 });
 
 export const allColumnsAtom = selector<string[]>({

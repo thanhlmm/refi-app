@@ -1,4 +1,4 @@
-import { useCombobox, useSelect } from "downshift";
+import { useCombobox } from "downshift";
 import React, { ReactElement, useState } from "react";
 
 interface IInputComboBoxProps<T> {
@@ -46,23 +46,27 @@ const InputComboBox = ({
   };
 
   return (
-    <div>
-      <div {...getComboboxProps()}>
+    <div className="relative">
+      <div {...getComboboxProps()} className="relative">
         <input
           {...getInputProps({
             onBlur: handleInputBlur,
-            className: "p-1.5 w-full text-sm border-gray-300 border",
+            className: "p-1.5 w-full text-sm border-gray-300 border pl-3",
           })}
         />
         <button
           type="button"
           {...getToggleButtonProps()}
           aria-label="toggle menu"
+          className="absolute transform -translate-y-1/2 top-1/2 right-1"
         >
           &#8595;
         </button>
       </div>
-      <ul {...getMenuProps()}>
+      <ul
+        {...getMenuProps()}
+        className="absolute z-20 w-full overflow-y-auto bg-white top-10"
+      >
         {isOpen &&
           inputItems.map((item, index) => (
             <li
@@ -71,6 +75,7 @@ const InputComboBox = ({
               }
               key={`${item}${index}`}
               {...getItemProps({ item, index })}
+              className="h-1.5"
             >
               {item}
             </li>

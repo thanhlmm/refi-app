@@ -30,9 +30,11 @@ interface ICommand {
 const CommandOption = ({
   isActive,
   command,
+  onChange,
 }: {
   isActive?: boolean;
   command: ICommand;
+  onChange: (string) => void;
 }) => (
   <a
     href="#"
@@ -42,6 +44,7 @@ const CommandOption = ({
       { ["bg-gray-200"]: isActive }
     )}
     role="menuitem"
+    onClick={() => onChange(command.key)}
   >
     {command.name}{" "}
     <span>{command.sequences.map((data) => data.sequence).join(";")}</span>

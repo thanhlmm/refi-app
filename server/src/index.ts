@@ -12,7 +12,7 @@ import * as path from 'path';
 import fs from 'fs';
 import findOpenSocket from './utils/find-open-socket';
 import db from './client/db';
-import ContextMenu from 'secure-electron-context-menu'
+import ContextMenu from './lib/electron-context-menu'
 import { contextConfig } from './contextMenu';
 
 let serverProcess: any;
