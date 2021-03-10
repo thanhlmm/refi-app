@@ -1,4 +1,4 @@
-import { actionStoreDocs } from "@/atoms/firestore.action";
+import { actionRemoveDocs, actionStoreDocs } from "@/atoms/firestore.action";
 import {
   navigatorCollectionPathAtom,
   querierAtom,
@@ -10,6 +10,12 @@ import firebase from "firebase";
 import { deserializeDocumentSnapshotArray } from "firestore-serializers";
 import { useEffect, useRef } from "react";
 import { useRecoilValue } from "recoil";
+
+interface ISubscribeResponse {
+  addedData: string;
+  modifiedData: string;
+  removedData: string;
+}
 
 const DataSubscriber = () => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
@@ -39,22 +45,53 @@ const DataSubscriber = () => {
 
     unsubscribe();
     const topicKey = `${collectionPath}.table`;
-    listener.current = window.listen(topicKey, (response: string) => {
-      const data = deserializeDocumentSnapshotArray(
-        response,
-        firebase.firestore.GeoPoint,
-        firebase.firestore.Timestamp
-      );
+    listener.current = window.listen(
+      topicKey,
+      ({ addedData, modifiedData, removedData }: ISubscribeResponse) => {
+        const addedDocs = deserializeDocumentSnapshotArray(
+          addedData,
+          firebase.firestore.GeoPoint,
+          firebase.firestore.Timestamp
+        );
 
-      actionStoreDocs(
-        ClientDocumentSnapshot.transformFromFirebase(data, queryVersion)
-      );
-    });
+        actionStoreDocs(
+          ClientDocumentSnapshot.transformFromFirebase(addedDocs, queryVersion)
+        );
+
+        const modifiedDocs = deserializeDocumentSnapshotArray(
+          modifiedData,
+          firebase.firestore.GeoPoint,
+          firebase.firestore.Timestamp
+        );
+
+        actionStoreDocs(
+          ClientDocumentSnapshot.transformFromFirebase(
+            modifiedDocs,
+            queryVersion
+          )
+        );
+
+        const removedDocs = deserializeDocumentSnapshotArray(
+          removedData,
+          firebase.firestore.GeoPoint,
+          firebase.firestore.Timestamp
+        );
+
+        actionRemoveDocs(
+          ClientDocumentSnapshot.transformFromFirebase(
+            removedDocs,
+            queryVersion
+          )
+        );
+      }
+    );
     window
       .send("fs.queryCollection.subscribe", {
         topic: topicKey,
         path: collectionPath,
-        queryOptions,
+        queryOptions: queryOptions.filter(
+          (option) => option.field && option.isActive
+        ),
         sortOptions,
       })
       .then(({ id }) => {

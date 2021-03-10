@@ -58,6 +58,7 @@ interface IQueryEntity {
   id: string;
   field: string;
   operator: IOperator;
+  isActive: boolean;
 }
 
 export const querierAtom = atomFamily<IQueryEntity[], string>({

@@ -33,6 +33,7 @@ const Filters = () => {
           type: "==",
           values: "",
         },
+        isActive: true,
       },
     ]);
   };

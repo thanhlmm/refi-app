@@ -29,6 +29,7 @@ handlers["fs.queryDoc.subscribe"] = fsService.subscribeDoc.bind(fsService);
 handlers["fs.queryCollection.subscribe"] = fsService.subscribeCollection.bind(fsService);
 handlers["fs.pathExplorer.subscribe"] = fsService.subscribePathExplorer.bind(fsService);
 handlers["fs.updateDocs"] = fsService.updateDocs.bind(fsService);
+handlers["fs.addDoc"] = fsService.addDoc.bind(fsService);
 handlers["fs.getDocs"] = fsService.getDocs.bind(fsService);
 handlers["fs.unsubscribe"] = fsService.unsubscribe.bind(fsService);
 handlers['fs.pathExpander'] = fsService.pathExpander.bind(fsService);

@@ -103,13 +103,20 @@ export default class FireStoreService implements NSFireStore.IService {
 
     const close = querier.onSnapshot(
       async (querySnapshot) => {
-        const data = serializeQuerySnapshot({
-          docs: querySnapshot.docChanges().map(changes => changes.doc)
+        const addedData = serializeQuerySnapshot({
+          docs: querySnapshot.docChanges().filter(changes => changes.type === 'added').map(changes => changes.doc)
         })
-        // TODO: How about hte case when we remove some things
-        console.log({ data });
 
-        this.ctx.ipc.send(topic, data, { firestore: true });
+        const modifiedData = serializeQuerySnapshot({
+          docs: querySnapshot.docChanges().filter(changes => changes.type === 'modified').map(changes => changes.doc)
+        })
+
+        const removedData = serializeQuerySnapshot({
+          docs: querySnapshot.docChanges().filter(changes => changes.type === 'removed').map(changes => changes.doc)
+        })
+        // TODO: How about the case when we remove some things
+
+        this.ctx.ipc.send(topic, { addedData, modifiedData, removedData }, { firestore: true });
       }
     );
     // TODO: Handle error
@@ -182,6 +189,13 @@ export default class FireStoreService implements NSFireStore.IService {
     console.log("Success unsubscribe this stream");
     return true;
   };
+
+  public async addDoc({ doc, path }: NSFireStore.IAddDoc): Promise<string> {
+    const fs = this.fsClient();
+    const newDoc = await fs.collection(path).add(doc);
+
+    return newDoc.path;
+  }
 
   public async getDocs({ docs }: NSFireStore.IGetDocs): Promise<string> {
     const fs = this.fsClient();

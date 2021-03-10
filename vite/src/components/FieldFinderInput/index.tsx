@@ -1,4 +1,5 @@
 import { allColumnsRecursiveAtom, propertyListAtom } from "@/atoms/navigator";
+import { Input } from "@zendeskgarden/react-forms";
 import React, { ChangeEvent, ReactElement, useMemo } from "react";
 import Autosuggest from "react-autosuggest";
 import { useRecoilValue } from "recoil";
@@ -13,7 +14,6 @@ const dumpFnc = () => {};
 
 const autoCompleteTheme = {
   container: "relative",
-  input: "p-1.5 w-full text-sm border-gray-300 border-1",
   suggestionsContainer: "absolute t-2 l-2 w-full ",
   suggestionsList: "bg-white border border-gray-300",
   suggestionHighlighted: "bg-gray-200",
@@ -25,6 +25,10 @@ interface IFieldFinderInputProps {
   onChange: (string) => void;
   inputRef?: HTMLInputElement;
 }
+
+const InputComponent = (inputProps: any) => {
+  return <Input {...inputProps} isCompact />;
+};
 
 const FieldFinderInput = ({
   collectionPath,
@@ -64,6 +68,8 @@ const FieldFinderInput = ({
       renderSuggestion={renderSuggestion}
       inputProps={inputProps}
       theme={autoCompleteTheme}
+      focusInputOnSuggestionClick
+      renderInputComponent={InputComponent}
     />
   );
 };

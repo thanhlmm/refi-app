@@ -1,3 +1,4 @@
+import { Input } from "@zendeskgarden/react-forms";
 import { useCombobox } from "downshift";
 import React, { ReactElement, useState } from "react";
 
@@ -48,11 +49,11 @@ const InputComboBox = ({
   return (
     <div className="relative">
       <div {...getComboboxProps()} className="relative">
-        <input
+        <Input
           {...getInputProps({
             onBlur: handleInputBlur,
-            className: "p-1.5 w-full text-sm border-gray-300 border pl-3",
           })}
+          isCompact
         />
         <button
           type="button"

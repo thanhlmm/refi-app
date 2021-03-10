@@ -77,7 +77,7 @@ export const contextConfig = {
     },
     {
       id: "DELETE",
-      label: "delete"
+      label: "Delete"
     }
   ],
   "default": [

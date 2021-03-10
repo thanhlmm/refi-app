@@ -1,5 +1,5 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import { prettifyPath } from "@/utils/common";
+import { getParentPath, prettifyPath } from "@/utils/common";
 import {
   serializeQuerySnapshot,
   deserializeDocumentSnapshotArray,
@@ -14,22 +14,44 @@ import {
 } from "./firestore";
 import {
   getRecoilExternalLoadable,
+  resetRecoilExternalState,
   setRecoilExternalState,
 } from "./RecoilExternalStatePortal";
 import * as immutable from "object-path-immutable";
 
-export const actionStoreDocs = (docs: ClientDocumentSnapshot[]): void => {
+export const actionStoreDocs = (
+  docs: ClientDocumentSnapshot[],
+  override = false
+): void => {
   docs.forEach(async (doc) => {
     const originalDoc = await getRecoilExternalLoadable(
       docAtom(doc.ref.path)
     ).toPromise();
-    if (originalDoc && originalDoc.isChanged()) {
+    if (!override && originalDoc && originalDoc.isChanged()) {
       // In-case user has modify the original docs
-      originalDoc.mergeNewDoc(doc);
+      // NOTICE: We just ignore new update if we're currently edit an document
+      // originalDoc.mergeNewDoc(doc);
     } else {
       setRecoilExternalState(docAtom(doc.ref.path), doc);
     }
   });
+};
+
+export const actionRemoveDocs = (
+  docs: ClientDocumentSnapshot[],
+  override = false
+): void => {
+  docs.forEach(async (doc) => {
+    if (override) {
+      // TODO: What if user already modified the deleted one
+    } else {
+      resetRecoilExternalState(docAtom(doc.ref.path));
+    }
+  });
+};
+
+export const actionUpdateDoc = (doc: ClientDocumentSnapshot): void => {
+  setRecoilExternalState(docAtom(doc.ref.path), doc);
 };
 
 export const actionUpdateFieldKey = async (
@@ -91,7 +113,8 @@ export const actionReverseChange = async (): Promise<any> => {
         firebase.firestore.GeoPoint,
         firebase.firestore.Timestamp
       );
-      actionStoreDocs(ClientDocumentSnapshot.transformFromFirebase(data));
+
+      actionStoreDocs(ClientDocumentSnapshot.transformFromFirebase(data), true);
     });
 };
 
@@ -99,4 +122,20 @@ export const actionAddPathExpander = (paths: string[]) => {
   setRecoilExternalState(pathExpanderAtom, (currentValue) =>
     uniq([...currentValue, ...paths.map((path) => prettifyPath(path))])
   );
+};
+
+export const duplicateDoc = async (path: string) => {
+  const doc = await getRecoilExternalLoadable(docAtom(path)).toPromise();
+
+  if (!doc) {
+    // TODO: Throw error here
+    return;
+  }
+
+  return window
+    .send("fs.addDoc", {
+      doc: doc.data(),
+      path: getParentPath(doc.ref.path),
+    })
+    .then((a) => console.log(a));
 };

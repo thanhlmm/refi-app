@@ -1,7 +1,12 @@
 import { docAtom, pathExpanderAtom } from "@/atoms/firestore";
 import { navigatorPathAtom } from "@/atoms/navigator";
 import { buildTableSubRows, getListCollections } from "@/utils/common";
-import { Anchor } from "@zendeskgarden/react-buttons";
+import {
+  Anchor,
+  Button,
+  ButtonGroup,
+  IconButton,
+} from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
 import React, { useCallback, useMemo, useState } from "react";
 import { useRecoilValue } from "recoil";
@@ -13,6 +18,7 @@ import EditableCell, {
 } from "../EditableCell";
 import { type } from "os";
 import { simplify } from "@/utils/simplifr";
+import MonacoProperty from "./MonacoProperty";
 
 const PropertyTable = ({ data, doc }) => {
   const PropertyColumns = useMemo(
@@ -72,7 +78,7 @@ const PropertyTable = ({ data, doc }) => {
 
   return (
     <div className="w-full">
-      <table {...getTableProps()} className="w-full ml-4 table-fixed">
+      <table {...getTableProps()} className="w-full table-fixed">
         {/* <thead>
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
@@ -126,6 +132,7 @@ const Property = () => {
   const pathAvailable = useRecoilValue(pathExpanderAtom);
   const doc = useRecoilValue(docAtom(currentPath));
   const [searchInput, setSearchInput] = useState("");
+  const [editorType, setEditorType] = useState<"basic" | "advantage">("basic");
 
   const listCollections = useMemo(() => {
     return getListCollections(currentPath, pathAvailable);
@@ -190,7 +197,42 @@ const Property = () => {
           </div>
         ))}
         <h3>Fields</h3>
-        <PropertyTable data={fieldData} doc={doc} />
+        <ButtonGroup selectedItem={editorType} onSelect={setEditorType}>
+          <Button size="small" value="basic">
+            <svg
+              className="w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h8m-8 6h16"
+              />
+            </svg>
+          </Button>
+          <Button size="small" value="advantage">
+            <svg
+              className="w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+              />
+            </svg>
+          </Button>
+        </ButtonGroup>
+        {editorType === "basic" && <PropertyTable data={fieldData} doc={doc} />}
+        {editorType === "advantage" && <MonacoProperty doc={doc} />}
       </div>
     </div>
   );

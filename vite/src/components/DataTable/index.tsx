@@ -9,6 +9,7 @@ import { actionToggleModalPickProperty } from "@/atoms/ui.action";
 import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import React, { useCallback, useMemo } from "react";
+import AutoSizer from "react-virtualized-auto-sizer";
 import { useFlexLayout, useTable, useSortBy } from "react-table";
 import { FixedSizeList } from "react-window";
 import { useRecoilValue, useSetRecoilState } from "recoil";
@@ -91,7 +92,7 @@ function TableWrapper({
   return (
     <table
       {...getTableProps()}
-      className="w-full max-w-full overflow-auto border-l border-r border-gray-300"
+      className="w-full h-full border-l border-r border-gray-300"
     >
       <thead>
         {headerGroups.map((headerGroup) => (
@@ -115,15 +116,19 @@ function TableWrapper({
           </div>
         ))}
       </thead>
-      <tbody {...getTableBodyProps()}>
-        <FixedSizeList
-          height={400}
-          itemCount={rows.length}
-          itemSize={35}
-          width="100%"
-        >
-          {RenderRow}
-        </FixedSizeList>
+      <tbody {...getTableBodyProps()} className="block h-full">
+        <AutoSizer disableWidth>
+          {({ height }) => (
+            <FixedSizeList
+              height={height}
+              itemCount={rows.length}
+              itemSize={35}
+              width="100%"
+            >
+              {RenderRow}
+            </FixedSizeList>
+          )}
+        </AutoSizer>
       </tbody>
     </table>
   );
@@ -167,7 +172,7 @@ function DataTable() {
         return (
           <EditableCell
             value={value}
-            // key={column.id}
+            key={column.id}
             row={row.original}
             column={column}
             tabIndex={row.index * row.cells.length + index}
@@ -224,7 +229,7 @@ function DataTable() {
   );
 
   return (
-    <div className="mt-2 overflow-auto">
+    <div className="h-full mt-2 overflow-x-auto">
       <TableWrapper
         columns={columnViewer}
         data={data}

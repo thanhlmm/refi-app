@@ -37,6 +37,20 @@ export let setRecoilExternalState: <T>(
 ) => void = () => null as any;
 
 /**
+ * Resets a Recoil state value, from anywhere in the app.
+ *
+ * Can be used outside of the React tree (outside a React component), such as in utility scripts, etc.
+ *
+ * <RecoilExternalStatePortal> must have been previously loaded in the React tree, or it won't work.
+ * Initialized as a dummy function "() => null", it's reference is updated to a proper Recoil state mutator when RecoilExternalStatePortal is loaded.
+ *
+ * @example resetRecoilExternalState(lastCreatedUserState, newUser)
+ */
+export let resetRecoilExternalState: <T>(
+  recoilState: RecoilState<T>
+) => void = () => null as any;
+
+/**
  * Utility component allowing to use the Recoil state outside of a React component.
  *
  * It must be loaded in the _app file, inside the <RecoilRoot> component.
@@ -54,10 +68,11 @@ export function RecoilExternalStatePortal() {
   });
 
   // We only need to assign setRecoilExternalState once because it's not temporally dependent like "get" is
-  useRecoilCallback(({ set }) => {
+  useRecoilCallback(({ set, reset }) => {
     setRecoilExternalState = set;
+    resetRecoilExternalState = reset;
 
-    return async () => {};
+    return () => {};
   })();
 
   return <></>;

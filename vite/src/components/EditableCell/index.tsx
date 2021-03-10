@@ -404,7 +404,7 @@ export const EditablePropertyField = ({
 
   return (
     <div
-      className="relative w-full outline-none"
+      className="w-full outline-none"
       ref={wrapperEl}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -412,7 +412,7 @@ export const EditablePropertyField = ({
       {canExpand && (
         <div
           className={classNames(
-            "absolute top-1 -left-6 opacity-80 hover:opacity-100 transition-opacity z-20"
+            "opacity-80 hover:opacity-100 transition-opacity z-20"
           )}
         >
           <button

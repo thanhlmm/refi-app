@@ -122,12 +122,7 @@ export const fieldAtom = selectorFamily<unknown, string>({
     const { path, field } = parseFSUrl(url);
     const doc = get(docAtom(path));
     if (doc) {
-      const newDoc = new ClientDocumentSnapshot(
-        immutable.set(doc.data(), field, newValue),
-        doc.id,
-        path
-      );
-      newDoc.addChange([...doc.changedFields(), field]);
+      const newDoc = doc.clone().setField(field, newValue);
       set(docAtom(path), newDoc);
     }
   },

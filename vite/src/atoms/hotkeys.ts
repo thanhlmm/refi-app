@@ -1,5 +1,5 @@
 import { isCollection } from "@/utils/common";
-import { actionCommitChange } from "./firestore.action";
+import { actionCommitChange, duplicateDoc } from "./firestore.action";
 import { navigatorPathAtom } from "./navigator";
 import {
   actionExportDocCSV,
@@ -129,6 +129,23 @@ export const globalHotKeys: IGlobalHotKeys = {
       }
 
       actionExportDocCSV(docPath);
+    },
+  },
+  DUPLICATE_DOC: {
+    name: "Duplicate current doc",
+    group: "action",
+    sequences: "command+d",
+    handler: async () => {
+      const docPath = await getRecoilExternalLoadable(
+        navigatorPathAtom
+      ).toPromise();
+
+      if (isCollection(docPath)) {
+        // TODO: Show error
+        return;
+      }
+
+      duplicateDoc(docPath);
     },
   },
 };

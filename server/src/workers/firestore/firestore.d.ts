@@ -67,6 +67,11 @@ declare namespace NSFireStore {
     docs: string[];
   }
 
+  interface IAddDoc {
+    doc: any;
+    path: string;
+  }
+
   interface IPathExpander {
     path: string;
   }
@@ -77,6 +82,7 @@ declare namespace NSFireStore {
     subscribeCollection(params: NSFireStore.ICollectionSubscribe): Promise<IListenerKey>;
     subscribePathExplorer(params: NSFireStore.IPathSubscribe): Promise<IListenerKey>;
     updateDocs({ docs }: NSFireStore.IUpdateDocs): Promise<boolean>;
+    addDoc({ doc, path }: NSFireStore.IAddDoc): Promise<string>
     getDocs(params: NSFireStore.IGetDocs): Promise<string>;
     unsubscribe(params: IListenerKey): Promise<boolean>;
     pathExpander(params: NSFireStore.IPathExpander): Promise<string[]>;

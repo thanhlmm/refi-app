@@ -1,5 +1,6 @@
 import { DocumentData, DocumentSnapshot, IDocRef } from "firestore-serializers";
 import { DocRef } from "firestore-serializers/src/DocRef";
+import { uniq } from "lodash";
 import * as immutable from "object-path-immutable";
 
 export class ClientDocumentSnapshot {
@@ -26,10 +27,7 @@ export class ClientDocumentSnapshot {
   }
 
   public mergeNewDoc(newDoc: ClientDocumentSnapshot): ClientDocumentSnapshot {
-    this.objectData = immutable.merge(newDoc.data(), "", this.objectData);
-    this.queryVersion = newDoc.queryVersion;
-
-    return this;
+    return this.clone(immutable.merge(newDoc.data(), "", this.objectData));
   }
 
   constructor(
@@ -53,10 +51,30 @@ export class ClientDocumentSnapshot {
   }
 
   public addChange(fields: string[]): void {
-    this.changedField = [...this.changedField, ...fields];
+    this.changedField = uniq([...this.changedField, ...fields]);
   }
 
   public isChanged(): boolean {
     return this.changedField.length > 0;
+  }
+
+  public setField(field: string, newValue: any): ClientDocumentSnapshot {
+    this.objectData = immutable.set(this.objectData, field, newValue);
+    this.addChange([field]);
+
+    return this;
+  }
+
+  public clone(newData?: any): ClientDocumentSnapshot {
+    const newDoc = new ClientDocumentSnapshot(
+      newData || this.data(),
+      this.id,
+      this.ref.path,
+      this.queryVersion
+    );
+
+    newDoc.addChange(this.changedFields());
+
+    return newDoc;
   }
 }
