@@ -1,7 +1,7 @@
 const { ipcRenderer } = require('electron')
 const ipc = require('node-ipc')
 const uuid = require('uuid')
-const ContextMenu = require("secure-electron-context-menu").default;
+const ContextMenu = require("./lib/electron-context-menu").default;
 
 let resolveSocketPromise
 let socketPromise = new Promise(resolve => {

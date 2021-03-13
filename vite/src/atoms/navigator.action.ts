@@ -2,20 +2,24 @@ import {
   serializeDocumentSnapshot,
   serializeQuerySnapshot,
 } from "firestore-serializers";
-import { uniq, uniqBy, uniqueId } from "lodash";
+import { filter, uniq, uniqBy, uniqueId } from "lodash";
 import { collectionWithQueryAtom, docAtom } from "./firestore";
 import exportFromJSON from "export-from-json";
 import {
   ISorterEntity,
   navigatorCollectionPathAtom,
   propertyListAtom,
+  querierAtom,
   queryVersionAtom,
   sorterAtom,
+  WhereFilterOp,
 } from "./navigator";
 import {
   getRecoilExternalLoadable,
   setRecoilExternalState,
 } from "./RecoilExternalStatePortal";
+import { removeFirebaseSerializeMetaData } from "@/utils/common";
+import { FILTER_PREFIX } from "@/utils/contant";
 
 export const actionRemoveProperty = (
   collectionPath: string,
@@ -35,9 +39,25 @@ export const actionAddProperty = (
   );
 };
 
-export const actionSubmitQuery = (withQuerier = true): void => {
-  // TODO: Try to submit along with querier
-  setRecoilExternalState(queryVersionAtom, (cur) => cur + 1);
+export const actionSubmitQuery = async (
+  withQuerier = true
+): Promise<boolean> => {
+  setRecoilExternalState(queryVersionAtom, ({ queryVersion }) => ({
+    queryVersion: queryVersion + 1,
+    withQuerier,
+  }));
+
+  if (!withQuerier) {
+    const collectionPath = await getRecoilExternalLoadable(
+      navigatorCollectionPathAtom
+    ).toPromise();
+
+    setRecoilExternalState(querierAtom(collectionPath), (querierOptions) =>
+      querierOptions.map((option) => ({ ...option, isActive: false }))
+    );
+  }
+
+  return true;
 };
 
 export const actionRemoveSorter = (
@@ -73,9 +93,11 @@ export const actionExportViewJSON = async (
     collectionWithQueryAtom(collectionPath)
   ).toPromise();
 
-  const docsAsString = serializeQuerySnapshot({
-    docs,
-  });
+  const docsAsString = removeFirebaseSerializeMetaData(
+    serializeQuerySnapshot({
+      docs,
+    })
+  );
 
   exportFromJSON({
     data: docsAsString,
@@ -96,9 +118,11 @@ export const actionExportViewCSV = async (
     collectionWithQueryAtom(collectionPath)
   ).toPromise();
 
-  const docsAsString = serializeQuerySnapshot({
-    docs,
-  });
+  const docsAsString = removeFirebaseSerializeMetaData(
+    serializeQuerySnapshot({
+      docs,
+    })
+  );
 
   exportFromJSON({
     data: docsAsString,
@@ -120,7 +144,9 @@ export const actionExportDocJSON = async (
     return false;
   }
 
-  const docsAsString = serializeDocumentSnapshot(doc);
+  const docsAsString = removeFirebaseSerializeMetaData(
+    serializeDocumentSnapshot(doc)
+  );
 
   exportFromJSON({
     data: docsAsString,
@@ -140,7 +166,9 @@ export const actionExportDocCSV = async (docPath: string): Promise<boolean> => {
     return false;
   }
 
-  const docsAsString = serializeDocumentSnapshot(doc);
+  const docsAsString = removeFirebaseSerializeMetaData(
+    serializeDocumentSnapshot(doc)
+  );
 
   exportFromJSON({
     data: [JSON.parse(docsAsString)],
@@ -149,4 +177,23 @@ export const actionExportDocCSV = async (docPath: string): Promise<boolean> => {
   });
 
   return true;
+};
+
+export const actionAddFilter = (
+  field: string,
+  type: WhereFilterOp,
+  collectionPath: string
+): void => {
+  setRecoilExternalState(querierAtom(collectionPath), (filters) => [
+    ...filters,
+    {
+      id: uniqueId(FILTER_PREFIX),
+      field,
+      operator: {
+        type: type,
+        values: "",
+      },
+      isActive: true,
+    },
+  ]);
 };

@@ -80,6 +80,12 @@ export const contextConfig = {
       label: "Delete"
     }
   ],
+  "propertyName": [
+    {
+      id: "DELETE_PROPERTY",
+      label: "Delete"
+    }
+  ],
   "default": [
     {
       label: "Edit",

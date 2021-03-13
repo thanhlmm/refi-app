@@ -1,20 +1,19 @@
+import { actionNewDocument } from "@/atoms/firestore.action";
 import { navigatorCollectionPathAtom, querierAtom } from "@/atoms/navigator";
-import { actionSubmitQuery } from "@/atoms/navigator.action";
+import { actionAddFilter, actionSubmitQuery } from "@/atoms/navigator.action";
 import { isModalPickProperty, isModalSorter } from "@/atoms/ui";
 import PropertyList from "@/components/PropertyList";
-import { Button } from "@zendeskgarden/react-buttons";
+import { Button, SplitButton } from "@zendeskgarden/react-buttons";
 import { TooltipModal } from "@zendeskgarden/react-modals";
-import { uniqueId } from "lodash";
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
+import DropdownMenu from "@/components/DropdownMenu";
 import SorterList from "../SorterList";
-import FilterItem from "./item";
+import FilterItem from "./FilterItem";
 
 const Filters = () => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
-  const [queryOptions, setQueryOptions] = useRecoilState(
-    querierAtom(collectionPath)
-  );
+  const queryOptions = useRecoilValue(querierAtom(collectionPath));
   const [isShowPropertyList, setShowPropertyList] = useRecoilState(
     isModalPickProperty
   );
@@ -24,19 +23,19 @@ const Filters = () => {
   const sorterBtnRef = useRef<HTMLButtonElement>(null);
 
   const handleAddFilter = () => {
-    setQueryOptions((filters) => [
-      ...filters,
-      {
-        id: uniqueId("fs.querier"),
-        field: "",
-        operator: {
-          type: "==",
-          values: "",
-        },
-        isActive: true,
-      },
-    ]);
+    actionAddFilter("", "==", collectionPath);
   };
+
+  const queryMenu = useMemo(() => {
+    return [
+      {
+        title: "Without filter",
+        onClick: () => {
+          actionSubmitQuery(false);
+        },
+      },
+    ];
+  }, []);
 
   return (
     <div className="space-y-2">
@@ -90,9 +89,41 @@ const Filters = () => {
             <SorterList />
           </TooltipModal>
         </div>
-        <Button size="small" isPrimary onClick={() => actionSubmitQuery(true)}>
-          Query
-        </Button>
+        <div className="flex flex-row space-x-2">
+          <Button
+            size="small"
+            onClick={() => actionNewDocument(collectionPath)}
+          >
+            New document
+          </Button>
+          <div className="flex flex-row">
+            <Button
+              size="small"
+              isPrimary
+              onClick={() => actionSubmitQuery(true)}
+            >
+              Query
+            </Button>
+            <DropdownMenu menu={queryMenu} placement="right" className="ml-px">
+              <Button size="small" isPrimary className="px-0.5">
+                <svg
+                  className="w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </Button>
+            </DropdownMenu>
+          </div>
+        </div>
       </div>
     </div>
   );

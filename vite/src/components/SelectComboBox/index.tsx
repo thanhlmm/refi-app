@@ -3,22 +3,22 @@ import { useCombobox } from "downshift";
 import React, { ReactElement, useState } from "react";
 import classNames from "classnames";
 
-interface IInputComboBoxProps<T> {
-  inputRef?: HTMLInputElement;
+interface ISelectComboBoxProps<T> {
   items: T[];
   selectedItem: T;
   handleSelectedItemChange: (T) => void;
 }
 
-const InputComboBox = ({
+const SelectComboBox = ({
   items,
   selectedItem,
   handleSelectedItemChange,
-  inputRef,
-}: IInputComboBoxProps<string>): ReactElement => {
+}: ISelectComboBoxProps<string>): ReactElement => {
   const [inputItems, setInputItems] = useState(items);
+  const [inputValue, setInputText] = useState<string>(selectedItem);
   const {
     isOpen,
+    getToggleButtonProps,
     getMenuProps,
     getInputProps,
     getComboboxProps,
@@ -27,6 +27,7 @@ const InputComboBox = ({
   } = useCombobox({
     items: inputItems,
     selectedItem,
+    inputValue,
     onSelectedItemChange: ({ selectedItem }) => {
       return handleSelectedItemChange(selectedItem);
     },
@@ -38,13 +39,46 @@ const InputComboBox = ({
             : true
         )
       );
+      setInputText(inputValue || "");
     },
   });
+
+  const handleInputBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!items.includes(e.target.value)) {
+      setInputText(selectedItem || "");
+    }
+  };
 
   return (
     <div className="relative">
       <div {...getComboboxProps()} className="relative">
-        <Input {...getInputProps()} ref={inputRef} isCompact />
+        <Input
+          {...getInputProps({
+            onBlur: handleInputBlur,
+          })}
+          isCompact
+        />
+        <button
+          type="button"
+          {...getToggleButtonProps()}
+          aria-label="toggle menu"
+          className="absolute transform -translate-y-1/2 top-1/2 right-1"
+        >
+          <svg
+            className="w-4 text-gray-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
       </div>
       {isOpen && (
         <ul
@@ -73,4 +107,4 @@ const InputComboBox = ({
   );
 };
 
-export default InputComboBox;
+export default SelectComboBox;

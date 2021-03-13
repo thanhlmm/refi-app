@@ -5,21 +5,22 @@ import {
   queryVersionAtom,
   sorterAtom,
 } from "@/atoms/navigator";
+import { actionTriggerLoadData } from "@/atoms/ui.action";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import firebase from "firebase";
 import { deserializeDocumentSnapshotArray } from "firestore-serializers";
 import { useEffect, useRef } from "react";
 import { useRecoilValue } from "recoil";
-
 interface ISubscribeResponse {
   addedData: string;
   modifiedData: string;
   removedData: string;
+  totalDocs: number;
 }
 
 const DataSubscriber = () => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
-  const queryVersion = useRecoilValue(queryVersionAtom);
+  const { queryVersion, withQuerier } = useRecoilValue(queryVersionAtom);
   const queryOptions = useRecoilValue(querierAtom(collectionPath));
   const sortOptions = useRecoilValue(sorterAtom(collectionPath));
   const listener = useRef<Function>();
@@ -47,51 +48,64 @@ const DataSubscriber = () => {
     const topicKey = `${collectionPath}.table`;
     listener.current = window.listen(
       topicKey,
-      ({ addedData, modifiedData, removedData }: ISubscribeResponse) => {
-        const addedDocs = deserializeDocumentSnapshotArray(
-          addedData,
-          firebase.firestore.GeoPoint,
-          firebase.firestore.Timestamp
-        );
+      ({
+        addedData,
+        modifiedData,
+        removedData,
+        totalDocs,
+      }: ISubscribeResponse) => {
+        actionTriggerLoadData(totalDocs);
 
-        actionStoreDocs(
-          ClientDocumentSnapshot.transformFromFirebase(addedDocs, queryVersion)
-        );
+        // Take a little bit delay wait for the component transform in to Loading state
+        setTimeout(() => {
+          const addedDocs = deserializeDocumentSnapshotArray(
+            addedData,
+            firebase.firestore.GeoPoint,
+            firebase.firestore.Timestamp
+          );
 
-        const modifiedDocs = deserializeDocumentSnapshotArray(
-          modifiedData,
-          firebase.firestore.GeoPoint,
-          firebase.firestore.Timestamp
-        );
+          actionStoreDocs(
+            ClientDocumentSnapshot.transformFromFirebase(
+              addedDocs,
+              queryVersion
+            )
+          );
 
-        actionStoreDocs(
-          ClientDocumentSnapshot.transformFromFirebase(
-            modifiedDocs,
-            queryVersion
-          )
-        );
+          const modifiedDocs = deserializeDocumentSnapshotArray(
+            modifiedData,
+            firebase.firestore.GeoPoint,
+            firebase.firestore.Timestamp
+          );
 
-        const removedDocs = deserializeDocumentSnapshotArray(
-          removedData,
-          firebase.firestore.GeoPoint,
-          firebase.firestore.Timestamp
-        );
+          actionStoreDocs(
+            ClientDocumentSnapshot.transformFromFirebase(
+              modifiedDocs,
+              queryVersion
+            )
+          );
 
-        actionRemoveDocs(
-          ClientDocumentSnapshot.transformFromFirebase(
-            removedDocs,
-            queryVersion
-          )
-        );
+          const removedDocs = deserializeDocumentSnapshotArray(
+            removedData,
+            firebase.firestore.GeoPoint,
+            firebase.firestore.Timestamp
+          );
+
+          actionRemoveDocs(
+            ClientDocumentSnapshot.transformFromFirebase(
+              removedDocs,
+              queryVersion
+            )
+          );
+        }, 100);
       }
     );
     window
       .send("fs.queryCollection.subscribe", {
         topic: topicKey,
         path: collectionPath,
-        queryOptions: queryOptions.filter(
-          (option) => option.field && option.isActive
-        ),
+        queryOptions: withQuerier
+          ? queryOptions.filter((option) => option.field && option.isActive)
+          : [],
         sortOptions,
       })
       .then(({ id }) => {
@@ -101,7 +115,7 @@ const DataSubscriber = () => {
     return () => {
       unsubscribe();
     };
-  }, [collectionPath, queryVersion]);
+  }, [collectionPath, queryVersion, withQuerier]);
 
   return null;
 };

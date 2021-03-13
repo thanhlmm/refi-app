@@ -72,6 +72,19 @@ declare namespace NSFireStore {
     path: string;
   }
 
+  interface IAddDocs {
+    docs: string;
+  }
+
+  interface IRemoveDocs {
+    docs: string[];
+  }
+
+  interface IImportDocs {
+    docs: any[];
+    path: string;
+  }
+
   interface IPathExpander {
     path: string;
   }
@@ -83,6 +96,9 @@ declare namespace NSFireStore {
     subscribePathExplorer(params: NSFireStore.IPathSubscribe): Promise<IListenerKey>;
     updateDocs({ docs }: NSFireStore.IUpdateDocs): Promise<boolean>;
     addDoc({ doc, path }: NSFireStore.IAddDoc): Promise<string>
+    addsDocs({ docs }: NSFireStore.IAddDocs): Promise<boolean>;
+    deleteDocs({ docs }: NSFireStore.IRemoveDocs): Promise<boolean>;
+    importDocs({ docs, path }: NSFireStore.IImportDocs): Promise<boolean>
     getDocs(params: NSFireStore.IGetDocs): Promise<string>;
     unsubscribe(params: IListenerKey): Promise<boolean>;
     pathExpander(params: NSFireStore.IPathExpander): Promise<string[]>;

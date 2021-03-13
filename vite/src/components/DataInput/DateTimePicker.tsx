@@ -50,7 +50,7 @@ const DateTimePicker = ({ value, onChange }: DateTimePicker): ReactElement => {
 
       <button
         role="button"
-        className="p-1 text-xs bg-white border border-gray-300 rounded shadow-sm"
+        className="p-1 text-xs bg-white border border-gray-300"
         onClick={handleSelectNow}
       >
         Now

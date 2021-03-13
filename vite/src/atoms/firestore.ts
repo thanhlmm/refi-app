@@ -1,6 +1,7 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { getParentPath } from "@/utils/common";
 import "firebase/firestore";
+import { difference, isObject } from "lodash";
 import * as immutable from "object-path-immutable";
 import { atom, atomFamily, selector, selectorFamily } from "recoil";
 import { queryVersionAtom } from "./navigator";
@@ -30,6 +31,11 @@ export const projectIdAtom = atom<string>({
   default: "",
 });
 
+export const deletedDocsAtom = atom<IFireStorePath[]>({
+  key: "FireStore_docs_deleted",
+  default: [],
+});
+
 export const docsLibraryAtom = atom<IFireStorePath[]>({
   key: "FireStore_docs_library",
   default: [],
@@ -46,6 +52,7 @@ export const docAtom = atomFamily<
     ({ onSet }) => {
       // Synchronize data with docsLibraryAtom
       onSet((newDoc) => {
+        // TODO: Sync the case doc is deleted
         if (newDoc instanceof ClientDocumentSnapshot) {
           setRecoilExternalState(docsLibraryAtom, (currVal) => {
             if (!currVal.includes(newDoc.ref.path)) {
@@ -83,7 +90,7 @@ export const collectionWithQueryAtom = selectorFamily<
   key: "FireStore_collection",
   get: (path) => ({ get }) => {
     const docsLibrary = get(docsLibraryAtom);
-    const queryVersion = get(queryVersionAtom);
+    const { queryVersion } = get(queryVersionAtom);
     return docsLibrary
       .filter((docPath) => getParentPath(docPath) === path)
       .map((docPath) => get(docAtom(docPath)))
@@ -106,7 +113,7 @@ export const allDocsAtom = selector<ClientDocumentSnapshot[]>({
   },
 });
 
-export const fieldAtom = selectorFamily<unknown, string>({
+export const fieldAtom = selectorFamily<any, string>({
   key: "FireStore_doc_field",
   get: (url) => ({ get }) => {
     const { path, field } = parseFSUrl(url);
@@ -119,10 +126,21 @@ export const fieldAtom = selectorFamily<unknown, string>({
     return undefined;
   },
   set: (url) => ({ set, get }, newValue) => {
+    // TODO: Use immer to store field patch
     const { path, field } = parseFSUrl(url);
     const doc = get(docAtom(path));
     if (doc) {
       const newDoc = doc.clone().setField(field, newValue);
+      const oldValue = immutable.get(doc.data(), field);
+      if (isObject(oldValue) && isObject(oldValue)) {
+        // Add changes if the object inside changed
+        newDoc.addChange(
+          difference(
+            Object.keys(oldValue),
+            Object.keys(newValue).map((key) => `${field}.${key}`)
+          )
+        );
+      }
       set(docAtom(path), newDoc);
     }
   },
@@ -153,6 +171,20 @@ export const changedDocAtom = selector<ClientDocumentSnapshot[]>({
         (docValue): docValue is ClientDocumentSnapshot => docValue !== null
       )
       .filter((doc) => doc.isChanged());
+  },
+});
+
+export const newDocsAtom = selector<ClientDocumentSnapshot[]>({
+  key: "FireStore_docs_new",
+  get: ({ get }) => {
+    const docs = get(docsLibraryAtom);
+
+    return docs
+      .map((docPath) => get(docAtom(docPath)))
+      .filter(
+        (docValue): docValue is ClientDocumentSnapshot => docValue !== null
+      )
+      .filter((doc) => doc.isNew);
   },
 });
 

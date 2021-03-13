@@ -4,11 +4,11 @@ import Filters from "@/components/Filters";
 
 function Main(): React.ReactElement {
   return (
-    <div className="h-full p-2 border border-gray-300 rounded shadow-sm main ">
-      <div>
-        <Filters />
-      </div>
-      <DataTable />
+    <div className="relative flex flex-col h-full">
+      <Filters />
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <DataTable />
+      </React.Suspense>
     </div>
   );
 }

@@ -142,7 +142,6 @@ const SorterList = () => {
             { invalid, isTouched, isDirty }
           ) => (
             <FieldFinderInput
-              collectionPath={collectionPath}
               value={value}
               onChange={onChange}
               inputRef={ref as any}

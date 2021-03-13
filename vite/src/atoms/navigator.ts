@@ -125,9 +125,15 @@ export const sorterItemAtom = selectorFamily<
   },
 });
 
-export const queryVersionAtom = atom<number>({
+export const queryVersionAtom = atom<{
+  queryVersion: number;
+  withQuerier: boolean;
+}>({
   key: "navigator.queryVersion",
-  default: 0,
+  default: {
+    queryVersion: 0,
+    withQuerier: true,
+  },
 });
 
 export const allColumnsAtom = selector<string[]>({

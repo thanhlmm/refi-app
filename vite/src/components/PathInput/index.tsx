@@ -53,7 +53,7 @@ function PathInput() {
   }, [path]);
 
   return (
-    <div className="relative flex flex-row items-center h-full bg-gray-300 rounded-sm">
+    <div className="relative flex flex-row items-center h-full bg-gray-300">
       {isViewMode ? (
         PathViewer
       ) : (
@@ -69,6 +69,7 @@ function PathInput() {
       <Tooltip content="Copy" delayMS={150}>
         <div className="absolute w-5 transform -translate-y-1/2 cursor-pointer right-2 top-1/2">
           <svg
+            className="text-gray-600"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

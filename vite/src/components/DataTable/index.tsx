@@ -4,13 +4,17 @@ import {
   navigatorPathAtom,
   propertyListAtom,
 } from "@/atoms/navigator";
-import { actionRemoveProperty } from "@/atoms/navigator.action";
+import {
+  actionAddFilter,
+  actionRemoveProperty,
+} from "@/atoms/navigator.action";
+import { largeDataAtom } from "@/atoms/ui";
 import { actionToggleModalPickProperty } from "@/atoms/ui.action";
 import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { useFlexLayout, useSortBy, useTable } from "react-table";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { useFlexLayout, useTable, useSortBy } from "react-table";
 import { FixedSizeList } from "react-window";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { ReadOnlyField } from "../EditableCell";
@@ -49,10 +53,22 @@ function TableWrapper({
       data,
       defaultColumn,
       disableMultiSort: false,
-    },
+    } as any,
     useSortBy,
     useFlexLayout
   );
+
+  const listRef = useRef();
+
+  useEffect(() => {
+    // Scroll to bottom when new doc is added
+    const lastIndex = data.length - 1;
+    const lastRow = data[lastIndex];
+
+    if (lastRow && lastRow.isNew) {
+      (listRef.current as any)?.scrollToItem(lastIndex);
+    }
+  }, [data]);
 
   const RenderRow = useCallback(
     ({ index, style }) => {
@@ -64,10 +80,10 @@ function TableWrapper({
             style,
           })}
           className="border-b border-gray-300"
-          key={row.original.id}
+          key={(row.original as any)?.id}
           cm-template="rowContext"
-          cm-id={row.original.id}
-          onClick={(e) => onRowClick(e, row.original)}
+          cm-id={(row.original as any)?.id}
+          onClick={(e) => onRowClick(e, row.original as ClientDocumentSnapshot)}
         >
           {row.cells.map((cell) => {
             return (
@@ -92,7 +108,7 @@ function TableWrapper({
   return (
     <table
       {...getTableProps()}
-      className="w-full h-full border-l border-r border-gray-300"
+      className="w-full h-full border-b border-gray-300"
     >
       <thead>
         {headerGroups.map((headerGroup) => (
@@ -104,13 +120,16 @@ function TableWrapper({
             {headerGroup.headers.map((column) => (
               // eslint-disable-next-line react/jsx-key
               <th
-                {...column.getHeaderProps(column.getSortByToggleProps())}
+                {...column.getHeaderProps(
+                  (column as any).getSortByToggleProps()
+                )}
                 className="text-left text-gray-500 border-r border-gray-200 px-1.5 py-1"
               >
-                {column.render("Header")}
-                <span>
-                  {column.isSorted ? (column.isSortedDesc ? " 🔽" : " 🔼") : ""}
-                </span>
+                {column.render("Header", {
+                  isSorted: (column as any)?.isSorted,
+                  isSortedDesc: (column as any).isSortedDesc,
+                  toggleSortBy: (column as any).toggleSortBy,
+                })}
               </th>
             ))}
           </div>
@@ -124,6 +143,7 @@ function TableWrapper({
               itemCount={rows.length}
               itemSize={35}
               width="100%"
+              ref={listRef}
             >
               {RenderRow}
             </FixedSizeList>
@@ -134,24 +154,108 @@ function TableWrapper({
   );
 }
 
+interface IColumnHeaderProps {
+  fieldPath: string;
+  collectionPath: string;
+  isSorted: boolean;
+  isSortedDesc: boolean;
+  hidable: boolean;
+  toggleSortBy: (descending: boolean, isMulti: boolean) => void;
+}
+
 function ColumnHeader({
   fieldPath,
   collectionPath,
-}: {
-  fieldPath: string;
-  collectionPath: string;
-}) {
-  useContextMenu("ADD", () => {
-    actionToggleModalPickProperty(true);
-  });
+  isSorted,
+  isSortedDesc,
+  toggleSortBy,
+  hidable = true,
+}: IColumnHeaderProps) {
+  useContextMenu(
+    "ADD",
+    () => {
+      actionToggleModalPickProperty(true);
+    },
+    fieldPath
+  );
 
-  useContextMenu("HIDE", ({ column }) => {
-    actionRemoveProperty(collectionPath, column);
-  });
+  useContextMenu(
+    "HIDE",
+    ({ column }) => {
+      if (hidable) {
+        actionRemoveProperty(collectionPath, column);
+      }
+    },
+    fieldPath
+  );
+
+  useContextMenu(
+    "ASC",
+    () => {
+      toggleSortBy(false, false);
+    },
+    fieldPath
+  );
+
+  useContextMenu(
+    "DESC",
+    () => {
+      toggleSortBy(true, false);
+    },
+    fieldPath
+  );
+
+  useContextMenu(
+    "FILTER",
+    ({ column }) => {
+      actionAddFilter(column, "==", collectionPath);
+    },
+    fieldPath
+  );
 
   return (
-    <div cm-template="columnHeaderContext" cm-payload-column={fieldPath}>
-      {fieldPath}
+    <div
+      className="flex flex-row items-center justify-between"
+      cm-template="columnHeaderContext"
+      cm-payload-column={fieldPath}
+      cm-id={fieldPath}
+    >
+      <span>{fieldPath}</span>
+      {isSorted && (
+        <span>
+          {isSortedDesc ? (
+            <svg
+              className="w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"
+              />
+            </svg>
+          )}
+        </span>
+      )}
     </div>
   );
 }
@@ -161,11 +265,16 @@ function DataTable() {
   const setPath = useSetRecoilState(navigatorPathAtom);
   const data = useRecoilValue(collectionWithQueryAtom(collectionPath));
   const properties = useRecoilValue(propertyListAtom(collectionPath));
+  const isLargeData = useRecoilValue(largeDataAtom); // Make parent suspense
 
   const columnViewer = useMemo(() => {
     const docColumns = properties.map((key, index) => ({
-      Header: () => (
-        <ColumnHeader fieldPath={key} collectionPath={collectionPath} />
+      Header: (props) => (
+        <ColumnHeader
+          {...props}
+          fieldPath={key}
+          collectionPath={collectionPath}
+        />
       ),
       accessor: key,
       Cell: ({ row, column, value }: { row: any; column: any; value: any }) => {
@@ -183,7 +292,14 @@ function DataTable() {
 
     return [
       {
-        Header: "_id",
+        Header: (props) => (
+          <ColumnHeader
+            {...props}
+            fieldPath="_id"
+            hidable={false}
+            collectionPath={collectionPath}
+          />
+        ),
         id: "__id",
         accessor: "id",
         Cell: ({ value }: { value: any }) => <ReadOnlyField value={value} />,
@@ -229,7 +345,7 @@ function DataTable() {
   );
 
   return (
-    <div className="h-full mt-2 overflow-x-auto">
+    <div className="h-full mt-2 overflow-x-auto border-l border-r border-gray-300">
       <TableWrapper
         columns={columnViewer}
         data={data}

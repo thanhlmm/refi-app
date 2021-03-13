@@ -1,4 +1,8 @@
-import { atom, atomFamily } from "recoil";
+import { atom, atomFamily, selector } from "recoil";
+import { recoilPersist } from "recoil-persist";
+import { changedDocAtom, newDocsAtom } from "./firestore";
+import { setRecoilExternalState } from "./RecoilExternalStatePortal";
+const { persistAtom } = recoilPersist();
 
 export const isShowPreviewChangeModalAtom = atom<boolean>({
   key: "ui/previewChangeModal",
@@ -47,4 +51,51 @@ export const isModalPickProperty = atom<boolean>({
 export const isModalSorter = atom<boolean>({
   key: "ui/sorterList",
   default: false,
+});
+
+export const isImportModalAtom = atom<boolean>({
+  key: "ui/importModal",
+  default: false,
+});
+
+export const importFileAtom = atom<File | undefined>({
+  key: "ui/importFile",
+  default: undefined,
+});
+
+export const defaultEditorAtom = atom<"basic" | "advantage">({
+  key: "ui/defaultEditor",
+  default: "basic",
+  effects_UNSTABLE: [persistAtom],
+});
+
+interface IParsingLargeDataAtom {
+  totalDocs: number;
+}
+
+export const isParsingLargeDataAtom = atom<IParsingLargeDataAtom>({
+  key: "ui/isParsingLargeData",
+  default: { totalDocs: 0 },
+});
+
+export const largeDataAtom = selector({
+  key: "ui/deferRender",
+  get: ({ get }) => {
+    const { totalDocs } = get(isParsingLargeDataAtom);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(true);
+      }, Math.min(totalDocs * 10, 5000)); // Assumption parsing time of one doc is 50ms
+    });
+  },
+});
+
+export const isCommittableAtom = selector<boolean>({
+  key: "ui/committable",
+  get: ({ get }) => {
+    const changedDocs = get(changedDocAtom);
+    const newDocs = get(newDocsAtom);
+
+    return changedDocs.length > 0 || newDocs.length > 0;
+  },
 });

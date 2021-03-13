@@ -11,7 +11,7 @@ import {
 import { Well, Title, Notification } from "@zendeskgarden/react-notifications";
 import { useDropzone } from "react-dropzone";
 import { Input, FileUpload } from "@zendeskgarden/react-forms";
-import { toBase64 } from "@/utils/common";
+import { ignoreBackdropEvent, toBase64 } from "@/utils/common";
 import { useSetRecoilState, useRecoilValueLoadable } from "recoil";
 import { certs, certsQueryID } from "@/atoms/cert";
 import { useHistory } from "react-router-dom";
@@ -22,12 +22,6 @@ const LoginPage: React.FC = () => {
   const [notificationError, setNotificationError] = useState<string>("");
   const [showConfirm, setConfirm] = useState<string>("");
   const history = useHistory();
-  const ignoreBackgdropEvent = (
-    event: React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
 
   useEffect(() => {
     if (notificationError) {
@@ -138,7 +132,7 @@ const LoginPage: React.FC = () => {
         isAnimated={false}
         isLarge
         focusOnMount
-        backdropProps={{ onClick: ignoreBackgdropEvent }}
+        backdropProps={{ onClick: ignoreBackdropEvent }}
         appendToNode={document.querySelector("#root") || undefined}
       >
         <Header>Choose your project</Header>

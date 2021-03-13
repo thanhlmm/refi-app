@@ -34,7 +34,17 @@ export function getFireStoreType(object: any): RefiFS.IFieldType {
   return "map";
 }
 
-export function simplify(obj, dilimiter, root): Record<string, any> {
+export type IPrimitiveType = number | string | boolean;
+export interface IValueType {
+  type: "reference" | "geopoint" | "timestamp" | "array" | "map";
+  childs: any[];
+}
+
+export function simplify(
+  obj: any,
+  dilimiter?: string,
+  root?: string
+): Record<string, IValueType | IPrimitiveType> {
   dilimiter = dilimiter || defaults().dilimiter;
   root = root || defaults().root;
 

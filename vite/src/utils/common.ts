@@ -1,6 +1,6 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { chunk, flatten, intersection, uniq } from "lodash";
-import { isObject } from "./simplifr";
+import { isObject, simplify } from "./simplifr";
 
 export const isCollection = (path = ""): boolean => {
   return !Boolean(path.split("/").length % 2);
@@ -72,37 +72,15 @@ export const getAllColumns = (data: ClientDocumentSnapshot[]): string[] => {
 export const getAllColumnsRecursive = (
   data: ClientDocumentSnapshot[]
 ): string[] => {
-  const allColumns = data.map((row) => objectPaths(row.data()));
+  // TODO: Consider limit data for improve performance
+  const allColumns = data
+    .map((row) => simplify(row.data(), ".", "root"))
+    .map((objData) => Object.keys(objData))
+    .map((listKey) =>
+      listKey.map((key) => key.substr("root.".length)).filter((key) => key)
+    );
   return uniq(flatten(allColumns));
 };
-
-// Ref: https://lowrey.me/getting-all-paths-of-an-javascript-object/
-export function objectPaths(root: Record<string, unknown>): string[] {
-  const paths: string[][] = [];
-  const nodes = [
-    {
-      obj: root,
-      path: [],
-    },
-  ];
-  while (nodes.length > 0) {
-    const n = nodes.pop();
-    if (n && n.obj !== null) {
-      Object.keys(n.obj).forEach((k) => {
-        if (typeof n.obj[k] === "object") {
-          const path = n.path.concat(k);
-          paths.push(path);
-          nodes.unshift({
-            obj: n.obj[k],
-            path: path,
-          });
-        }
-      });
-    }
-  }
-
-  return paths.map((path) => path.join("."));
-}
 
 export const getSampleColumn = (data: ClientDocumentSnapshot[]): string[] => {
   const allColumns = data.map((row) => Object.keys(row.data()));
@@ -167,3 +145,51 @@ export const reorder = function <T>(
 
   return result;
 };
+
+export const removeFirebaseSerializeMetaData = (docStr: string): string => {
+  const metaDataField = ["__id__", "__path__"];
+
+  try {
+    const docData: any | any[] = JSON.parse(docStr);
+    if (Array.isArray(docData)) {
+      docData.forEach((doc) => {
+        metaDataField.forEach((field) => {
+          delete doc[field];
+        });
+      });
+    } else {
+      metaDataField.forEach((field) => {
+        delete docData[field];
+      });
+    }
+
+    return JSON.stringify(docData);
+  } catch (error) {
+    console.log("Error remove metadata");
+    console.log(error);
+    return docStr;
+  }
+};
+
+export const ignoreBackdropEvent = (
+  event: React.MouseEvent<HTMLDivElement, MouseEvent>
+) => {
+  event.preventDefault();
+  event.stopPropagation();
+};
+
+export function readerFilePromise(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result as string);
+    fr.readAsText(file);
+  });
+}
+
+export function beautifyId(id: string): string {
+  if (id.length < 7) {
+    return id;
+  }
+
+  return id.slice(0, 3) + "..." + id.slice(-4);
+}

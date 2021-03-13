@@ -1,9 +1,4 @@
-import React, {
-  Component,
-  ReactComponentElement,
-  ReactElement,
-  useState,
-} from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import { HotKeys } from "react-hotkeys";
 
 const keyMap = {
@@ -36,11 +31,10 @@ const ListOptions = ({
 
   const handler = {
     UP: () => {
-      setActive((index) => (index === 0 ? maxOptionsIndex : index - 1));
+      setActive((index) => (index - 1) % maxOptionsIndex);
     },
     DOWN: () => {
-      console.log(activeOption);
-      setActive((index) => (index === maxOptionsIndex ? 0 : index + 1));
+      setActive((index) => (index + 1) % maxOptionsIndex);
     },
     ENTER: () => {
       onChange(options[activeOption]?.key);
@@ -50,7 +44,12 @@ const ListOptions = ({
     },
   };
 
-  // console.log(activeOption, currentOption);
+  useEffect(() => {
+    if (!currentOption) {
+      console.log("reset active");
+      setActive(1);
+    }
+  }, [currentOption]);
 
   return (
     <HotKeys keyMap={keyMap} handlers={handler} allowChanges>
@@ -59,7 +58,7 @@ const ListOptions = ({
           React.cloneElement(option.element, {
             key: option.key,
             isActive: currentOption?.key === option?.key,
-            onChange,
+            onClickItem: onChange,
           })
         )}
       </ul>

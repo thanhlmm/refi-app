@@ -1,23 +1,20 @@
-import { allDocsAtom } from "@/atoms/firestore";
+import { globalHotKeysHandler } from "@/atoms/hotkeys";
 import { isModalCommandAtom } from "@/atoms/ui";
-import { Listbox } from "@headlessui/react";
+import EscExit from "@/components/EscExit";
+import ListOptions from "@/components/ListOptions";
+import { useFocusJail } from "@zendeskgarden/container-focusjail";
 import { Input } from "@zendeskgarden/react-forms";
 import { Body as ModalBody, Modal } from "@zendeskgarden/react-modals";
+import classNames from "classnames";
 import React, {
-  Fragment,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { getApplicationKeyMap, HotKeys, withHotKeys } from "react-hotkeys";
-import { useRecoilState, useRecoilValue } from "recoil";
-import classNames from "classnames";
-import ListOptions from "@/components/ListOptions";
-import EscExit from "@/components/EscExit";
-import { useFocusJail } from "@zendeskgarden/container-focusjail";
-import { globalHotKeysHandler } from "@/atoms/hotkeys";
+import { getApplicationKeyMap } from "react-hotkeys";
+import { useRecoilState } from "recoil";
 
 interface ICommand {
   name: string;
@@ -30,11 +27,11 @@ interface ICommand {
 const CommandOption = ({
   isActive,
   command,
-  onChange,
+  onClickItem,
 }: {
   isActive?: boolean;
   command: ICommand;
-  onChange: (string) => void;
+  onClickItem?: (string) => void;
 }) => (
   <a
     href="#"
@@ -44,7 +41,12 @@ const CommandOption = ({
       { ["bg-gray-200"]: isActive }
     )}
     role="menuitem"
-    onClick={() => onChange(command.key)}
+    onClick={(e) => {
+      e.preventDefault();
+      if (onClickItem) {
+        onClickItem(command.key);
+      }
+    }}
   >
     {command.name}{" "}
     <span>{command.sequences.map((data) => data.sequence).join(";")}</span>
@@ -80,11 +82,10 @@ const Commander = () => {
   }, [keyMap, keyword]);
 
   useEffect(() => {
-    console.log(inputRef.current);
     if (isShowModalCommand) {
       setTimeout(() => {
         inputRef.current?.focus();
-      }, 300);
+      }, 250);
     } else {
       setKeyword("");
     }

@@ -103,20 +103,20 @@ export default class FireStoreService implements NSFireStore.IService {
 
     const close = querier.onSnapshot(
       async (querySnapshot) => {
+        const docChanges = querySnapshot.docChanges();
         const addedData = serializeQuerySnapshot({
-          docs: querySnapshot.docChanges().filter(changes => changes.type === 'added').map(changes => changes.doc)
+          docs: docChanges.filter(changes => changes.type === 'added').map(changes => changes.doc)
         })
 
         const modifiedData = serializeQuerySnapshot({
-          docs: querySnapshot.docChanges().filter(changes => changes.type === 'modified').map(changes => changes.doc)
+          docs: docChanges.filter(changes => changes.type === 'modified').map(changes => changes.doc)
         })
 
         const removedData = serializeQuerySnapshot({
-          docs: querySnapshot.docChanges().filter(changes => changes.type === 'removed').map(changes => changes.doc)
+          docs: docChanges.filter(changes => changes.type === 'removed').map(changes => changes.doc)
         })
-        // TODO: How about the case when we remove some things
 
-        this.ctx.ipc.send(topic, { addedData, modifiedData, removedData }, { firestore: true });
+        this.ctx.ipc.send(topic, { addedData, modifiedData, removedData, totalDocs: docChanges.length }, { firestore: true });
       }
     );
     // TODO: Handle error
@@ -195,6 +195,44 @@ export default class FireStoreService implements NSFireStore.IService {
     const newDoc = await fs.collection(path).add(doc);
 
     return newDoc.path;
+  }
+
+  public async addsDocs({ docs }: NSFireStore.IAddDocs): Promise<boolean> {
+    const fs = this.fsClient();
+    const docsSnapshot = deserializeDocumentSnapshotArray(docs, admin.firestore.GeoPoint, admin.firestore.Timestamp, path => fs.doc(path))
+    const batch = fs.batch();
+    docsSnapshot.forEach((doc) => {
+      const newDocRef = fs.doc(doc.ref.path);
+      batch.set(newDocRef, doc)
+    })
+
+    await batch.commit();
+    return true
+  }
+
+  public async deleteDocs({ docs }: NSFireStore.IRemoveDocs): Promise<boolean> {
+    const fs = this.fsClient();
+    const batch = fs.batch();
+    docs.forEach((path) => {
+      const newDocRef = fs.doc(path);
+      batch.delete(newDocRef)
+    })
+
+    await batch.commit();
+    return true;
+  }
+
+  public async importDocs({ docs, path }: NSFireStore.IImportDocs): Promise<boolean> {
+    const fs = this.fsClient();
+    const collection = fs.collection(path);
+    const batch = fs.batch();
+    docs.forEach((doc) => {
+      const newDocRef = collection.doc();
+      batch.set(newDocRef, doc)
+    })
+
+    await batch.commit();
+    return true
   }
 
   public async getDocs({ docs }: NSFireStore.IGetDocs): Promise<string> {

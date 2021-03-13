@@ -1,5 +1,5 @@
 import { isCollection } from "@/utils/common";
-import { actionCommitChange, duplicateDoc } from "./firestore.action";
+import { actionCommitChange, actionDuplicateDoc } from "./firestore.action";
 import { navigatorPathAtom } from "./navigator";
 import {
   actionExportDocCSV,
@@ -19,6 +19,7 @@ import {
   isShowDocFinderModalCommandAtom,
   isShowPreviewChangeModalAtom,
 } from "./ui";
+import { actionToggleImportModal } from "./ui.action";
 
 export type IGlobalHotKeys = Record<
   string,
@@ -145,7 +146,15 @@ export const globalHotKeys: IGlobalHotKeys = {
         return;
       }
 
-      duplicateDoc(docPath);
+      actionDuplicateDoc(docPath);
+    },
+  },
+  IMPORT_DOCS_JSON: {
+    name: "Import from JSON",
+    group: "action",
+    sequences: "command+i",
+    handler: () => {
+      actionToggleImportModal();
     },
   },
 };

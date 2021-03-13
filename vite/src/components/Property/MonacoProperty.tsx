@@ -23,6 +23,7 @@ const monacoOption = {
     horizontalScrollbarSize: 5,
     verticalScrollbarSize: 5,
   },
+  theme: "dark",
 };
 
 const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
@@ -49,13 +50,15 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
     try {
       const docValue = JSON.parse(docStr);
       const changes = diff(doc.data(), docValue) || [];
-      const newDoc = doc.clone(docValue);
-      const fieldChanges = changes
-        .map((change) => change.path?.join("."))
-        .filter((_) => _) as string[];
+      if (changes.length > 0) {
+        const newDoc = doc.clone(docValue);
+        const fieldChanges = changes
+          .map((change) => change.path?.join("."))
+          .filter((_) => _) as string[];
 
-      newDoc.addChange(fieldChanges);
-      actionUpdateDoc(newDoc);
+        newDoc.addChange(fieldChanges);
+        actionUpdateDoc(newDoc);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -65,6 +68,8 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
     <Editor
       defaultLanguage="json"
       value={defaultValue}
+      height="50%"
+      wrapperClassName="border border-gray-300 pt-2 pb-2"
       onChange={setDefaultValue}
       onValidate={handleEditorValidation}
       options={monacoOption as any}

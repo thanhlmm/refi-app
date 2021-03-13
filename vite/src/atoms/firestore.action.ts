@@ -1,14 +1,12 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { getParentPath, prettifyPath } from "@/utils/common";
-import {
-  serializeQuerySnapshot,
-  deserializeDocumentSnapshotArray,
-} from "firestore-serializers";
-import firebase from "firestore-serializers/node_modules/firebase";
-import { uniq } from "lodash";
+import { serializeQuerySnapshot } from "firestore-serializers";
+import { uniq, uniqueId } from "lodash";
 import {
   changedDocAtom,
+  deletedDocsAtom,
   docAtom,
+  newDocsAtom,
   parseFSUrl,
   pathExpanderAtom,
 } from "./firestore";
@@ -18,6 +16,8 @@ import {
   setRecoilExternalState,
 } from "./RecoilExternalStatePortal";
 import * as immutable from "object-path-immutable";
+import { queryVersionAtom } from "./navigator";
+import { NEW_DOC_PREFIX } from "@/utils/contant";
 
 export const actionStoreDocs = (
   docs: ClientDocumentSnapshot[],
@@ -31,6 +31,7 @@ export const actionStoreDocs = (
       // In-case user has modify the original docs
       // NOTICE: We just ignore new update if we're currently edit an document
       // originalDoc.mergeNewDoc(doc);
+      setRecoilExternalState(docAtom(doc.ref.path), doc);
     } else {
       setRecoilExternalState(docAtom(doc.ref.path), doc);
     }
@@ -42,12 +43,18 @@ export const actionRemoveDocs = (
   override = false
 ): void => {
   docs.forEach(async (doc) => {
-    if (override) {
-      // TODO: What if user already modified the deleted one
-    } else {
-      resetRecoilExternalState(docAtom(doc.ref.path));
-    }
+    // TODO: What if user already modified the deleted one
+    resetRecoilExternalState(docAtom(doc.ref.path));
+    setRecoilExternalState(deletedDocsAtom, (paths) =>
+      paths.filter((path) => path !== doc.ref.path)
+    );
   });
+};
+
+export const actionDeleteDoc = (doc: ClientDocumentSnapshot): void => {
+  const docPath = doc.ref.path;
+  resetRecoilExternalState(docAtom(docPath));
+  setRecoilExternalState(deletedDocsAtom, (paths) => uniq([...paths, docPath]));
 };
 
 export const actionUpdateDoc = (doc: ClientDocumentSnapshot): void => {
@@ -86,36 +93,58 @@ export const actionRemoveFieldKey = async (oldPath: string): Promise<void> => {
   }
 };
 
-export const actionCommitChange = async (): Promise<any> => {
+export const actionCommitChange = async (): Promise<boolean> => {
   const docsChange = await getRecoilExternalLoadable(
     changedDocAtom
   ).toPromise();
 
-  return window
+  const newDocs = await getRecoilExternalLoadable(newDocsAtom).toPromise();
+  const deletedDocs = await getRecoilExternalLoadable(
+    deletedDocsAtom
+  ).toPromise();
+
+  window
     .send("fs.updateDocs", {
       docs: serializeQuerySnapshot({ docs: docsChange }),
     })
     .then((a) => console.log(a));
+
+  window
+    .send("fs.addDocs", {
+      docs: serializeQuerySnapshot({ docs: newDocs }),
+    })
+    .then((a) => console.log(a));
+
+  window
+    .send("fs.deleteDocs", {
+      docs: deletedDocs,
+    })
+    .then(() => {
+      resetRecoilExternalState(deletedDocsAtom);
+    });
+  return true;
 };
 
 export const actionReverseChange = async (): Promise<any> => {
-  const docsChange = await getRecoilExternalLoadable(
-    changedDocAtom
-  ).toPromise();
+  // TODO: Confirm box to reload
+  window.location.reload();
+  // const docsChange = await getRecoilExternalLoadable(
+  //   changedDocAtom
+  // ).toPromise();
 
-  return window
-    .send("fs.getDocs", {
-      docs: docsChange.map((doc) => doc.ref.path),
-    })
-    .then((response) => {
-      const data = deserializeDocumentSnapshotArray(
-        response,
-        firebase.firestore.GeoPoint,
-        firebase.firestore.Timestamp
-      );
+  // return window
+  //   .send("fs.getDocs", {
+  //     docs: docsChange.map((doc) => doc.ref.path),
+  //   })
+  //   .then((response) => {
+  //     const data = deserializeDocumentSnapshotArray(
+  //       response,
+  //       firebase.firestore.GeoPoint,
+  //       firebase.firestore.Timestamp
+  //     );
 
-      actionStoreDocs(ClientDocumentSnapshot.transformFromFirebase(data), true);
-    });
+  //     actionStoreDocs(ClientDocumentSnapshot.transformFromFirebase(data), true);
+  //   });
 };
 
 export const actionAddPathExpander = (paths: string[]) => {
@@ -124,7 +153,7 @@ export const actionAddPathExpander = (paths: string[]) => {
   );
 };
 
-export const duplicateDoc = async (path: string) => {
+export const actionDuplicateDoc = async (path: string) => {
   const doc = await getRecoilExternalLoadable(docAtom(path)).toPromise();
 
   if (!doc) {
@@ -138,4 +167,26 @@ export const duplicateDoc = async (path: string) => {
       path: getParentPath(doc.ref.path),
     })
     .then((a) => console.log(a));
+};
+
+export const actionImportDocs = async (path: string, docs: any[]) => {
+  // TODO: Check if path is collection
+  return window
+    .send("fs.importDocs", {
+      docs,
+      path,
+    })
+    .then((a) => console.log(a));
+};
+
+export const actionNewDocument = async (path) => {
+  const newDocId = uniqueId(NEW_DOC_PREFIX);
+  const newPath = `${path}/${newDocId}`;
+  const { queryVersion } = await getRecoilExternalLoadable(
+    queryVersionAtom
+  ).toPromise();
+  setRecoilExternalState(
+    docAtom(newPath),
+    new ClientDocumentSnapshot({}, newDocId, newPath, queryVersion, true)
+  );
 };

@@ -1,180 +1,25 @@
 import { docAtom, pathExpanderAtom } from "@/atoms/firestore";
 import { navigatorPathAtom } from "@/atoms/navigator";
+import { defaultEditorAtom } from "@/atoms/ui";
 import { buildTableSubRows, getListCollections } from "@/utils/common";
-import {
-  Anchor,
-  Button,
-  ButtonGroup,
-  IconButton,
-} from "@zendeskgarden/react-buttons";
-import { Input } from "@zendeskgarden/react-forms";
-import React, { useCallback, useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
-import classNames from "classnames";
-import { useTable, useExpanded } from "react-table";
-import EditableCell, {
-  EditablePropertyField,
-  EditablePropertyValue,
-} from "../EditableCell";
-import { type } from "os";
 import { simplify } from "@/utils/simplifr";
+import { Anchor, Button } from "@zendeskgarden/react-buttons";
+import { Input } from "@zendeskgarden/react-forms";
+import React, { useMemo, useState } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 import MonacoProperty from "./MonacoProperty";
-
-const PropertyTable = ({ data, doc }) => {
-  const PropertyColumns = useMemo(
-    () => [
-      {
-        Header: "Field",
-        id: "field",
-        accessor: "field",
-        Cell: ({ row, value }: { row: any; value: any }) => (
-          <EditablePropertyField
-            row={doc}
-            canExpand={row.canExpand}
-            isExpanded={row.isExpanded}
-            toggleExpand={row.getToggleRowExpandedProps().onClick.bind(row)}
-            column={{ id: row.original.field }}
-            tabIndex={row.index * row.cells.length}
-          />
-        ),
-      },
-      {
-        Header: "Value",
-        id: "value",
-        accessor: "value",
-        Cell: ({ row, value }: { row: any; value: any }) => {
-          return (
-            <EditablePropertyValue
-              row={doc}
-              column={{ id: row.original.field }}
-              tabIndex={row.index * row.cells.length}
-              value={value}
-            />
-          );
-        },
-      },
-    ],
-    [doc]
-  );
-
-  // const getSubRows = useCallback(() => {
-
-  // }, [])
-
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-  } = useTable(
-    {
-      columns: PropertyColumns,
-      data,
-      // getSubRows,
-    },
-    useExpanded // Use the useExpanded plugin hook
-  );
-
-  return (
-    <div className="w-full">
-      <table {...getTableProps()} className="w-full table-fixed">
-        {/* <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>{column.render("Header")}</th>
-              ))}
-            </tr>
-          ))}
-        </thead> */}
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row, i) => {
-            prepareRow(row);
-            const depth = row.isExpanded ? row.depth + 1 : row.depth;
-            // console.log({ depth });
-            return (
-              <tr
-                key={row.original.field}
-                className={classNames(
-                  {
-                    "bg-gray-600 ": depth > 0,
-                  },
-                  `bg-opacity-${depth * 10}`
-                )}
-              >
-                {row.cells.map((cell) => {
-                  return (
-                    <td
-                      {...cell.getCellProps()}
-                      className={classNames(
-                        "border border-gray-300 align-top",
-                        {
-                          ["w-32"]: cell.column.id === "field",
-                        }
-                      )}
-                    >
-                      {cell.render("Cell")}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-};
+import PropertyTable from "./PropertyTable";
 
 const Property = () => {
   const currentPath = useRecoilValue(navigatorPathAtom);
   const pathAvailable = useRecoilValue(pathExpanderAtom);
   const doc = useRecoilValue(docAtom(currentPath));
   const [searchInput, setSearchInput] = useState("");
-  const [editorType, setEditorType] = useState<"basic" | "advantage">("basic");
+  const [editorType, setEditorType] = useRecoilState(defaultEditorAtom);
 
   const listCollections = useMemo(() => {
     return getListCollections(currentPath, pathAvailable);
   }, [currentPath, pathAvailable]);
-
-  const fieldData = useMemo(() => {
-    // TODO: Expand all when filter is on
-    if (doc) {
-      // const flatObject = flatten(doc.data()) as Record<string, any>;
-      const flatObject = simplify(doc.data(), ".", null) as Record<string, any>;
-      const rows = buildTableSubRows(
-        Object.keys(flatObject)
-          .map((key) => ({
-            field: key.substr("root.".length),
-            value: flatObject[key],
-          }))
-          .sort((a, b) => a.field.localeCompare(b.field))
-          .filter((row) => {
-            if (searchInput) {
-              return (
-                row.field.toLowerCase().includes(searchInput.toLowerCase()) ||
-                String(row.value)
-                  .toLowerCase()
-                  ?.includes(searchInput.toLowerCase())
-              );
-            }
-
-            return true;
-          })
-      );
-
-      return [
-        {
-          field: "",
-          value: { type: "Map" },
-        },
-        ...rows,
-      ];
-    }
-
-    return [];
-  }, [doc, searchInput]);
 
   if (!doc) {
     // TODO: Render last doc or select doc in collection
@@ -182,7 +27,7 @@ const Property = () => {
   }
 
   return (
-    <div className="h-full">
+    <div className="flex flex-col h-full">
       <Input
         placeholder="Search for property or value..."
         isCompact
@@ -197,10 +42,15 @@ const Property = () => {
           </div>
         ))}
         <h3>Fields</h3>
-        <ButtonGroup selectedItem={editorType} onSelect={setEditorType}>
-          <Button size="small" value="basic">
+        <div className="flex flex-row justify-end">
+          <Button
+            size="small"
+            onClick={() => setEditorType("basic")}
+            isPrimary={editorType === "basic"}
+            className="px-1.5"
+          >
             <svg
-              className="w-5"
+              className="w-4"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -214,9 +64,14 @@ const Property = () => {
               />
             </svg>
           </Button>
-          <Button size="small" value="advantage">
+          <Button
+            size="small"
+            onClick={() => setEditorType("advantage")}
+            isPrimary={editorType === "advantage"}
+            className="px-1.5"
+          >
             <svg
-              className="w-5"
+              className="w-4"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -230,8 +85,10 @@ const Property = () => {
               />
             </svg>
           </Button>
-        </ButtonGroup>
-        {editorType === "basic" && <PropertyTable data={fieldData} doc={doc} />}
+        </div>
+        {editorType === "basic" && (
+          <PropertyTable searchInput={searchInput} doc={doc} />
+        )}
         {editorType === "advantage" && <MonacoProperty doc={doc} />}
       </div>
     </div>

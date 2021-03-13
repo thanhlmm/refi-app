@@ -1,8 +1,5 @@
-import { changedDocAtom } from "@/atoms/firestore";
-import {
-  isShowPreviewChangeModalAtom,
-  isShowDocFinderModalCommandAtom,
-} from "@/atoms/ui";
+import { changedDocAtom, newDocsAtom } from "@/atoms/firestore";
+import { isShowPreviewChangeModalAtom } from "@/atoms/ui";
 import { ReadOnlyField } from "@/components/EditableCell";
 import { getParentPath } from "@/utils/common";
 import { Button } from "@zendeskgarden/react-buttons";
@@ -33,10 +30,15 @@ const PreviewChanges = () => {
     isShowPreviewChangeModalAtom
   );
   const changedDocs = useRecoilValue(changedDocAtom);
+  const newDocs = useRecoilValue(newDocsAtom);
+
+  const changes = useMemo(() => {
+    return [...changedDocs, ...newDocs];
+  }, [changedDocs, newDocs]);
 
   const groupSimilarDoc = useMemo(() => {
-    return groupBy(changedDocs, (doc) => getParentPath(doc.ref.path));
-  }, [changedDocs]);
+    return groupBy(changes, (doc) => getParentPath(doc.ref.path));
+  }, [changes]);
 
   return (
     <div>
@@ -75,9 +77,15 @@ const PreviewChanges = () => {
                           </Cell>
                           <Cell>
                             <ReadOnlyField>
-                              {doc.changedFields().map((field) => (
-                                <Tag key={field}>{field}</Tag>
-                              ))}
+                              {doc.isChanged() ? (
+                                doc
+                                  .changedFields()
+                                  .map((field) => (
+                                    <Tag key={field}>{field}</Tag>
+                                  ))
+                              ) : (
+                                <Tag>New</Tag>
+                              )}
                             </ReadOnlyField>
                           </Cell>
                           <Cell>

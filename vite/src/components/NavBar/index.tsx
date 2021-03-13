@@ -1,39 +1,36 @@
-import { changedDocAtom } from "@/atoms/firestore";
 import {
   actionCommitChange,
   actionReverseChange,
 } from "@/atoms/firestore.action";
-import { isShowPreviewChangeModalAtom } from "@/atoms/ui";
+import { isCommittableAtom, isShowPreviewChangeModalAtom } from "@/atoms/ui";
 import PathInput from "@/components/PathInput";
-import { Button } from "@zendeskgarden/react-buttons";
+import { Button, IconButton } from "@zendeskgarden/react-buttons";
 import React from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 
 const NavBar = () => {
   const setShowChangeModal = useSetRecoilState(isShowPreviewChangeModalAtom);
-  const changedDocs = useRecoilValue(changedDocAtom);
-  const actable = changedDocs.length > 0;
+  const isCommittable = useRecoilValue(isCommittableAtom);
 
   return (
-    <div className="flex flex-row space-x-3">
+    <div className="flex flex-row space-x-2">
       <div className="flex flex-row space-x-2">
         <Button
           size="small"
           onClick={() => setShowChangeModal(true)}
-          disabled={!actable}
+          disabled={!isCommittable}
         >
           Preview changes
         </Button>
         <Button
           isPrimary
           size="small"
-          disabled={!actable}
+          disabled={!isCommittable}
           onClick={actionCommitChange}
         >
           Commit
         </Button>
-        {/* // TODO: Cmd + S */}
-        <Button size="small" disabled={!actable} onClick={actionReverseChange}>
+        <IconButton isPill size="small" onClick={actionReverseChange}>
           <div className="w-5">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -49,7 +46,7 @@ const NavBar = () => {
               />
             </svg>
           </div>
-        </Button>
+        </IconButton>
       </div>
       <div className="w-px h-full" />
       <div className="w-full">

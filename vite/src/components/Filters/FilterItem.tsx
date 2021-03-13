@@ -3,23 +3,24 @@ import {
   querierAtom,
   querierOptionAtom,
 } from "@/atoms/navigator";
-import InputComboBox from "@/components/InputComboBox";
+import SelectComboBox from "@/components/SelectComboBox";
 import FieldFinderInput from "@/components/FieldFinderInput";
 import { operatorOptions } from "@/utils/searcher";
 import { IconButton } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
 import immer from "immer";
-import React from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 
 const FilterItem = ({ id }: { id: string }) => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
+  const setQueryOptions = useSetRecoilState(querierAtom(collectionPath));
+  const inputRef = useRef<HTMLInputElement>();
   const [filter, setFilter] = useRecoilState(
     querierOptionAtom({ id, path: collectionPath })
   );
-  const setQueryOptions = useSetRecoilState(querierAtom(collectionPath));
 
-  const handleRemoveFilter = (id: string) => {
+  const handleRemoveFilter = () => {
     setQueryOptions((filters) => filters.filter((filter) => filter.id !== id));
   };
 
@@ -59,6 +60,10 @@ const FilterItem = ({ id }: { id: string }) => {
     );
   };
 
+  useLayoutEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
   if (!filter) {
     return null;
   }
@@ -66,17 +71,17 @@ const FilterItem = ({ id }: { id: string }) => {
   return (
     <div
       key={filter.id}
-      className={`flex flex-row space-x-2 ${!filter.isActive && "opacity-40"}`}
+      className={`flex flex-row space-x-2 ${!filter.isActive && "opacity-60"}`}
     >
       <div className="max-w-xs w-60">
         <FieldFinderInput
           value={filter.field}
           onChange={handleSetField}
-          collectionPath={collectionPath}
+          inputRef={inputRef as any}
         />
       </div>
       <div className="max-w-xs w-30">
-        <InputComboBox
+        <SelectComboBox
           items={operatorOptions.map((option) => option.value)}
           selectedItem={filter.operator.type}
           handleSelectedItemChange={handleSetOperatorType}
@@ -110,11 +115,7 @@ const FilterItem = ({ id }: { id: string }) => {
           </svg>
         </div>
       </IconButton>
-      <IconButton
-        size="small"
-        isPill
-        onClick={() => handleRemoveFilter(filter.id)}
-      >
+      <IconButton size="small" isPill onClick={() => handleRemoveFilter()}>
         <div className="w-5">
           <svg
             xmlns="http://www.w3.org/2000/svg"

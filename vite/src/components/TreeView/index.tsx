@@ -8,6 +8,8 @@ import { Input } from "@zendeskgarden/react-forms";
 import { allDocsAtom, pathExpanderAtom } from "@/atoms/firestore";
 import { EventDataNode } from "rc-tree/lib/interface";
 import { actionAddPathExpander } from "@/atoms/firestore.action";
+import { beautifyId } from "@/utils/common";
+import AutoSizer from "react-virtualized-auto-sizer";
 
 interface TreeNode {
   key: string;
@@ -24,7 +26,7 @@ function buildTree(
 ): TreeNode[] {
   result = Object.keys(mapObj).map((key) => ({
     key: [parent, key].join("/"),
-    title: key,
+    title: isCollection ? key : beautifyId(key),
     children: [],
     isCollection: isCollection,
     icon: (props) => {
@@ -170,7 +172,7 @@ function TreeView() {
   };
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <Input
         placeholder="Search for item..."
         isCompact
@@ -178,21 +180,27 @@ function TreeView() {
         onChange={(e) => setSearchInput(e.target.value)}
       />
       <div
-        className="mt-2"
+        className="h-full mt-2"
         tabIndex={1}
         ref={treeWrapperRef}
         onFocus={handleOnFocus}
       >
-        <Tree
-          tabIndex={2}
-          showLine
-          treeData={treeData}
-          onSelect={handleSelectTree}
-          height={500}
-          loadData={handleExpandData}
-          virtual
-          focusable
-        />
+        <AutoSizer disableWidth>
+          {({ height }) => (
+            <Tree
+              tabIndex={2}
+              showLine
+              treeData={treeData}
+              onSelect={handleSelectTree}
+              height={height}
+              loadData={handleExpandData}
+              virtual
+              focusable
+              itemHeight={24}
+              className="h-full"
+            />
+          )}
+        </AutoSizer>
       </div>
     </div>
   );

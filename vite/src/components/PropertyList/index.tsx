@@ -135,7 +135,7 @@ const PropertyList = () => {
 
   return (
     <div className="overflow-y-auto w-54">
-      <form onSubmit={handleSubmit(handleAddProperty)}>
+      <form onSubmit={handleSubmit(handleAddProperty)} className="p-0.5">
         <Controller
           control={control}
           name="property"
@@ -145,7 +145,6 @@ const PropertyList = () => {
             { invalid, isTouched, isDirty }
           ) => (
             <FieldFinderInput
-              collectionPath={collectionPath}
               value={value}
               onChange={onChange}
               inputRef={ref as any}
