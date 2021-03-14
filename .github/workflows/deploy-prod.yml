@@ -10,8 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install package
+      - name: Install vite package
         run: cd vite && yarn
+      - name: Install lib package
+        run: cd firestore-serializers && yarn
+      - name: Build lib package
+        run: cd firestore-serializers && yarn build
       - name: Build
         run: cd vite && yarn run build
       - uses: actions/upload-artifact@v1
