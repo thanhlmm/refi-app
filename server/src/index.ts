@@ -1,5 +1,5 @@
-import installExtension, { REDUX_DEVTOOLS, REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 
+require('devtron').install()
 import isDev from "electron-is-dev";
 if (isDev) {
   require('source-map-support').install();
@@ -108,12 +108,12 @@ app.whenReady().then(async () => {
   createWindow(serverSocket);
   createBackgroundProcess(serverSocket);
 
-  installExtension(REDUX_DEVTOOLS)
-    .then((name) => console.log(`Added Extension:  ${name}`))
-    .catch((err) => console.log('An error occurred: ', err));
-  installExtension(REACT_DEVELOPER_TOOLS)
-    .then((name) => console.log(`Added Extension:  ${name}`))
-    .catch((err) => console.log('An error occurred: ', err));
+  if (isDev) {
+    const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
+    installExtension(REACT_DEVELOPER_TOOLS)
+      .then((name: string) => console.log(`Added Extension:  ${name}`))
+      .catch((err: any) => console.log('An error occurred: ', err));
+  }
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

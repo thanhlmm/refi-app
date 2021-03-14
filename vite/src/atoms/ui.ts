@@ -1,8 +1,6 @@
 import { atom, atomFamily, selector } from "recoil";
-import { recoilPersist } from "recoil-persist";
 import { changedDocAtom, newDocsAtom } from "./firestore";
-import { setRecoilExternalState } from "./RecoilExternalStatePortal";
-const { persistAtom } = recoilPersist();
+import { userPersistAtom } from "./persistAtom";
 
 export const isShowPreviewChangeModalAtom = atom<boolean>({
   key: "ui/previewChangeModal",
@@ -66,7 +64,7 @@ export const importFileAtom = atom<File | undefined>({
 export const defaultEditorAtom = atom<"basic" | "advantage">({
   key: "ui/defaultEditor",
   default: "basic",
-  effects_UNSTABLE: [persistAtom],
+  effects_UNSTABLE: [userPersistAtom],
 });
 
 interface IParsingLargeDataAtom {
@@ -98,4 +96,9 @@ export const isCommittableAtom = selector<boolean>({
 
     return changedDocs.length > 0 || newDocs.length > 0;
   },
+});
+
+export const newFieldAtom = atomFamily<string, string>({
+  key: "ui/newField",
+  default: "",
 });

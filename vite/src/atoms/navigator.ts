@@ -8,8 +8,7 @@ import {
   isCollection,
 } from "@/utils/common";
 import produce from "immer";
-import { recoilPersist } from "recoil-persist";
-const { persistAtom } = recoilPersist(); // TODO: Mapping it by project id @important
+import persistAtom from "./persistAtom";
 
 export const FIELD_TYPES: RefiFS.IFieldType[] = [
   "string",
@@ -162,6 +161,7 @@ export const propertyListAtom = atomFamily<string[], string>({
     key: "fs/propertyList:selector",
     get: (path) => ({ get }) => {
       const collectionDocs = get(collectionAtom(path));
+      // TODO: Check why it run again when this atom is already existed
 
       return getSampleColumn(collectionDocs);
     },

@@ -265,7 +265,7 @@ function DataTable() {
   const setPath = useSetRecoilState(navigatorPathAtom);
   const data = useRecoilValue(collectionWithQueryAtom(collectionPath));
   const properties = useRecoilValue(propertyListAtom(collectionPath));
-  const isLargeData = useRecoilValue(largeDataAtom); // Make parent suspense
+  useRecoilValue(largeDataAtom); // Make parent suspense
 
   const columnViewer = useMemo(() => {
     const docColumns = properties.map((key, index) => ({

@@ -4,11 +4,21 @@ import {
   actionRemoveFieldKey,
 } from "@/atoms/firestore.action";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import React, { useState, useRef, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+} from "react";
 import { useRecoilValue } from "recoil";
 import classNames from "classnames";
 import { useContextMenu } from "@/hooks/contextMenu";
 import DataInput from "@/components/DataInput";
+import { FIELD_KEY_PREFIX } from "@/utils/contant";
+import { getRecoilExternalLoadable } from "@/atoms/RecoilExternalStatePortal";
+import { newFieldAtom } from "@/atoms/ui";
 
 interface IEditablePropertyFieldProps {
   row: ClientDocumentSnapshot;
@@ -76,6 +86,19 @@ export const EditablePropertyField = ({
     },
     fieldPath
   );
+
+  const setInputAutoFocus = async () => {
+    const newFieldPath = await getRecoilExternalLoadable(
+      newFieldAtom(row.ref.path)
+    ).toPromise();
+    if (id === newFieldPath) {
+      inputEl.current?.focus();
+    }
+  };
+
+  useEffect(() => {
+    setInputAutoFocus();
+  }, []);
 
   return (
     <div

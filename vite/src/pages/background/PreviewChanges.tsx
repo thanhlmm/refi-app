@@ -31,6 +31,7 @@ const PreviewChanges = () => {
   );
   const changedDocs = useRecoilValue(changedDocAtom);
   const newDocs = useRecoilValue(newDocsAtom);
+  // TODO: Deleted doc
 
   const changes = useMemo(() => {
     return [...changedDocs, ...newDocs];

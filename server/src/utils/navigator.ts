@@ -1,3 +1,3 @@
-export const isCollection = (path = "") => {
-  return path.split("/").length % 2;
+export const isCollection = (path = ""): boolean => {
+  return !Boolean(path.split("/").length % 2);
 };

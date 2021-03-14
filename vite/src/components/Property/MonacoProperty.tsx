@@ -68,7 +68,7 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
     <Editor
       defaultLanguage="json"
       value={defaultValue}
-      height="50%"
+      height="90%"
       wrapperClassName="border border-gray-300 pt-2 pb-2"
       onChange={setDefaultValue}
       onValidate={handleEditorValidation}

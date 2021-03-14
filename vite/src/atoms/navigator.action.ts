@@ -1,4 +1,5 @@
 import {
+  deserializeDocumentSnapshotArray,
   serializeDocumentSnapshot,
   serializeQuerySnapshot,
 } from "firestore-serializers";
@@ -83,6 +84,45 @@ export const actionAddSorter = (
   ]);
 };
 
+export const actionExportCollectionJSON = async (
+  collectionPath: string
+): Promise<boolean> => {
+  console.trace();
+  return window
+    .send("fs.exportCollection", {
+      path: collectionPath,
+    })
+    .then(({ docs }: { docs: string }) => {
+      const docsAsString = removeFirebaseSerializeMetaData(docs);
+      exportFromJSON({
+        data: docsAsString,
+        fileName: collectionPath.replaceAll("/", "_"),
+        exportType: "json",
+      });
+
+      return true;
+    });
+};
+
+export const actionExportCollectionCSV = async (
+  collectionPath: string
+): Promise<boolean> => {
+  return window
+    .send("fs.exportCollection", {
+      path: collectionPath,
+    })
+    .then(({ docs }: { docs: string }) => {
+      const docsAsString = removeFirebaseSerializeMetaData(docs);
+      exportFromJSON({
+        data: docsAsString,
+        fileName: collectionPath.replaceAll("/", "_"),
+        exportType: "csv",
+      });
+
+      return true;
+    });
+};
+
 export const actionExportViewJSON = async (
   allFields = true
 ): Promise<boolean> => {
@@ -139,6 +179,7 @@ export const actionExportDocJSON = async (
   const doc = await getRecoilExternalLoadable(docAtom(docPath)).toPromise();
 
   if (!doc) {
+    // TODO: Get doc local memory not found
     // TODO: Throw error not found
 
     return false;

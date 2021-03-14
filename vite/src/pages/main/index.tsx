@@ -6,6 +6,7 @@ import NavBar from "@/components/NavBar";
 import ProductBar from "@/components/ProductBar";
 import Property from "@/components/Property";
 import TreeView from "@/components/TreeView";
+import URLSynchronizer from "@/components/URLSynchronizer";
 import React, { ReactElement, useEffect, useMemo } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 import { useParams } from "react-router-dom";
@@ -74,6 +75,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
       <div>
         <UniversalHotKey />
         <DataSubscriber />
+        <URLSynchronizer />
         <ReactGridLayout
           className="transition-none layout"
           layout={layout}

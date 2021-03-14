@@ -8,7 +8,7 @@ function App() {
   return (
     <Router>
       <Switch>
-        <Route path="/:projectId">
+        <Route path={["/:projectId", "/:projectId/(.*)"]}>
           <MainLayout />
         </Route>
         <Route path="/">

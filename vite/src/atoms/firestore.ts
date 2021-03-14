@@ -97,7 +97,8 @@ export const collectionWithQueryAtom = selectorFamily<
       .filter(
         (docValue): docValue is ClientDocumentSnapshot => docValue !== null
       )
-      .filter((docValue) => docValue.queryVersion === queryVersion);
+      .filter((docValue) => docValue.queryVersion === queryVersion)
+      .sort((a, b) => a.id.localeCompare(b.id));
   },
 });
 
@@ -135,9 +136,8 @@ export const fieldAtom = selectorFamily<any, string>({
       if (isObject(oldValue) && isObject(oldValue)) {
         // Add changes if the object inside changed
         newDoc.addChange(
-          difference(
-            Object.keys(oldValue),
-            Object.keys(newValue).map((key) => `${field}.${key}`)
+          difference(Object.keys(newValue), Object.keys(oldValue)).map(
+            (key) => `${field}.${key}`
           )
         );
       }
@@ -186,6 +186,27 @@ export const newDocsAtom = selector<ClientDocumentSnapshot[]>({
       )
       .filter((doc) => doc.isNew);
   },
+});
+
+export const hasNewDocAtom = selectorFamily<boolean, string>({
+  key: "FireStore_collection_new",
+  get: (path) => ({ get }) => {
+    const newDocs = get(newDocsAtom);
+
+    for (let i = 0; i < newDocs.length; i++) {
+      const doc = newDocs[i];
+      if (doc.ref.path.startsWith(path)) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+});
+
+export const hasBeenDeleteAtom = atomFamily<boolean, string>({
+  key: "FireStore_collection_deleted",
+  default: false,
 });
 
 export const pathExpanderAtom = atom<string[]>({

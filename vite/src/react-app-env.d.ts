@@ -41,4 +41,5 @@ interface Window {
   api: {
     contextMenu: IContextMenu;
   };
+  projectId: string;
 }

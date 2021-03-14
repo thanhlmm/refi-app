@@ -1,6 +1,7 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { chunk, flatten, intersection, uniq } from "lodash";
 import { isObject, simplify } from "./simplifr";
+import firebase from "firebase";
 
 export const isCollection = (path = ""): boolean => {
   return !Boolean(path.split("/").length % 2);
@@ -89,7 +90,9 @@ export const getSampleColumn = (data: ClientDocumentSnapshot[]): string[] => {
     intersection(...smallChunks)
   );
   // TODO: Improve when we add more data
-  return uniq(flatten(chunksColumn)).sort((a, b) => a.localeCompare(b));
+  return uniq(flatten(chunksColumn))
+    .sort((a, b) => a.localeCompare(b))
+    .filter((_) => _);
 };
 
 export const transformFSDoc = (doc: ClientDocumentSnapshot) => {
@@ -117,14 +120,16 @@ export const buildTableSubRows = (
         rowWithSub.push({
           field,
           value,
-          subRows: ["map", "array"].includes(value?.type)
-            ? buildTableSubRows(
-                rows.filter(
-                  (row) => row.field.startsWith(field) && row.field !== field
-                ),
-                level + 1
-              )
-            : undefined,
+          ...(["map", "array"].includes(value?.type)
+            ? {
+              subRows: buildTableSubRows(
+                  rows.filter(
+                    (row) => row.field.startsWith(field) && row.field !== field
+                  ),
+                  level + 1
+              ),
+            }
+            : {}),
         });
         return rowWithSub;
       }
@@ -192,4 +197,8 @@ export function beautifyId(id: string): string {
   }
 
   return id.slice(0, 3) + "..." + id.slice(-4);
+}
+
+export function newId(): string {
+  return firebase.firestore().collection("feedbacks").doc().id;
 }

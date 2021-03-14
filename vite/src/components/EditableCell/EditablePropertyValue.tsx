@@ -17,6 +17,9 @@ import { isObject } from "lodash";
 import DateTimePicker from "@/components/DataInput/DateTimePicker";
 import ObjectInput from "../DataInput/ObjectInput";
 import { convertFSValue } from "@/utils/fieldConverter";
+import ArrayInput from "../DataInput/ArrayInput";
+import { useContextMenu } from "@/hooks/contextMenu";
+import { actionRemoveFieldKey } from "@/atoms/firestore.action";
 
 interface IEditableCell {
   row: ClientDocumentSnapshot;
@@ -26,6 +29,7 @@ interface IEditableCell {
   value: IValueType | IPrimitiveType;
   tabIndex: number;
   canChangeType?: boolean;
+  toggleExpand: (boolean) => void;
 }
 
 export const EditablePropertyValue = ({
@@ -34,6 +38,7 @@ export const EditablePropertyValue = ({
   value: tableValue,
   tabIndex,
   canChangeType = true,
+  toggleExpand,
 }: IEditableCell): React.ReactElement => {
   const fieldPath = buildFSUrl({ path: row.ref.path, field: id });
   const [value, setValue] = useRecoilState(fieldAtom(fieldPath));
@@ -56,8 +61,11 @@ export const EditablePropertyValue = ({
     }
   };
 
-  const onKeyDown = () => {
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     setFocused(true);
+    if (e.key === "Escape") {
+      setInstanceValue(value);
+    }
   };
 
   const toggleHight = () => {
@@ -88,6 +96,14 @@ export const EditablePropertyValue = ({
     }));
   }, [instanceValue, setValue]);
 
+  useContextMenu(
+    "DELETE_PROPERTY_VALUE",
+    () => {
+      actionRemoveFieldKey(fieldPath);
+    },
+    fieldPath
+  );
+
   const fieldType = useMemo(() => {
     return getFireStoreType(instanceValue);
   }, [instanceValue]);
@@ -115,7 +131,15 @@ export const EditablePropertyValue = ({
         );
         break;
       case "map":
-        defaultEditor = <ObjectInput fieldPath={fieldPath} />;
+        defaultEditor = (
+          <ObjectInput fieldPath={fieldPath} toggleExpand={toggleExpand} />
+        );
+        break;
+      case "array":
+        defaultEditor = (
+          <ArrayInput fieldPath={fieldPath} toggleExpand={toggleExpand} />
+        );
+        break;
     }
   }
 
@@ -125,23 +149,27 @@ export const EditablePropertyValue = ({
       ref={wrapperEl}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      cm-template="propertyValue"
+      cm-id={fieldPath}
     >
       <div
         className={classNames(
-          "absolute opacity-0 top-0.5 right-0.5 hover:opacity-100 transition-opacity",
+          "absolute z-20 opacity-0 top-0.5 right-0.5 hover:opacity-100 transition-opacity",
           {
             ["opacity-70"]: isHovered && !isFocused,
           }
         )}
       >
-        <DropdownMenu menu={menuOptions} isSmall disabled={!canChangeType}>
-          <button
-            role="button"
-            className="p-1 text-xs text-red-700 bg-white border border-gray-300"
-          >
-            {fieldType}
-          </button>
-        </DropdownMenu>
+        {isHovered && (
+          <DropdownMenu menu={menuOptions} isSmall disabled={!canChangeType}>
+            <button
+              role="button"
+              className="p-1 text-xs text-red-700 bg-white border border-gray-300"
+            >
+              {fieldType}
+            </button>
+          </DropdownMenu>
+        )}
       </div>
       {defaultEditor}
     </div>

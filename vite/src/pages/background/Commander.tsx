@@ -101,11 +101,12 @@ const Commander = () => {
       {
         element: (
           <Input
-            placeholder="Commit changes, preview changes,... anything in your head"
+            placeholder="Commit changes, preview changes,... anything in your head 🤓"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             ref={inputRef}
             autoFocus
+            className="px-3"
           />
         ),
         key: "general",
@@ -120,6 +121,8 @@ const Commander = () => {
       globalHotKeysHandler[command]();
     }
   }, []);
+
+  // TODO: Add a section for recent commands
 
   return (
     <div>

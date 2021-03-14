@@ -7,7 +7,7 @@ interface IDropdownMenuProps {
   className?: string;
   placement?: "left" | "right";
   isSmall?: boolean;
-  disabled: boolean;
+  disabled?: boolean;
   menu: {
     title: string;
     hint?: string;

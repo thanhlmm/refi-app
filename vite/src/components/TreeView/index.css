@@ -162,11 +162,11 @@
 .rc-tree-treenode-active {
   background: rgba(0, 0, 0, 0.1);
 }
-.rc-tree-node-selected {
-  background-color: #ffe6b0;
-  box-shadow: 0 0 0 1px #ffb951;
-  opacity: 0.8;
+
+.rc-tree-treenode-selected {
+  background: #c3c3c3;
 }
+
 .rc-tree-icon__open {
   margin-right: 2px;
   vertical-align: top;

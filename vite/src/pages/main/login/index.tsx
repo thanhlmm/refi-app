@@ -62,7 +62,10 @@ const LoginPage: React.FC = () => {
   );
 
   const handleOpenConnection = (projectId: string) => {
-    history.push(`/${projectId}`);
+    history.push({
+      pathname: `/${projectId}`,
+      hash: "/",
+    });
   };
 
   const handleDeleteCert = (projectId: string) => {

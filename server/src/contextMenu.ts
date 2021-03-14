@@ -27,14 +27,53 @@ export const contextConfig = {
       label: "DESC"
     }
   ],
-  "treeCollectionContext": [
+  "treeDocContext": [
+    {
+      id: "NEW_COLLECTION",
+      label: "New collection"
+    },
+    {
+      type: "separator"
+    },
     {
       id: "EXPORT_CSV",
-      label: "Export collection as CSV"
+      label: "Export as CSV"
     },
     {
       id: "EXPORT_JSON",
-      label: "Export collection as JSON"
+      label: "Export as JSON"
+    },
+    {
+      type: "separator"
+    },
+    {
+      id: "DELETE",
+      label: "Delete"
+    }
+  ],
+  "treeCollectionContext": [
+    {
+      id: "NEW_DOC",
+      label: "New document"
+    },
+    {
+      type: "separator"
+    },
+    {
+      id: "IMPORT_CSV",
+      label: "Import from CSV"
+    },
+    {
+      id: "IMPORT_JSON",
+      label: "Import from JSON"
+    },
+    {
+      id: "EXPORT_CSV",
+      label: "Export as CSV"
+    },
+    {
+      id: "EXPORT_JSON",
+      label: "Export as JSON"
     },
     {
       type: "separator"
@@ -58,11 +97,11 @@ export const contextConfig = {
     },
     {
       id: "EXPORT_CSV",
-      label: "Export as CSV"
+      label: "Export document as CSV"
     },
     {
       id: "EXPORT_JSON",
-      label: "Export as JSON"
+      label: "Export document as JSON"
     },
     {
       id: "EXPORT_VIEW_CSV",
@@ -83,6 +122,12 @@ export const contextConfig = {
   "propertyName": [
     {
       id: "DELETE_PROPERTY",
+      label: "Delete"
+    }
+  ],
+  "propertyValue": [
+    {
+      id: "DELETE_PROPERTY_VALUE",
       label: "Delete"
     }
   ],

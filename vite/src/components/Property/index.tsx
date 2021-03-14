@@ -1,8 +1,7 @@
 import { docAtom, pathExpanderAtom } from "@/atoms/firestore";
 import { navigatorPathAtom } from "@/atoms/navigator";
 import { defaultEditorAtom } from "@/atoms/ui";
-import { buildTableSubRows, getListCollections } from "@/utils/common";
-import { simplify } from "@/utils/simplifr";
+import { getListCollections } from "@/utils/common";
 import { Anchor, Button } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
 import React, { useMemo, useState } from "react";

@@ -197,7 +197,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return newDoc.path;
   }
 
-  public async addsDocs({ docs }: NSFireStore.IAddDocs): Promise<boolean> {
+  public async addDocs({ docs }: NSFireStore.IAddDocs): Promise<boolean> {
     const fs = this.fsClient();
     const docsSnapshot = deserializeDocumentSnapshotArray(docs, admin.firestore.GeoPoint, admin.firestore.Timestamp, path => fs.doc(path))
     const batch = fs.batch();
@@ -226,6 +226,7 @@ export default class FireStoreService implements NSFireStore.IService {
     const fs = this.fsClient();
     const collection = fs.collection(path);
     const batch = fs.batch();
+    // TODO: What is we have more than 500 document?
     docs.forEach((doc) => {
       const newDocRef = collection.doc();
       batch.set(newDocRef, doc)
@@ -233,6 +234,16 @@ export default class FireStoreService implements NSFireStore.IService {
 
     await batch.commit();
     return true
+  }
+
+  public async exportCollection({ path }: NSFireStore.IExportCollection): Promise<NSFireStore.IExportCollectionResponse> {
+    const fs = this.fsClient();
+    return fs.collection(path).get().then(querySnapshot => {
+      const docs = serializeQuerySnapshot(querySnapshot);
+      return {
+        docs: docs
+      }
+    });
   }
 
   public async getDocs({ docs }: NSFireStore.IGetDocs): Promise<string> {
@@ -252,7 +263,8 @@ export default class FireStoreService implements NSFireStore.IService {
   public async pathExpander({ path }: { path: string }): Promise<string[]> {
     const fs = this.fsClient();
     const isCollectionPath = isCollection(path);
-    if (isCollection) {
+    console.log({ path, isCollectionPath });
+    if (isCollectionPath) {
       const docsSnapshot = await fs.collection(path).get()
       return docsSnapshot.docs.map(doc => doc.ref.path);
     }

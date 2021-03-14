@@ -1,11 +1,13 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import { getParentPath, prettifyPath } from "@/utils/common";
+import { getParentPath, newId, prettifyPath } from "@/utils/common";
 import { serializeQuerySnapshot } from "firestore-serializers";
 import { uniq, uniqueId } from "lodash";
 import {
   changedDocAtom,
+  collectionAtom,
   deletedDocsAtom,
   docAtom,
+  hasBeenDeleteAtom,
   newDocsAtom,
   parseFSUrl,
   pathExpanderAtom,
@@ -16,7 +18,7 @@ import {
   setRecoilExternalState,
 } from "./RecoilExternalStatePortal";
 import * as immutable from "object-path-immutable";
-import { queryVersionAtom } from "./navigator";
+import { navigatorPathAtom, queryVersionAtom } from "./navigator";
 import { NEW_DOC_PREFIX } from "@/utils/contant";
 
 export const actionStoreDocs = (
@@ -38,6 +40,13 @@ export const actionStoreDocs = (
   });
 };
 
+// This is trigger from user
+export const actionDeleteDoc = (docPath: string): void => {
+  resetRecoilExternalState(docAtom(docPath));
+  setRecoilExternalState(deletedDocsAtom, (paths) => uniq([...paths, docPath]));
+};
+
+// This is trigger from server. It will irervertable
 export const actionRemoveDocs = (
   docs: ClientDocumentSnapshot[],
   override = false
@@ -51,10 +60,16 @@ export const actionRemoveDocs = (
   });
 };
 
-export const actionDeleteDoc = (doc: ClientDocumentSnapshot): void => {
-  const docPath = doc.ref.path;
-  resetRecoilExternalState(docAtom(docPath));
-  setRecoilExternalState(deletedDocsAtom, (paths) => uniq([...paths, docPath]));
+// This is trigger from user
+export const actionDeleteCollection = async (path: string): Promise<void> => {
+  setRecoilExternalState(hasBeenDeleteAtom(path), true);
+  // Marks all docs as delete
+  const docsInCollection = await getRecoilExternalLoadable(
+    collectionAtom(path)
+  ).toPromise();
+  docsInCollection.forEach((doc) => {
+    actionDeleteDoc(doc.ref.path);
+  });
 };
 
 export const actionUpdateDoc = (doc: ClientDocumentSnapshot): void => {
@@ -180,8 +195,11 @@ export const actionImportDocs = async (path: string, docs: any[]) => {
 };
 
 export const actionNewDocument = async (path) => {
-  const newDocId = uniqueId(NEW_DOC_PREFIX);
+  // const newDocId = uniqueId(NEW_DOC_PREFIX);
+  // TODO: Sort new document to the bottom of table
+  const newDocId = newId();
   const newPath = `${path}/${newDocId}`;
+
   const { queryVersion } = await getRecoilExternalLoadable(
     queryVersionAtom
   ).toPromise();
@@ -189,4 +207,6 @@ export const actionNewDocument = async (path) => {
     docAtom(newPath),
     new ClientDocumentSnapshot({}, newDocId, newPath, queryVersion, true)
   );
+
+  setRecoilExternalState(navigatorPathAtom, newPath);
 };

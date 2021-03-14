@@ -1,26 +1,22 @@
 import React from "react";
 import { fieldAtom, parseFSUrl } from "@/atoms/firestore";
 import { setRecoilExternalState } from "@/atoms/RecoilExternalStatePortal";
-import { uniqueId } from "lodash";
-import { FIELD_KEY_PREFIX } from "@/utils/contant";
 import { newFieldAtom } from "@/atoms/ui";
 
-interface IObjectInputProps {
+interface IArrayInputProps {
   fieldPath: string;
   toggleExpand: (boolean) => void;
 }
 
-const ObjectInput = ({ fieldPath, toggleExpand }: IObjectInputProps) => {
+const ArrayInput = ({ fieldPath, toggleExpand }: IArrayInputProps) => {
   const handleAddProperty = async () => {
     const fieldAtomInstance = fieldAtom(fieldPath);
     const { path, field } = parseFSUrl(fieldPath);
-    const newFieldName = uniqueId(FIELD_KEY_PREFIX);
-    setRecoilExternalState(fieldAtomInstance, (value) => ({
-      ...value,
-      [newFieldName]: "",
-    }));
+    setRecoilExternalState(fieldAtomInstance, (value: any[]) => {
+      setRecoilExternalState(newFieldAtom(path), field + "." + value.length);
+      return [...value, ""];
+    });
     toggleExpand(true);
-    setRecoilExternalState(newFieldAtom(path), field + "." + newFieldName);
   };
 
   return (
@@ -45,10 +41,10 @@ const ObjectInput = ({ fieldPath, toggleExpand }: IObjectInputProps) => {
             />
           </svg>
         </div>
-        Add property
+        Add item
       </button>
     </div>
   );
 };
 
-export default ObjectInput;
+export default ArrayInput;

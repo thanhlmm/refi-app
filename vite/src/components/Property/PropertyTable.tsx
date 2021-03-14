@@ -12,7 +12,7 @@ interface IPropertyTableProps {
   searchInput: string;
 }
 const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
-  const PropertyColumns = useMemo(
+  const propertyColumns = useMemo(
     () => [
       {
         Header: "Field",
@@ -48,6 +48,7 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
               row={doc}
               column={{ id: row.original.field }}
               tabIndex={row.index * row.cells.length}
+              toggleExpand={row.getToggleRowExpandedProps().onClick.bind(row)}
               value={value}
             />
           );
@@ -97,11 +98,11 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
     prepareRow,
   } = useTable(
     {
-      columns: PropertyColumns,
+      columns: propertyColumns,
       data: fieldData,
-      // autoResetExpanded: false,
+      autoResetExpanded: false,
       // getSubRows,
-    },
+    } as any,
     useExpanded // Use the useExpanded plugin hook
   );
 
@@ -118,7 +119,7 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
           ))}
         </thead> */}
         <tbody {...getTableBodyProps()}>
-          {rows.map((row, i) => {
+          {rows.map((row: any, i) => {
             prepareRow(row);
             const depth = row.isExpanded
               ? row.depth + 1
@@ -128,6 +129,7 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
               <tr key={row.original.field}>
                 {row.cells.map((cell) => {
                   return (
+                    // eslint-disable-next-line react/jsx-key
                     <td
                       {...cell.getCellProps()}
                       className={classNames(
