@@ -50,7 +50,6 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
         Cell: ({ row, value }: { row: any; value: any }) => {
           return (
             <EditablePropertyValue
-              row={row.original}
               column={{ id: row.original.field }}
               tabIndex={row.index * row.cells.length}
               toggleExpand={row.toggleRowExpanded}

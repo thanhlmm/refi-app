@@ -110,7 +110,7 @@ const EditableCell = ({
             ["text-right"]: fieldType === "number",
           }
         )}
-        value={instanceValue}
+        value={instanceValue as string}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         onKeyDown={onKeyDown}

@@ -428,7 +428,7 @@ function DataTable() {
   );
 }
 
-const DataTableLoader = (): ReactNode => {
+const DataTableLoader = () => {
   const isLoaded = useRecoilValue(largeDataAtom); // Make parent suspense
 
   if (isLoaded) {

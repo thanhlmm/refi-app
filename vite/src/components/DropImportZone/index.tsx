@@ -13,7 +13,7 @@ const DropImportZone = ({ isOver }: IDropImportZoneProps) => {
   const setFile = useSetRecoilState(importFileAtom);
   const handleOnFileDrop = (files: File[]) => {
     setFile(files[0]);
-    actionToggleImportModal(true);
+    actionToggleImportModal("", true);
   };
 
   const [bond, state] = useDropArea({

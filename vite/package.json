@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:css && tsc && vite build",
+    "build": "tsc && vite build",
     "serve": "vite preview",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet --fix",
     "build:css": "cross-env NODE_ENV=production postcss src/styles/tailwind.css -o src/styles/index.css",

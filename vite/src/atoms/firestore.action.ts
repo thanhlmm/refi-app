@@ -1,5 +1,5 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import { getParentPath, newId, newId, prettifyPath } from "@/utils/common";
+import { getParentPath, newId, prettifyPath } from "@/utils/common";
 import {
   deserializeDocumentSnapshotArray,
   serializeQuerySnapshot,

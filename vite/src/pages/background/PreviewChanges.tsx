@@ -8,7 +8,6 @@ import {
   actionReverseDocChange,
 } from "@/atoms/firestore.action";
 import { isShowPreviewChangeModalAtom } from "@/atoms/ui";
-import { ReadOnlyField } from "@/components/EditableCell";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { getParentPath } from "@/utils/common";
 import { Button } from "@zendeskgarden/react-buttons";
