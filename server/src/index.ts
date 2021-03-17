@@ -1,5 +1,3 @@
-
-require('devtron').install()
 import isDev from "electron-is-dev";
 if (isDev) {
   require('source-map-support').install();
@@ -113,6 +111,17 @@ app.whenReady().then(async () => {
     installExtension(REACT_DEVELOPER_TOOLS)
       .then((name: string) => console.log(`Added Extension:  ${name}`))
       .catch((err: any) => console.log('An error occurred: ', err));
+
+
+    // installExtension('jhfmmdhbinleghabnblahfjfalfgidik')
+    //   .then((name: string) => console.log(`Added Extension:  ${name}`))
+    //   .catch((err: any) => console.log('An error occurred: ', err));
+
+    // installExtension('dhjcdlmklldodggmleehadpjephfgflc') //Recoil Dev Tools
+    //   .then((name: string) => console.log(`Added Extension:  ${name}`))
+    //   .catch((err: any) => console.log('An error occurred: ', err));
+
+
   }
 });
 

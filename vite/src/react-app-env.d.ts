@@ -26,7 +26,7 @@ type SendFuncType = (name: string, args: any) => Promise<any>;
 type ListenFuncType = (name: string, cb: Function) => Function;
 
 interface IContextMenu {
-  clearRendererBindings: () => void;
+  clearRendererBindings: (actionName?: string, elementId?: string) => void;
   onReceive: <T>(
     actionName: string,
     cb: (T) => void,

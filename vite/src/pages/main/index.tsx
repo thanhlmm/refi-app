@@ -1,6 +1,7 @@
 import { projectIdAtom } from "@/atoms/firestore";
 import { actionAddPathExpander } from "@/atoms/firestore.action";
 import { setRecoilExternalState } from "@/atoms/RecoilExternalStatePortal";
+import RecoilSelector from "@/atoms/RecoilSelector";
 import DataSubscriber from "@/components/DataSubscriber";
 import NavBar from "@/components/NavBar";
 import ProductBar from "@/components/ProductBar";
@@ -76,6 +77,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
         <UniversalHotKey />
         <DataSubscriber />
         <URLSynchronizer />
+        {/* <RecoilSelector /> */}
         <ReactGridLayout
           className="transition-none layout"
           layout={layout}

@@ -1,46 +1,50 @@
 import { buildFSUrl, fieldAtom, fieldChangedAtom } from "@/atoms/firestore";
+import { actionRemoveFieldKey } from "@/atoms/firestore.action";
 import { FIELD_TYPES } from "@/atoms/navigator";
-import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import { getFireStoreType, IPrimitiveType, IValueType } from "@/utils/simplifr";
+import { actionGoTo } from "@/atoms/navigator.action";
+import DataInput from "@/components/DataInput";
+import DateTimePicker from "@/components/DataInput/DateTimePicker";
+import DropdownMenu from "@/components/DropdownMenu";
+import { useContextMenu } from "@/hooks/contextMenu";
+import { isNumeric } from "@/utils/common";
+import { convertFSValue } from "@/utils/fieldConverter";
+import { getFireStoreType } from "@/utils/simplifr";
+import { Tooltip } from "@zendeskgarden/react-tooltips";
+import classNames from "classnames";
+import { DocRef } from "firestore-serializers/src/DocRef";
+import { isUndefined } from "lodash";
 import React, {
-  useState,
-  useRef,
+  ReactElement,
+  useCallback,
   useEffect,
   useMemo,
-  ReactElement,
+  useRef,
+  useState,
 } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import classNames from "classnames";
-import DropdownMenu from "@/components/DropdownMenu";
-import DataInput from "@/components/DataInput";
-import { isObject } from "lodash";
-import DateTimePicker from "@/components/DataInput/DateTimePicker";
-import ObjectInput from "../DataInput/ObjectInput";
-import { convertFSValue } from "@/utils/fieldConverter";
 import ArrayInput from "../DataInput/ArrayInput";
-import { useContextMenu } from "@/hooks/contextMenu";
-import { actionRemoveFieldKey } from "@/atoms/firestore.action";
+import BooleanInput from "../DataInput/BooleanInput";
+import GeopointPicker from "../DataInput/GeopointPicker";
+import ObjectInput from "../DataInput/ObjectInput";
 
 interface IEditableCell {
-  row: ClientDocumentSnapshot;
+  docPath: string;
   column: {
     id: string;
   };
-  value: IValueType | IPrimitiveType;
   tabIndex: number;
   canChangeType?: boolean;
   toggleExpand: (boolean) => void;
 }
 
 export const EditablePropertyValue = ({
-  row,
+  docPath,
   column: { id },
-  value: tableValue,
   tabIndex,
   canChangeType = true,
   toggleExpand,
 }: IEditableCell): React.ReactElement => {
-  const fieldPath = buildFSUrl({ path: row.ref.path, field: id });
+  const fieldPath = buildFSUrl({ path: docPath, field: id });
   const [value, setValue] = useRecoilState(fieldAtom(fieldPath));
   const isFieldChanged = useRecoilValue(fieldChangedAtom(fieldPath));
   const [instanceValue, setInstanceValue] = useState(value);
@@ -50,36 +54,49 @@ export const EditablePropertyValue = ({
   const wrapperEl = useRef(null);
   const inputEl = useRef<HTMLTextAreaElement>(null);
 
-  const onChange = (value) => {
-    setInstanceValue(value);
-  };
+  const onChange = useCallback(
+    (newInstanceValue) => {
+      if (
+        getFireStoreType(instanceValue) === "number" &&
+        isNumeric(newInstanceValue)
+      ) {
+        // Respect current type
+        setInstanceValue(Number(newInstanceValue));
+      } else {
+        setInstanceValue(newInstanceValue);
+      }
+    },
+    [setInstanceValue]
+  );
 
-  const onBlur = () => {
+  const onBlur = useCallback(() => {
     setFocused(false);
     if (instanceValue !== value) {
       setValue(instanceValue);
     }
-  };
+  }, [instanceValue, value]);
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    setFocused(true);
-    if (e.key === "Escape") {
-      setInstanceValue(value);
-    }
-  };
+  const onKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      setFocused(true);
+      if (e.key === "Escape") {
+        setInstanceValue(value);
+      }
+    },
+    [value]
+  );
 
-  const toggleHight = () => {
+  const toggleHight = useCallback(() => {
     toggleHighlight(true);
     setTimeout(() => {
       toggleHighlight(false);
     }, 300);
-  };
+  }, []);
 
   // Sync the external into instanceValue
   useEffect(() => {
-    if (value !== instanceValue) {
-      // TODO: Check if value return is null, 0, ""
-      setInstanceValue(value || "");
+    if (!isUndefined(value) && value !== instanceValue) {
+      setInstanceValue(value);
       toggleHight();
     }
   }, [value]);
@@ -90,7 +107,6 @@ export const EditablePropertyValue = ({
       hint: fieldType,
       onClick: () => {
         const newValue = convertFSValue(instanceValue, fieldType);
-        console.log({ newValue });
         setValue(newValue);
       },
     }));
@@ -108,39 +124,150 @@ export const EditablePropertyValue = ({
     return getFireStoreType(instanceValue);
   }, [instanceValue]);
 
-  let defaultEditor = (
-    <DataInput
-      ref={inputEl}
-      className={classNames("focus:ring-1 focus:ring-blue-400", {
-        ["bg-red-300"]: isFieldChanged,
-        ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
-      })}
-      tabIndex={tabIndex}
-      value={instanceValue}
-      onChange={(e) => onChange(e.target.value)}
-      onBlur={onBlur}
-      onKeyDown={onKeyDown}
-    />
+  // console.log(fieldPath, fieldType, instanceValue);
+
+  const handleClickFollowLink = useCallback(
+    (e: MouseEvent | null, link: string, isInternal = true) => {
+      if (e === null || e.ctrlKey || e.metaKey) {
+        if (isInternal) {
+          actionGoTo(link);
+        } else {
+          window.open(link, "_blank");
+        }
+      }
+    },
+    []
   );
 
-  if (isObject(tableValue)) {
-    switch (tableValue.type) {
-      case "timestamp":
-        defaultEditor = (
-          <DateTimePicker value={instanceValue as any} onChange={onChange} />
-        );
-        break;
-      case "map":
-        defaultEditor = (
-          <ObjectInput fieldPath={fieldPath} toggleExpand={toggleExpand} />
-        );
-        break;
-      case "array":
-        defaultEditor = (
-          <ArrayInput fieldPath={fieldPath} toggleExpand={toggleExpand} />
-        );
-        break;
-    }
+  let defaultEditor: ReactElement;
+
+  switch (fieldType) {
+    case "timestamp":
+      defaultEditor = (
+        <DateTimePicker
+          value={instanceValue as firebase.firestore.Timestamp}
+          onChange={onChange}
+        />
+      );
+      break;
+    // TODO: Add quick look for object type. It will open a modal showing what inside, user can see it but can not edit it
+    case "map":
+      defaultEditor = (
+        <ObjectInput fieldPath={fieldPath} toggleExpand={toggleExpand} />
+      );
+      break;
+    case "array":
+      defaultEditor = (
+        <ArrayInput fieldPath={fieldPath} toggleExpand={toggleExpand} />
+      );
+      break;
+    case "boolean":
+      defaultEditor = (
+        <BooleanInput value={instanceValue as boolean} onChange={setValue} />
+      );
+      break;
+    case "reference":
+      const refValue = instanceValue as DocRef;
+      defaultEditor = (
+        <Tooltip
+          placement="top-start"
+          delayMS={100}
+          hasArrow={false}
+          size="medium"
+          type="light"
+          className="max-w-2xl"
+          content={
+            <span>
+              <a
+                className="text-blue-400"
+                onClick={() => handleClickFollowLink(null, refValue.path)}
+              >
+                Follow reference
+              </a>{" "}
+              (cmd + click)
+            </span>
+          }
+        >
+          <DataInput
+            ref={inputEl}
+            className={classNames(
+              "focus:ring-1 focus:ring-blue-400 underline text-blue-400",
+              {
+                ["bg-red-300"]: isFieldChanged,
+                ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
+              }
+            )}
+            onClick={(e) => handleClickFollowLink(e, refValue.path)}
+            tabIndex={tabIndex}
+            value={refValue.path}
+            onChange={(e) => onChange(new DocRef(e.target.value))}
+            onBlur={onBlur}
+            onKeyDown={onKeyDown}
+          />
+        </Tooltip>
+      );
+      break;
+    case "geopoint":
+      const mapValue = instanceValue as firebase.firestore.GeoPoint;
+      defaultEditor = (
+        <GeopointPicker
+          value={mapValue}
+          onChange={(newValue) => onChange(newValue)}
+        />
+      );
+      break;
+    default:
+      defaultEditor = (
+        <Tooltip
+          placement="top-start"
+          delayMS={100}
+          hasArrow={false}
+          size="medium"
+          type="light"
+          className={classNames("max-w-2xl", {
+            ["hidden"]: !/^(https?:\/\/[^\s]+)$/.test(
+              instanceValue?.toString() || ""
+            ),
+          })}
+          content={
+            <span>
+              <a
+                className="text-blue-400"
+                onClick={() =>
+                  handleClickFollowLink(
+                    null,
+                    instanceValue?.toString() || "",
+                    false
+                  )
+                }
+              >
+                Follow URL
+              </a>{" "}
+              (cmd + click)
+            </span>
+          }
+        >
+          <DataInput
+            ref={inputEl}
+            className={classNames("focus:ring-1 focus:ring-blue-400", {
+              ["bg-red-300"]: isFieldChanged,
+              ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
+              ["underline text-blue-400"]: /^(https?:\/\/[^\s]+)$/.test(
+                instanceValue?.toString() || ""
+              ),
+            })}
+            onClick={(e) =>
+              handleClickFollowLink(e, instanceValue?.toString() || "", false)
+            }
+            tabIndex={tabIndex}
+            value={instanceValue}
+            onChange={(e) => onChange(e.target.value)}
+            onBlur={onBlur}
+            onKeyDown={onKeyDown}
+          />
+        </Tooltip>
+      );
+      break;
   }
 
   return (
@@ -164,7 +291,7 @@ export const EditablePropertyValue = ({
           <DropdownMenu menu={menuOptions} isSmall disabled={!canChangeType}>
             <button
               role="button"
-              className="p-1 text-xs text-red-700 bg-white border border-gray-300"
+              className="p-1 font-mono text-xs text-red-700 bg-white border border-gray-300"
             >
               {fieldType}
             </button>

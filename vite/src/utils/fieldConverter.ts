@@ -1,8 +1,8 @@
 import dayjs from "dayjs";
 import { DocRef } from "firestore-serializers/src/DocRef";
-import { isFinite } from "lodash";
 import { getFireStoreType } from "./simplifr";
 import firebase from "firebase";
+import { isNumeric } from "@/utils/common";
 
 export const fieldConverter: Record<
   RefiFS.IFieldType,
@@ -11,7 +11,7 @@ export const fieldConverter: Record<
   string: (toType: RefiFS.IFieldType, value: string) => {
     switch (toType) {
       case "number":
-        return isFinite(value) ? Number(value) : 0;
+        return isNumeric(value) ? Number(value) : 0;
       case "boolean":
         return Boolean(["yes", "true"].includes(value?.toLowerCase()));
 
@@ -34,7 +34,7 @@ export const fieldConverter: Record<
         try {
           const [lat, long] = value?.split(",");
 
-          if (isFinite(lat) && isFinite(long)) {
+          if (isNumeric(lat) && isNumeric(long)) {
             return new firebase.firestore.GeoPoint(Number(lat), Number(long));
           }
 
@@ -149,6 +149,8 @@ function getDefaultValueByType(type: RefiFS.IFieldType) {
     case "boolean":
       return false;
     case "map":
+      return {};
+    case "array":
       return [];
     case "null":
       return null;

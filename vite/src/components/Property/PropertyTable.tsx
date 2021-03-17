@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useTable, useExpanded } from "react-table";
 import classNames from "classnames";
 import EditablePropertyField from "@/components/EditableCell/EditablePropertyField";
@@ -6,6 +6,11 @@ import EditablePropertyValue from "../EditableCell/EditablePropertyValue";
 import { simplify } from "@/utils/simplifr";
 import { buildTableSubRows } from "@/utils/common";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import { setRecoilExternalState } from "@/atoms/RecoilExternalStatePortal";
+import { buildFSUrl, fieldAtom } from "@/atoms/firestore";
+import { uniqueId } from "lodash";
+import { FIELD_KEY_PREFIX } from "@/utils/contant";
+import { newFieldAtom } from "@/atoms/ui";
 
 interface IPropertyTableProps {
   doc: ClientDocumentSnapshot;
@@ -28,11 +33,11 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
           depth: number;
         }) => (
           <EditablePropertyField
-            row={doc}
+            docPath={doc.ref.path}
             canExpand={row.canExpand}
             isExpanded={row.isExpanded}
             depth={depth}
-            toggleExpand={row.getToggleRowExpandedProps().onClick.bind(row)}
+            toggleExpand={row.toggleRowExpanded}
             column={{ id: row.original.field }}
             tabIndex={row.index * row.cells.length}
           />
@@ -45,17 +50,17 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
         Cell: ({ row, value }: { row: any; value: any }) => {
           return (
             <EditablePropertyValue
-              row={doc}
+              row={row.original}
               column={{ id: row.original.field }}
               tabIndex={row.index * row.cells.length}
-              toggleExpand={row.getToggleRowExpandedProps().onClick.bind(row)}
-              value={value}
+              toggleExpand={row.toggleRowExpanded}
+              docPath={doc.ref.path}
             />
           );
         },
       },
     ],
-    [doc]
+    [doc.ref.path]
   );
 
   const fieldData = useMemo(() => {
@@ -69,7 +74,6 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
             field: key.substr("root.".length),
             value: flatObject[key],
           }))
-          .sort((a, b) => a.field.localeCompare(b.field))
           .filter((row) => {
             if (searchInput) {
               return (
@@ -106,32 +110,34 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
     useExpanded // Use the useExpanded plugin hook
   );
 
+  const handleAddProperty = useCallback(() => {
+    const fieldAtomInstance = fieldAtom(
+      buildFSUrl({ path: doc.ref.path, field: "" })
+    );
+    const newFieldName = uniqueId(FIELD_KEY_PREFIX);
+    setRecoilExternalState(fieldAtomInstance, (value: any) => ({
+      ...value,
+      [newFieldName]: "",
+    }));
+    setRecoilExternalState(newFieldAtom(doc.ref.path), newFieldName);
+  }, [doc]);
+
   return (
     <div className="w-full">
       <table {...getTableProps()} className="w-full table-fixed">
-        {/* <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>{column.render("Header")}</th>
-              ))}
-            </tr>
-          ))}
-        </thead> */}
         <tbody {...getTableBodyProps()}>
           {rows.map((row: any, i) => {
             prepareRow(row);
             const depth = row.isExpanded
               ? row.depth + 1
               : (row.depth as number);
-            // console.log({ depth });
             return (
               <tr key={row.original.field}>
                 {row.cells.map((cell) => {
                   return (
-                    // eslint-disable-next-line react/jsx-key
                     <td
-                      {...cell.getCellProps()}
+                      key={row.original.field + "." + cell.column.id}
+                      role="cell"
                       className={classNames(
                         "border border-gray-300 align-top",
                         {
@@ -148,8 +154,32 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
           })}
         </tbody>
       </table>
+      <button
+        role="button"
+        className="flex flex-row items-center justify-center p-1 mt-1 text-xs bg-white border border-gray-300"
+        onClick={handleAddProperty}
+      >
+        <div className="inline-block w-4 mr-1 text-green-500">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        Add property
+      </button>
     </div>
   );
 };
+
+PropertyTable.whyDidYouRender = true;
 
 export default PropertyTable;

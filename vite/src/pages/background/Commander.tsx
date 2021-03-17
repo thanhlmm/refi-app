@@ -14,7 +14,7 @@ import React, {
   useState,
 } from "react";
 import { getApplicationKeyMap } from "react-hotkeys";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 
 interface ICommand {
   name: string;
@@ -54,17 +54,9 @@ const CommandOption = ({
 );
 
 const Commander = () => {
-  const [isShowModalCommand, setShowModalCommand] = useRecoilState(
-    isModalCommandAtom
-  );
+  const setShowModalCommand = useSetRecoilState(isModalCommandAtom);
   const [keyword, setKeyword] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef(null);
-  const { getContainerProps } = useFocusJail({
-    focusOnMount: true,
-    environment: window.parent.document,
-    containerRef,
-  });
 
   const keyMap = getApplicationKeyMap();
 
@@ -82,14 +74,10 @@ const Commander = () => {
   }, [keyMap, keyword]);
 
   useEffect(() => {
-    if (isShowModalCommand) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 250);
-    } else {
-      setKeyword("");
-    }
-  }, [isShowModalCommand]);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 250);
+  }, []);
 
   const options = useMemo(() => {
     const filtered = filteredCommands.map((command) => ({
@@ -107,6 +95,7 @@ const Commander = () => {
             ref={inputRef}
             autoFocus
             className="px-3"
+            tabIndex={1}
           />
         ),
         key: "general",
@@ -126,36 +115,34 @@ const Commander = () => {
 
   return (
     <div>
-      {isShowModalCommand && (
-        <EscExit onExit={() => setShowModalCommand(false)}>
-          <Modal
-            isAnimated={false}
-            isLarge
-            focusOnMount
-            backdropProps={{
-              onClick: () => setShowModalCommand(false),
-              className: "justify-center",
-            }}
-            isCentered={false}
-          >
-            <ModalBody className="p-3">
-              <div
-                className="py-1 mt-2 rounded"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="options-menu"
-              >
-                <ListOptions
-                  options={options}
-                  onChange={onSelectOption}
-                  onExit={() => setShowModalCommand(false)}
-                  startItem={0}
-                />
-              </div>
-            </ModalBody>
-          </Modal>
-        </EscExit>
-      )}
+      <EscExit onExit={() => setShowModalCommand(false)}>
+        <Modal
+          isAnimated={false}
+          isLarge
+          focusOnMount
+          backdropProps={{
+            onClick: () => setShowModalCommand(false),
+            className: "justify-center",
+          }}
+          isCentered={false}
+        >
+          <ModalBody className="p-3">
+            <div
+              className="py-1 mt-2 rounded"
+              role="menu"
+              aria-orientation="vertical"
+              aria-labelledby="options-menu"
+            >
+              <ListOptions
+                options={options}
+                onChange={onSelectOption}
+                onExit={() => setShowModalCommand(false)}
+                startItem={0}
+              />
+            </div>
+          </ModalBody>
+        </Modal>
+      </EscExit>
     </div>
   );
 };

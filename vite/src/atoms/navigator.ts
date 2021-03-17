@@ -22,6 +22,7 @@ export const FIELD_TYPES: RefiFS.IFieldType[] = [
   "reference",
 ];
 
+// TODO: Check if the path exist
 export const navigatorPathAtom = atom<string>({
   key: "navigator.path",
   default: "/",
@@ -146,7 +147,7 @@ export const allColumnsAtom = selector<string[]>({
 });
 
 export const allColumnsRecursiveAtom = selector<string[]>({
-  key: "fs.allColumns",
+  key: "fs.allColumnsRecursive",
   get: ({ get }) => {
     const collectionPath = get(navigatorCollectionPathAtom);
     const collections = get(collectionAtom(collectionPath));

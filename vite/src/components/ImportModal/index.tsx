@@ -1,6 +1,10 @@
 import { actionImportDocs } from "@/atoms/firestore.action";
 import { navigatorCollectionPathAtom } from "@/atoms/navigator";
-import { importFileAtom, isImportModalAtom } from "@/atoms/ui";
+import {
+  importCollectionPathAtom,
+  importFileAtom,
+  isImportModalAtom,
+} from "@/atoms/ui";
 import { ignoreBackdropEvent, readerFilePromise } from "@/utils/common";
 import { Button } from "@zendeskgarden/react-buttons";
 import { Field, FileUpload, Input, Label } from "@zendeskgarden/react-forms";
@@ -11,14 +15,14 @@ import {
   Header,
   Modal,
 } from "@zendeskgarden/react-modals";
-import React, { useEffect, useMemo, useState } from "react";
+import csvtojson from "csvtojson";
+import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
-import { useRecoilState, useRecoilValue } from "recoil";
-import csvtojson from "csvtojson";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 
 const ImportModal = () => {
-  const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
+  const collectionPath = useRecoilValue(importCollectionPathAtom);
   const [file, setFile] = useRecoilState(importFileAtom);
   const [docs, setDocs] = useState<any[]>([]);
 
@@ -32,11 +36,13 @@ const ImportModal = () => {
     multiple: false,
   });
 
-  const [isShowImportModal, setShowImportModal] = useRecoilState(
-    isImportModalAtom
-  );
+  const setShowImportModal = useSetRecoilState(isImportModalAtom);
 
-  const { register, handleSubmit, setValue } = useForm();
+  const { register, handleSubmit, formState } = useForm({
+    defaultValues: {
+      path: collectionPath,
+    },
+  });
 
   const onSubmit = (value: any) => {
     console.log(value);
@@ -73,10 +79,6 @@ const ImportModal = () => {
     }
   }, [file]);
 
-  useEffect(() => {
-    setValue("path", collectionPath);
-  }, [isShowImportModal]);
-
   const handleOnCancel = () => {
     setShowImportModal(false);
     setFile(undefined);
@@ -84,60 +86,64 @@ const ImportModal = () => {
 
   // TODO: Path picker, validate path
   // TODO: Add analysis like: Preview import file, how many docs will be imported, warning if it not match current collection schema
+  // TODO: Set id column for file when import
 
   return (
     <div>
-      {isShowImportModal && (
-        <Modal
-          isAnimated={false}
-          isLarge
-          focusOnMount
-          backdropProps={{ onClick: ignoreBackdropEvent }}
-          appendToNode={document.querySelector("#root") || undefined}
-        >
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Header>Import data</Header>
-            <Body>
-              <Field>
-                <Label>Path</Label>
-                <Input
-                  isCompact
-                  name="path"
-                  defaultValue={collectionPath}
-                  ref={register}
-                />
-              </Field>
-              <Field className="mt-4">
-                <FileUpload {...getRootProps()} isDragging={isDragActive}>
-                  {isDragActive ? (
-                    <span>Drop JSON/CSV file here</span>
-                  ) : (
-                    <span>Choose a JSON/CSV data file to import</span>
-                  )}
-                  <Input {...getInputProps()} />
-                </FileUpload>
-              </Field>
-              <Field className="mt-4">
-                <Label>File</Label>
-                <div>{file?.name}</div>
-              </Field>
-              <div>- With {docs.length} doc(s)</div>
-            </Body>
-            <Footer>
-              <FooterItem>
-                <Button size="small" onClick={() => handleOnCancel()}>
-                  Cancel
-                </Button>
-              </FooterItem>
-              <FooterItem>
-                <Button size="small" isPrimary type="submit">
-                  Import
-                </Button>
-              </FooterItem>
-            </Footer>
-          </form>
-        </Modal>
-      )}
+      <Modal
+        isAnimated={false}
+        isLarge
+        focusOnMount
+        backdropProps={{ onClick: ignoreBackdropEvent }}
+        appendToNode={document.querySelector("#root") || undefined}
+      >
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Header>Import data</Header>
+          <Body className="p-4">
+            <Field>
+              <Label>Path</Label>
+              <Input
+                isCompact
+                name="path"
+                defaultValue={collectionPath}
+                ref={register}
+              />
+            </Field>
+            <Field className="mt-4">
+              <FileUpload {...getRootProps()} isDragging={isDragActive}>
+                {isDragActive ? (
+                  <span>Drop JSON/CSV file here</span>
+                ) : (
+                  <span>Choose a JSON/CSV data file to import</span>
+                )}
+                <Input {...getInputProps()} />
+              </FileUpload>
+            </Field>
+            <Field className="mt-4">
+              <Label>File</Label>
+              <div>{file?.name}</div>
+            </Field>
+            <div>- With {docs.length} doc(s)</div>
+          </Body>
+          <Footer>
+            <FooterItem>
+              <Button size="small" onClick={() => handleOnCancel()}>
+                Cancel
+              </Button>
+            </FooterItem>
+            <FooterItem>
+              <Button
+                size="small"
+                disabled={!formState.isValid}
+                isPrimary
+                type="submit"
+              >
+                Import
+              </Button>
+            </FooterItem>
+          </Footer>
+        </form>
+      </Modal>
     </div>
   );
 };

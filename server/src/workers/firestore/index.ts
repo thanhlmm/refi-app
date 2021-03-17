@@ -101,6 +101,8 @@ export default class FireStoreService implements NSFireStore.IService {
       querier = querier.orderBy(field, sort.toLowerCase() as FirebaseFirestore.OrderByDirection);
     })
 
+    console.time('Query time');
+
     const close = querier.onSnapshot(
       async (querySnapshot) => {
         const docChanges = querySnapshot.docChanges();
@@ -115,6 +117,9 @@ export default class FireStoreService implements NSFireStore.IService {
         const removedData = serializeQuerySnapshot({
           docs: docChanges.filter(changes => changes.type === 'removed').map(changes => changes.doc)
         })
+
+        console.time('Query time');
+        console.log(`send to ${topic} with ${docChanges.length} changes`)
 
         this.ctx.ipc.send(topic, { addedData, modifiedData, removedData, totalDocs: docChanges.length }, { firestore: true });
       }
@@ -203,7 +208,7 @@ export default class FireStoreService implements NSFireStore.IService {
     const batch = fs.batch();
     docsSnapshot.forEach((doc) => {
       const newDocRef = fs.doc(doc.ref.path);
-      batch.set(newDocRef, doc)
+      batch.set(newDocRef, doc.data())
     })
 
     await batch.commit();

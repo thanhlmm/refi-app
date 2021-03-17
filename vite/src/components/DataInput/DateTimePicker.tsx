@@ -1,61 +1,54 @@
-import dayjs from "dayjs";
+import classNames from "classnames";
 import firebase from "firebase";
-import React, { ReactElement, useEffect, useState } from "react";
-import MaskedField from "react-masked-field";
+import moment from "moment";
+import React, { ReactElement, useState } from "react";
+import Datetime from "react-datetime";
+import "./DateTimePicker.css";
 
-const format = "MM/DD/YYYY HH:mm:ss";
-
-interface DateTimePicker {
+interface IDateTimePickerProps {
   value: firebase.firestore.Timestamp;
-  onChange: (string) => void;
+  onChange: (newValue: firebase.firestore.Timestamp) => void;
 }
 
-const transferTime = (value: firebase.firestore.Timestamp): string => {
-  return dayjs(value.toDate()).format(format);
-};
+const dateFormat = "MM/DD/YYYY";
+const timeFormat = "HH:mm:ss";
+const format = `${dateFormat} ${timeFormat}`;
 
-const DateTimePicker = ({ value, onChange }: DateTimePicker): ReactElement => {
-  const [instanceValue, setInstanceValue] = useState(transferTime(value));
+const DateTimePicker = ({
+  value,
+  onChange,
+}: IDateTimePickerProps): ReactElement => {
+  const [isValid, setValid] = useState(true);
 
-  const handleSelectNow = () => {
-    onChange(firebase.firestore.Timestamp.now());
+  const handleOnTimeChange = (newValue: string | moment.Moment) => {
+    setValid(typeof newValue !== "string");
   };
 
-  const handleVerifyOutput = (value: string) => {
-    const dateValue = dayjs(value, format);
-    if (dateValue.isValid()) {
-      onChange(dateValue.toDate());
+  const handleOnClose = (event: string | Event | moment.Moment) => {
+    if (moment.isMoment(event)) {
+      onChange(firebase.firestore.Timestamp.fromDate(event.toDate()));
     }
   };
-
-  // Sync data
-  useEffect(() => {
-    const newValue = transferTime(value);
-    if (newValue !== instanceValue) {
-      setInstanceValue(newValue);
-    }
-  }, [value]);
-
-  // NOTICE: Use input[type="datetime-local"] />
 
   return (
-    <div>
-      <MaskedField
-        mask="99/99/9999 99:99:99"
-        placeholder={format}
-        onComplete={handleVerifyOutput}
-        value={instanceValue}
-        className="border-none outline-none p-1.5 h-full w-full focus:ring-0 focus:bg-blue-100 text-sm"
-      />
-
-      <button
-        role="button"
-        className="p-1 text-xs bg-white border border-gray-300"
-        onClick={handleSelectNow}
-      >
-        Now
-      </button>
-    </div>
+    <Datetime
+      closeOnSelect
+      initialValue={value.toDate()}
+      onChange={handleOnTimeChange}
+      onClose={handleOnClose as any}
+      dateFormat={dateFormat}
+      timeFormat={timeFormat}
+      className="h-full"
+      inputProps={{
+        className: classNames(
+          "w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5 border-none focus:ring-1 text-sm text-gray-800",
+          {
+            ["focus:ring-red-400"]: !isValid,
+            ["focus:ring-blue-400"]: isValid,
+          }
+        ),
+      }}
+    />
   );
 };
 

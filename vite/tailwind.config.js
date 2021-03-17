@@ -4,6 +4,7 @@ module.exports = {
     extend: {},
     fontFamily: {
       sans: ["Inter", "sans-serif"],
+      mono: ["Menlo", "Monaco", "Courier New", "monospace"],
     },
   },
   variants: {
@@ -12,20 +13,5 @@ module.exports = {
     },
   },
   plugins: [require("@tailwindcss/typography"), require("@tailwindcss/forms")],
-  purge: {
-    // Filenames to scan for classes
-    content: [
-      "./src/**/*.html",
-      "./src/**/*.js",
-      "./src/**/*.jsx",
-      "./src/**/*.ts",
-      "./src/**/*.tsx",
-      "./public/index.html",
-    ],
-    // Options passed to PurgeCSS
-    options: {
-      // Whitelist specific selectors by name
-      // safelist: [],
-    },
-  },
+  purge: ["./src/**/*.html", "./src/**/*.ts", "./src/**/*.tsx", "./index.html"],
 };

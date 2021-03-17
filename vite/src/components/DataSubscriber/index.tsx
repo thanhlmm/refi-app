@@ -54,35 +54,31 @@ const DataSubscriber = () => {
         removedData,
         totalDocs,
       }: ISubscribeResponse) => {
-        actionTriggerLoadData(totalDocs);
+        // if (totalDocs > 50) {
+        //   actionTriggerLoadData(totalDocs);
+        // }
 
         // Take a little bit delay wait for the component transform in to Loading state
         setTimeout(() => {
-          const addedDocs = deserializeDocumentSnapshotArray(
-            addedData,
-            firebase.firestore.GeoPoint,
-            firebase.firestore.Timestamp
+          const addedDocs = ClientDocumentSnapshot.transformFromFirebase(
+            deserializeDocumentSnapshotArray(
+              addedData,
+              firebase.firestore.GeoPoint,
+              firebase.firestore.Timestamp
+            ),
+            queryVersion
           );
 
-          actionStoreDocs(
-            ClientDocumentSnapshot.transformFromFirebase(
-              addedDocs,
-              queryVersion
-            )
+          const modifiedDocs = ClientDocumentSnapshot.transformFromFirebase(
+            deserializeDocumentSnapshotArray(
+              modifiedData,
+              firebase.firestore.GeoPoint,
+              firebase.firestore.Timestamp
+            ),
+            queryVersion
           );
 
-          const modifiedDocs = deserializeDocumentSnapshotArray(
-            modifiedData,
-            firebase.firestore.GeoPoint,
-            firebase.firestore.Timestamp
-          );
-
-          actionStoreDocs(
-            ClientDocumentSnapshot.transformFromFirebase(
-              modifiedDocs,
-              queryVersion
-            )
-          );
+          actionStoreDocs([...addedDocs, ...modifiedDocs]);
 
           const removedDocs = deserializeDocumentSnapshotArray(
             removedData,
@@ -96,7 +92,7 @@ const DataSubscriber = () => {
               queryVersion
             )
           );
-        }, 100);
+        }, 0);
       }
     );
     window

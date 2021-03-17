@@ -1,12 +1,17 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import { getParentPath, newId, prettifyPath } from "@/utils/common";
-import { serializeQuerySnapshot } from "firestore-serializers";
-import { uniq, uniqueId } from "lodash";
+import { getParentPath, newId, newId, prettifyPath } from "@/utils/common";
+import {
+  deserializeDocumentSnapshotArray,
+  serializeQuerySnapshot,
+} from "firestore-serializers";
+import firebase from "firebase";
+import { differenceBy, uniq, uniqBy, uniqueId } from "lodash";
 import {
   changedDocAtom,
   collectionAtom,
   deletedDocsAtom,
   docAtom,
+  docsLibraryAtom,
   hasBeenDeleteAtom,
   newDocsAtom,
   parseFSUrl,
@@ -15,38 +20,54 @@ import {
 import {
   getRecoilExternalLoadable,
   resetRecoilExternalState,
+  setRecoilBatchUpdate,
   setRecoilExternalState,
 } from "./RecoilExternalStatePortal";
 import * as immutable from "object-path-immutable";
 import { navigatorPathAtom, queryVersionAtom } from "./navigator";
-import { NEW_DOC_PREFIX } from "@/utils/contant";
+import { actionGoTo } from "./navigator.action";
 
 export const actionStoreDocs = (
   docs: ClientDocumentSnapshot[],
   override = false
 ): void => {
-  docs.forEach(async (doc) => {
-    const originalDoc = await getRecoilExternalLoadable(
-      docAtom(doc.ref.path)
-    ).toPromise();
-    if (!override && originalDoc && originalDoc.isChanged()) {
-      // In-case user has modify the original docs
-      // NOTICE: We just ignore new update if we're currently edit an document
-      // originalDoc.mergeNewDoc(doc);
-      setRecoilExternalState(docAtom(doc.ref.path), doc);
-    } else {
-      setRecoilExternalState(docAtom(doc.ref.path), doc);
-    }
-  });
+  setRecoilBatchUpdate([
+    ...docs.map((doc) => ({ atom: docAtom(doc.ref.path), valOrUpdater: doc })),
+    {
+      // Synchronize data with docsLibraryAtom
+      atom: docsLibraryAtom,
+      valOrUpdater: (curPath) =>
+        uniq([...curPath, ...docs.map((doc) => doc.ref.path)]),
+    },
+  ]);
+  // docs.forEach(async (doc) => {
+  //   // const originalDoc = await getRecoilExternalLoadable(
+  //   //   docAtom(doc.ref.path)
+  //   // ).toPromise();
+  //   // In-case user has modify the original docs
+  //   // NOTICE: We just ignore new update if we're currently edit an document
+  //   // originalDoc.mergeNewDoc(doc);
+  //   setTimeout(() => {
+  //     // To make not let the UI locking
+  //     setRecoilExternalState(docAtom(doc.ref.path), doc);
+  //   }, 0);
+  // });
 };
 
 // This is trigger from user
-export const actionDeleteDoc = (docPath: string): void => {
-  resetRecoilExternalState(docAtom(docPath));
-  setRecoilExternalState(deletedDocsAtom, (paths) => uniq([...paths, docPath]));
+export const actionDeleteDoc = async (docPath: string) => {
+  const doc = await getRecoilExternalLoadable(docAtom(docPath)).toPromise();
+  if (doc) {
+    resetRecoilExternalState(docAtom(docPath));
+    setRecoilExternalState(deletedDocsAtom, (docs) =>
+      uniqBy([...docs, doc], (doc) => doc.ref.path)
+    );
+  }
+
+  return true;
 };
 
-// This is trigger from server. It will irervertable
+// This is trigger from server. It will irevertable
 export const actionRemoveDocs = (
   docs: ClientDocumentSnapshot[],
   override = false
@@ -54,8 +75,8 @@ export const actionRemoveDocs = (
   docs.forEach(async (doc) => {
     // TODO: What if user already modified the deleted one
     resetRecoilExternalState(docAtom(doc.ref.path));
-    setRecoilExternalState(deletedDocsAtom, (paths) =>
-      paths.filter((path) => path !== doc.ref.path)
+    setRecoilExternalState(deletedDocsAtom, (deletedDocs) =>
+      differenceBy(deletedDocs, docs, (doc) => doc.ref.path)
     );
   });
 };
@@ -88,8 +109,8 @@ export const actionUpdateFieldKey = async (
     const oldFieldData = immutable.get(doc.data(), oldField);
     const newData = docData.del(oldField).set(newField, oldFieldData);
 
-    const newDoc = new ClientDocumentSnapshot(newData.value(), doc.id, path);
-    newDoc.addChange([...doc.changedFields(), oldField, newField]);
+    const newDoc = doc.clone(newData.value());
+    newDoc.addChange([oldField, newField]);
     setRecoilExternalState(docAtom(path), newDoc);
   }
 };
@@ -99,11 +120,7 @@ export const actionRemoveFieldKey = async (oldPath: string): Promise<void> => {
   const curDocAtom = docAtom(path);
   const doc = await getRecoilExternalLoadable(curDocAtom).toPromise();
   if (doc) {
-    const docData = immutable.wrap(doc.data());
-    const newData = docData.del(oldField);
-
-    const newDoc = new ClientDocumentSnapshot(newData.value(), doc.id, path);
-    newDoc.addChange([...doc.changedFields(), oldField]);
+    const newDoc = doc.clone().removeField(oldField);
     setRecoilExternalState(docAtom(path), newDoc);
   }
 };
@@ -132,7 +149,7 @@ export const actionCommitChange = async (): Promise<boolean> => {
 
   window
     .send("fs.deleteDocs", {
-      docs: deletedDocs,
+      docs: deletedDocs.map((doc) => doc.ref.path),
     })
     .then(() => {
       resetRecoilExternalState(deletedDocsAtom);
@@ -162,6 +179,42 @@ export const actionReverseChange = async (): Promise<any> => {
   //   });
 };
 
+export const actionReverseDocChange = async (
+  docPath: string,
+  type: "new" | "modified" | "deleted"
+): Promise<any> => {
+  const { queryVersion } = await getRecoilExternalLoadable(
+    queryVersionAtom
+  ).toPromise();
+  // TODO: Do we really need to fetch the data again?
+
+  if (type === "new") {
+    resetRecoilExternalState(docAtom(docPath));
+    return;
+  }
+
+  return window
+    .send("fs.getDocs", {
+      docs: [docPath],
+    })
+    .then((response) => {
+      const data = deserializeDocumentSnapshotArray(
+        response,
+        firebase.firestore.GeoPoint,
+        firebase.firestore.Timestamp
+      );
+
+      actionStoreDocs(
+        ClientDocumentSnapshot.transformFromFirebase(data, queryVersion),
+        true
+      );
+
+      setRecoilExternalState(deletedDocsAtom, (docs) =>
+        docs.filter((doc) => doc.ref.path !== docPath)
+      );
+    });
+};
+
 export const actionAddPathExpander = (paths: string[]) => {
   setRecoilExternalState(pathExpanderAtom, (currentValue) =>
     uniq([...currentValue, ...paths.map((path) => prettifyPath(path))])
@@ -176,12 +229,10 @@ export const actionDuplicateDoc = async (path: string) => {
     return;
   }
 
-  return window
-    .send("fs.addDoc", {
-      doc: doc.data(),
-      path: getParentPath(doc.ref.path),
-    })
-    .then((a) => console.log(a));
+  const newDocId = newId();
+  const newDoc = doc.clone(doc.data(), newDocId);
+  setRecoilExternalState(docAtom(newDoc.ref.path), newDoc);
+  actionGoTo(newDoc.ref.path);
 };
 
 export const actionImportDocs = async (path: string, docs: any[]) => {

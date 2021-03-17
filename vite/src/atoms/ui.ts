@@ -1,5 +1,5 @@
 import { atom, atomFamily, selector } from "recoil";
-import { changedDocAtom, newDocsAtom } from "./firestore";
+import { changedDocAtom, deletedDocsAtom, newDocsAtom } from "./firestore";
 import { userPersistAtom } from "./persistAtom";
 
 export const isShowPreviewChangeModalAtom = atom<boolean>({
@@ -82,8 +82,12 @@ export const largeDataAtom = selector({
     const { totalDocs } = get(isParsingLargeDataAtom);
     return new Promise((resolve) => {
       setTimeout(() => {
-        resolve(true);
-      }, Math.min(totalDocs * 10, 5000)); // Assumption parsing time of one doc is 50ms
+        console.log("Time out");
+        requestAnimationFrame(() => {
+          console.log("animation frame");
+          resolve(true);
+        });
+      }, Math.min(totalDocs * 10, 5000)); // Assumption parsing time of one doc is 10ms
     });
   },
 });
@@ -93,12 +97,30 @@ export const isCommittableAtom = selector<boolean>({
   get: ({ get }) => {
     const changedDocs = get(changedDocAtom);
     const newDocs = get(newDocsAtom);
+    const deletedDocs = get(deletedDocsAtom);
 
-    return changedDocs.length > 0 || newDocs.length > 0;
+    return (
+      changedDocs.length > 0 || newDocs.length > 0 || deletedDocs.length > 0
+    );
   },
 });
 
 export const newFieldAtom = atomFamily<string, string>({
   key: "ui/newField",
+  default: "",
+});
+
+export const viewModePathInputAtom = atom({
+  key: "ui/pathInputView",
+  default: true,
+});
+
+export const monacoDataErrorAtom = atomFamily<string, string>({
+  key: "ui/monacoDataError",
+  default: () => "",
+});
+
+export const importCollectionPathAtom = atom<string>({
+  key: "ui/importCollectionPath",
   default: "",
 });

@@ -34,7 +34,7 @@ export function getFireStoreType(object: any): RefiFS.IFieldType {
   return "map";
 }
 
-export type IPrimitiveType = number | string | boolean;
+export type IPrimitiveType = number | string | boolean | null;
 export interface IValueType {
   type: "reference" | "geopoint" | "timestamp" | "array" | "map";
   childs: any[];

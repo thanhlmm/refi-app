@@ -1,4 +1,5 @@
 import { collectionWithQueryAtom } from "@/atoms/firestore";
+import { actionDeleteDoc, actionDuplicateDoc } from "@/atoms/firestore.action";
 import {
   navigatorCollectionPathAtom,
   navigatorPathAtom,
@@ -6,18 +7,28 @@ import {
 } from "@/atoms/navigator";
 import {
   actionAddFilter,
+  actionExportDocCSV,
+  actionExportDocJSON,
+  actionExportViewCSV,
+  actionExportViewJSON,
   actionRemoveProperty,
 } from "@/atoms/navigator.action";
 import { largeDataAtom } from "@/atoms/ui";
 import { actionToggleModalPickProperty } from "@/atoms/ui.action";
 import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { useFlexLayout, useSortBy, useTable } from "react-table";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import EditableCell, { ReadOnlyField } from "../EditableCell";
+import EditableCell, { IDReadOnlyField } from "../EditableCell";
 import scrollbarWidth from "./scroll-bar-width";
 
 function TableWrapper({
@@ -74,23 +85,26 @@ function TableWrapper({
     ({ index, style }) => {
       const row = rows[index];
       prepareRow(row);
+      const rowOrigin = row.original as ClientDocumentSnapshot;
       return (
         <div
           {...row.getRowProps({
             style,
           })}
-          className="border-b border-gray-300"
-          key={(row.original as any)?.id}
+          className="border-b border-gray-300 hover:bg-gray-200 group"
+          key={rowOrigin.id}
           cm-template="rowContext"
-          cm-id={(row.original as any)?.id}
-          onClick={(e) => onRowClick(e, row.original as ClientDocumentSnapshot)}
+          cm-id="rowContext"
+          cm-payload-id={rowOrigin.id}
+          cm-payload-path={rowOrigin.ref.path}
+          onClick={(e) => onRowClick(e, rowOrigin)}
         >
           {row.cells.map((cell) => {
             return (
               // eslint-disable-next-line react/jsx-key
               <div
                 {...cell.getCellProps()}
-                className="border-r border-gray-200 last:border-r-0"
+                className="border-r border-gray-200 last:border-r-0 group-hover:border-gray-300"
               >
                 {cell.render("Cell")}
               </div>
@@ -171,6 +185,7 @@ function ColumnHeader({
   toggleSortBy,
   hidable = true,
 }: IColumnHeaderProps) {
+  // TODO: Move listener to outside component
   useContextMenu(
     "ADD",
     () => {
@@ -181,7 +196,7 @@ function ColumnHeader({
 
   useContextMenu(
     "HIDE",
-    ({ column }) => {
+    ({ column }: { column: string }) => {
       if (hidable) {
         actionRemoveProperty(collectionPath, column);
       }
@@ -207,7 +222,7 @@ function ColumnHeader({
 
   useContextMenu(
     "FILTER",
-    ({ column }) => {
+    ({ column }: { column: string }) => {
       actionAddFilter(column, "==", collectionPath);
     },
     fieldPath
@@ -220,7 +235,7 @@ function ColumnHeader({
       cm-payload-column={fieldPath}
       cm-id={fieldPath}
     >
-      <span>{fieldPath}</span>
+      <div className="font-semibold text-gray-800 truncate">{fieldPath}</div>
       {isSorted && (
         <span>
           {isSortedDesc ? (
@@ -260,12 +275,16 @@ function ColumnHeader({
   );
 }
 
+interface IRowContextPayload {
+  id: string;
+  path: string;
+}
+
 function DataTable() {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
   const setPath = useSetRecoilState(navigatorPathAtom);
   const data = useRecoilValue(collectionWithQueryAtom(collectionPath));
   const properties = useRecoilValue(propertyListAtom(collectionPath));
-  useRecoilValue(largeDataAtom); // Make parent suspense
 
   const columnViewer = useMemo(() => {
     const docColumns = properties.map((key, index) => ({
@@ -302,7 +321,13 @@ function DataTable() {
         ),
         id: "__id",
         accessor: "id",
-        Cell: ({ value }: { value: any }) => <ReadOnlyField value={value} />,
+        Cell: ({
+          value,
+          row,
+        }: {
+          value: any;
+          row: { original: ClientDocumentSnapshot };
+        }) => <IDReadOnlyField value={value} isNew={row.original.isNew} />,
       },
       ...docColumns,
       {
@@ -344,6 +369,54 @@ function DataTable() {
     []
   );
 
+  useContextMenu<IRowContextPayload>(
+    "DUPLICATE",
+    ({ path }) => {
+      actionDuplicateDoc(path);
+    },
+    "rowContext"
+  );
+
+  useContextMenu<IRowContextPayload>(
+    "EXPORT_CSV",
+    ({ path }) => {
+      actionExportDocCSV(path);
+    },
+    "rowContext"
+  );
+
+  useContextMenu<IRowContextPayload>(
+    "EXPORT_JSON",
+    ({ path }) => {
+      actionExportDocJSON(path);
+    },
+    "rowContext"
+  );
+
+  useContextMenu<IRowContextPayload>(
+    "EXPORT_VIEW_CSV",
+    () => {
+      actionExportViewCSV();
+    },
+    "rowContext"
+  );
+
+  useContextMenu<IRowContextPayload>(
+    "EXPORT_VIEW_JSON",
+    () => {
+      actionExportViewJSON();
+    },
+    "rowContext"
+  );
+
+  useContextMenu<IRowContextPayload>(
+    "DELETE",
+    ({ path }) => {
+      actionDeleteDoc(path);
+    },
+    "rowContext"
+  );
+
   return (
     <div className="h-full mt-2 overflow-x-auto border-l border-r border-gray-300">
       <TableWrapper
@@ -355,4 +428,14 @@ function DataTable() {
   );
 }
 
-export default DataTable;
+const DataTableLoader = (): ReactNode => {
+  const isLoaded = useRecoilValue(largeDataAtom); // Make parent suspense
+
+  if (isLoaded) {
+    return <DataTable />;
+  }
+
+  return null;
+};
+
+export default DataTableLoader;

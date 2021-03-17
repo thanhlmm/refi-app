@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./styles/index.css";
+import "./styles/tailwind.css";
 import App from "./App";
 import { RecoilRoot } from "recoil";
 import * as serviceWorker from "./serviceWorker";
@@ -8,6 +8,7 @@ import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "@zendeskgarden/react-theming";
 import { theme } from "./styles/theme";
 import { RecoilExternalStatePortal } from "./atoms/RecoilExternalStatePortal";
+// import DebugObserver from "./DebugObserver";
 import "./config";
 import "./firebase";
 
@@ -15,7 +16,9 @@ ReactDOM.render(
   <BrowserRouter>
     <ThemeProvider theme={theme} focusVisibleRef={null}>
       <RecoilRoot>
+        {/* <RecoilizeDebugger root={document.getElementById("root")} /> */}
         <RecoilExternalStatePortal />
+        {/* <DebugObserver /> */}
         <App />
       </RecoilRoot>
     </ThemeProvider>

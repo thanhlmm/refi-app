@@ -6,7 +6,8 @@ function Main(): React.ReactElement {
   return (
     <div className="relative flex flex-col h-full">
       <Filters />
-      <React.Suspense fallback={<div>Loading...</div>}>
+      {/* // TODO: The icon will not work well on linux or window */}
+      <React.Suspense fallback={<div>🍳 Cooking your data...</div>}>
         <DataTable />
       </React.Suspense>
     </div>

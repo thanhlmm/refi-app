@@ -1,14 +1,15 @@
+import { prettifyPath, removeFirebaseSerializeMetaData } from "@/utils/common";
+import { FILTER_PREFIX } from "@/utils/contant";
+import exportFromJSON from "export-from-json";
 import {
-  deserializeDocumentSnapshotArray,
   serializeDocumentSnapshot,
   serializeQuerySnapshot,
 } from "firestore-serializers";
-import { filter, uniq, uniqBy, uniqueId } from "lodash";
+import { uniq, uniqueId } from "lodash";
 import { collectionWithQueryAtom, docAtom } from "./firestore";
-import exportFromJSON from "export-from-json";
 import {
-  ISorterEntity,
   navigatorCollectionPathAtom,
+  navigatorPathAtom,
   propertyListAtom,
   querierAtom,
   queryVersionAtom,
@@ -19,8 +20,12 @@ import {
   getRecoilExternalLoadable,
   setRecoilExternalState,
 } from "./RecoilExternalStatePortal";
-import { removeFirebaseSerializeMetaData } from "@/utils/common";
-import { FILTER_PREFIX } from "@/utils/contant";
+
+export const actionGoTo = (path: string): void => {
+  setRecoilExternalState(navigatorPathAtom, prettifyPath(path));
+};
+
+window.form = actionGoTo;
 
 export const actionRemoveProperty = (
   collectionPath: string,

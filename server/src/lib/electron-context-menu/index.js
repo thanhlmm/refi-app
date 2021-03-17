@@ -111,13 +111,20 @@ class ContextMenu {
           this.internalFnMap[`${id}___${menuActionId}`] = func;
         }
       },
-      clearRendererBindings: () => {
+      clearRendererBindings: (menuActionId, id) => {
+        if (menuActionId) {
+          const funcPath = typeof id === "undefined" ? menuActionId : `${id}___${menuActionId}`
+          delete this.internalFnMap[funcPath];
+          return;
+        }
+
         this.stagedInternalFnMap = {};
         this.internalFnMap = {};
         this.contextMenuParams = {};
         ipcRenderer.removeAllListeners(contextMenuRequest);
         ipcRenderer.removeAllListeners(contextMenuClicked);
         createIpcBindings();
+        return;
       }
     }
   }

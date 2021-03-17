@@ -60,12 +60,9 @@ export const contextConfig = {
       type: "separator"
     },
     {
-      id: "IMPORT_CSV",
-      label: "Import from CSV"
-    },
-    {
-      id: "IMPORT_JSON",
-      label: "Import from JSON"
+      id: "IMPORT",
+      label: "Import Data",
+      accelerator: "CommandOrControl+I"
     },
     {
       id: "EXPORT_CSV",
@@ -85,12 +82,9 @@ export const contextConfig = {
   ],
   "rowContext": [
     {
-      role: 'copy',
-      label: "Copy"
-    },
-    {
       id: "DUPLICATE",
-      label: "Duplicate"
+      label: "Duplicate",
+      accelerator: "CommandOrControl+D"
     },
     {
       type: "separator"
@@ -121,11 +115,19 @@ export const contextConfig = {
   ],
   "propertyName": [
     {
+      id: "ADD_PROPERTY",
+      label: "Add this field to table"
+    },
+    {
       id: "DELETE_PROPERTY",
       label: "Delete"
     }
   ],
   "propertyValue": [
+    {
+      id: "ADD_PROPERTY",
+      label: "Add this field to table"
+    },
     {
       id: "DELETE_PROPERTY_VALUE",
       label: "Delete"

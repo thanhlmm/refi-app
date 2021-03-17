@@ -1,6 +1,5 @@
 import {
   allDocsAtom,
-  hasBeenDeleteAtom,
   hasNewDocAtom,
   pathExpanderAtom,
 } from "@/atoms/firestore";
@@ -16,12 +15,15 @@ import {
   actionExportCollectionJSON,
   actionExportDocCSV,
   actionExportDocJSON,
+  actionGoTo,
 } from "@/atoms/navigator.action";
+import { actionToggleImportModal } from "@/atoms/ui.action";
 import { useContextMenu } from "@/hooks/contextMenu";
+import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import {
   beautifyId,
   getParentPath,
-  getPathEntities,
+  getRecursivePath,
   isCollection,
   prettifyPath,
 } from "@/utils/common";
@@ -32,7 +34,14 @@ import { uniq, uniqueId } from "lodash";
 import * as immutable from "object-path-immutable";
 import Tree from "rc-tree";
 import { DataNode, EventDataNode } from "rc-tree/lib/interface";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useDebounce } from "react-use";
 import { useRecoilState, useRecoilValue } from "recoil";
 import "./index.css";
 
@@ -46,13 +55,14 @@ interface IFSDataNode extends DataNode {
 // TODO: Optimize me
 const NodeComponent = ({ path, name, isCollection }: IFSDataNode) => {
   const hasNewDoc = useRecoilValue(hasNewDocAtom(path));
-  const hasBeenDeleted = useRecoilValue(hasBeenDeleteAtom(path));
+  // const hasBeenModified = useRecoilValue(hasModifiedDocAtom(path));
 
   return (
     <span
       className={classNames({
-        ["bg-red-300"]: hasNewDoc,
-        ["bg-purple-700"]: hasBeenDeleted,
+        ["text-green-600"]: hasNewDoc,
+        // ["text-blue-600"]: hasBeenModified,
+        ["font-mono text-xs"]: !isCollection,
       })}
     >
       {isCollection ? name : beautifyId(name)}
@@ -84,7 +94,9 @@ function buildTree(
     title: (props) => <NodeComponent {...props} />,
     children: [],
     isCollection: isCollection,
+    className: "hover:bg-gray-200 cursor-pointer",
     props: {
+      onClick: () => actionGoTo([parent, key].join("/")),
       "cm-template": isCollection ? "treeCollectionContext" : "treeDocContext",
       "cm-payload-path": [parent, key].join("/"),
       "cm-id": "tree",
@@ -170,11 +182,13 @@ function buildTree(
 
   let passAdditionNode = true;
   if (additionNode) {
-    console.log("compare", parent, "and", additionNode.key);
-  }
-  if (additionNode && getParentPath(additionNode.key) === parent) {
-    passAdditionNode = false;
-    result.push(additionNode);
+    const additionNodeParentPath = getParentPath(additionNode.key);
+    const simplifiedParentPath =
+      additionNodeParentPath === "/" ? "" : additionNodeParentPath;
+    if (simplifiedParentPath === parent) {
+      passAdditionNode = false;
+      result.push(additionNode);
+    }
   }
 
   Object.keys(mapObj).forEach((key) => {
@@ -249,7 +263,6 @@ const addNewCollectionNode = (
   key: string,
   cb: (path: string | null) => void
 ): IFSDataNode => {
-  console.log({ path, key });
   return {
     key: [path, key].join("/"),
     title: () => <NewCollectionInput path={path} onChange={cb} />,
@@ -283,10 +296,16 @@ const addNewCollectionNode = (
   };
 };
 
-function TreeView() {
+interface ITreeViewProps {
+  allDocs: ClientDocumentSnapshot[];
+  pathAvailable: string[];
+}
+
+function TreeView({ allDocs, pathAvailable }: ITreeViewProps) {
   const [path, setPath] = useRecoilState(navigatorPathAtom);
-  const allDocs = useRecoilValue(allDocsAtom);
-  const pathAvailable = useRecoilValue(pathExpanderAtom);
+  console.log(allDocs.length);
+  // const allDocs = useRecoilValue(allDocsAtom);
+  // const pathAvailable = useRecoilValue(pathExpanderAtom);
   const [searchInput, setSearchInput] = useState("");
   const treeWrapperRef = useRef<HTMLDivElement>(null);
   const [addingNewCollection, setAddNewCollection] = useState<{
@@ -295,20 +314,13 @@ function TreeView() {
   } | null>(null);
   const [expandedKeys, setExpanded] = useState<string[]>([]);
 
-  const handleSelectTree = (keys: React.ReactText[]) => {
+  const handleSelectTree = useCallback((keys: React.ReactText[]) => {
     if (keys.length > 0) {
       setPath(keys[0] as string);
     }
-  };
+  }, []);
 
-  const handleExpandData = async (node: EventDataNode) => {
-    if (
-      addingNewCollection &&
-      node.key.toString().endsWith(addingNewCollection.key)
-    ) {
-      return;
-    }
-
+  const handleExpandData = useCallback(async (node: EventDataNode) => {
     window
       .send("fs.pathExpander", { path: prettifyPath(node.key.toString()) })
       .then((response: string[]) => {
@@ -316,21 +328,28 @@ function TreeView() {
       });
 
     return;
-  };
+  }, []);
 
-  const handleOnAddCollection = (path: string | null): void => {
-    setAddNewCollection(null);
-  };
+  const handleOnAddCollection = useCallback(
+    (path: string | null): void => {
+      setAddNewCollection(null);
+    },
+    [setAddNewCollection]
+  );
 
-  const treeData = useMemo(() => {
-    let allPaths = [...pathAvailable, ...allDocs.map((doc) => doc.ref.path)];
+  const allPaths = useMemo(() => {
+    let paths = [...pathAvailable, ...allDocs.map((doc) => doc.ref.path)];
 
     if (searchInput) {
-      allPaths = allPaths.filter((path) =>
+      paths = paths.filter((path) =>
         path.toLowerCase().includes(searchInput.toLowerCase())
       );
     }
 
+    return paths;
+  }, [pathAvailable, allDocs, searchInput]);
+
+  const treeData = useMemo(() => {
     const currentTree = constructData(
       allPaths,
       addingNewCollection
@@ -343,7 +362,7 @@ function TreeView() {
     );
 
     return currentTree;
-  }, [allDocs, pathAvailable, searchInput, addingNewCollection]);
+  }, [allPaths, addingNewCollection]);
 
   const handleOnFocus = () => {
     treeWrapperRef?.current?.querySelector("input")?.focus();
@@ -391,9 +410,16 @@ function TreeView() {
   useContextMenu(
     "NEW_COLLECTION",
     ({ path }: { path: string }) => {
-      // TODO: Try to expand the tree
-      console.log(path);
+      setExpanded((keys) => uniq([...keys, path]));
       handleAddCollection(path);
+    },
+    "tree"
+  );
+
+  useContextMenu(
+    "IMPORT",
+    ({ path }: { path: string }) => {
+      actionToggleImportModal(path, true);
     },
     "tree"
   );
@@ -413,7 +439,7 @@ function TreeView() {
 
   const handleOnExpand = (
     expandedKeys: any[],
-    { expanded, node }: { expanded: boolean; node: DataNode }
+    { expanded = true, node }: { expanded: boolean; node: DataNode }
   ) => {
     if (!expanded) {
       setExpanded((keys) =>
@@ -425,10 +451,23 @@ function TreeView() {
   };
 
   useEffect(() => {
-    // const entities = getPathEntities(path);
-    // console.log(entities);
-    setExpanded((keys) => uniq([...keys, path]));
+    setExpanded((keys) => uniq([...keys, ...getRecursivePath(path)]));
   }, [path]);
+
+  const expandedKeysWithFilter = useMemo(() => {
+    if (searchInput.length >= 3) {
+      return uniq(
+        allPaths.reduce(
+          (prev, path) => {
+            return [...prev, ...getRecursivePath(path)];
+          },
+          [...expandedKeys]
+        )
+      );
+    }
+
+    return expandedKeys;
+  }, [expandedKeys, searchInput]);
 
   return (
     <div className="flex flex-col h-full">
@@ -444,13 +483,13 @@ function TreeView() {
         ref={treeWrapperRef}
         onFocus={handleOnFocus}
       >
-        <div className="flex flex-row items-center justify-between px-1.5 bg-gray-300 border-b-2 border-gray-500">
-          <span>refi_client</span>
+        <div className="flex h-8 flex-row items-center justify-between pl-1.5 bg-gray-300 border-b-2 border-gray-500">
+          <span>{window.projectId}</span>
 
           <button
-            className="w-5 p-0.5"
+            className="w-6 p-1 hover:bg-gray-400"
             role="button"
-            onClick={() => handleAddCollection("/")}
+            onClick={() => handleAddCollection("")}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -477,10 +516,9 @@ function TreeView() {
           focusable
           itemHeight={24}
           className="h-full"
-          autoExpandParent={true}
           defaultExpandedKeys={[path]}
           selectedKeys={[path]}
-          expandedKeys={expandedKeys}
+          expandedKeys={expandedKeysWithFilter}
           onExpand={handleOnExpand}
         />
         {/* <AutoSizer disableWidth>
@@ -504,4 +542,32 @@ function TreeView() {
   );
 }
 
-export default TreeView;
+const TreeViewDebouncer = () => {
+  const allDocs = useRecoilValue(allDocsAtom);
+  const pathAvailable = useRecoilValue(pathExpanderAtom);
+  const [debouncedDocs, setDebouncedDoc] = useState<ClientDocumentSnapshot[]>(
+    allDocs
+  );
+  const [debouncedPathAvailable, setDebouncedPathAvailable] = useState<
+    string[]
+  >(pathAvailable);
+
+  console.log({ allDocs });
+  // useRecoilValue(largeDataAtom); // Make parent suspense
+
+  useDebounce(
+    () => {
+      console.log("Typing stopped");
+      setDebouncedDoc(allDocs);
+      setDebouncedPathAvailable(pathAvailable);
+    },
+    250,
+    [allDocs, pathAvailable]
+  );
+
+  return (
+    <TreeView allDocs={debouncedDocs} pathAvailable={debouncedPathAvailable} />
+  );
+};
+
+export default TreeViewDebouncer;

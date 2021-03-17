@@ -44,6 +44,16 @@ export const getAllCollectionsPath = (url: string) => {
   return ["/", ...collections];
 };
 
+export const getRecursivePath = (url: string) => {
+  const collections = prettifyPath(url)
+    .split("/")
+    .reduce((prev: string[], current: string) => {
+      const lastPath = prev[prev.length - 1];
+      return [...prev, [lastPath, current].join("/").replace("//", "/")];
+    }, []);
+  return ["/", ...collections];
+};
+
 export const getListCollections = (
   path: string,
   availablePaths: string[]
@@ -122,13 +132,13 @@ export const buildTableSubRows = (
           value,
           ...(["map", "array"].includes(value?.type)
             ? {
-              subRows: buildTableSubRows(
+                subRows: buildTableSubRows(
                   rows.filter(
                     (row) => row.field.startsWith(field) && row.field !== field
                   ),
                   level + 1
-              ),
-            }
+                ),
+              }
             : {}),
         });
         return rowWithSub;
@@ -168,9 +178,27 @@ export const removeFirebaseSerializeMetaData = (docStr: string): string => {
       });
     }
 
-    return JSON.stringify(docData);
+    return JSON.stringify(docData, undefined, 2);
   } catch (error) {
     console.log("Error remove metadata");
+    console.log(error);
+    return docStr;
+  }
+};
+
+export const addFirebaseDocSerializeMetaData = (
+  docStr: string,
+  id: string,
+  path: string
+): string => {
+  try {
+    const docData: Record<string, any> = JSON.parse(docStr);
+    docData["__id__"] = id;
+    docData["__path__"] = path;
+
+    return JSON.stringify(docData);
+  } catch (error) {
+    console.log("Error add metadata");
     console.log(error);
     return docStr;
   }
@@ -199,6 +227,12 @@ export function beautifyId(id: string): string {
   return id.slice(0, 3) + "..." + id.slice(-4);
 }
 
-export function newId(): string {
+export const newId = (): string => {
   return firebase.firestore().collection("feedbacks").doc().id;
+};
+
+export function isNumeric(input: string | number): boolean {
+  if (typeof input === "number") return true;
+  if (typeof input !== "string") return false;
+  return !isNaN(+input) && !isNaN(parseFloat(input));
 }

@@ -1,5 +1,6 @@
 import { setRecoilExternalState } from "./RecoilExternalStatePortal";
 import {
+  importCollectionPathAtom,
   isImportModalAtom,
   isModalPickProperty,
   isParsingLargeDataAtom,
@@ -11,7 +12,11 @@ export const actionToggleModalPickProperty = (status?: boolean): void => {
   );
 };
 
-export const actionToggleImportModal = (status?: boolean): void => {
+export const actionToggleImportModal = (
+  path: string,
+  status?: boolean
+): void => {
+  setRecoilExternalState(importCollectionPathAtom, path);
   setRecoilExternalState(isImportModalAtom, (curStatus) =>
     status === undefined ? !curStatus : status
   );

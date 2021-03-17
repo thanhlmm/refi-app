@@ -1,31 +1,25 @@
 import { buildFSUrl, fieldAtom, fieldChangedAtom } from "@/atoms/firestore";
-import {
-  actionRemoveFieldKey,
-  actionUpdateFieldKey,
-} from "@/atoms/firestore.action";
-import { FIELD_TYPES } from "@/atoms/navigator";
+import { navigatorPathAtom } from "@/atoms/navigator";
+import { actionGoTo } from "@/atoms/navigator.action";
+import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import { getFireStoreType, isObject } from "@/utils/simplifr";
-import { useClickAway } from "ahooks";
+import { getPathEntities, isNumeric } from "@/utils/common";
+import { getFireStoreType } from "@/utils/simplifr";
+import { Checkbox, Field, Label } from "@zendeskgarden/react-forms";
+import { Tooltip } from "@zendeskgarden/react-tooltips";
 import classNames from "classnames";
+import { DocRef } from "firestore-serializers/src/DocRef";
+import { isUndefined } from "lodash";
 import React, {
   ReactElement,
   ReactNode,
-  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import DataInput from "../DataInput";
 import DateTimePicker from "../DataInput/DateTimePicker";
-import DropdownMenu from "@/components/DropdownMenu";
-
-interface IReadonlyCell {
-  value?: string;
-  children?: ReactNode;
-}
 
 interface IEditableCell {
   row: ClientDocumentSnapshot;
@@ -44,19 +38,25 @@ const EditableCell = ({
   const fieldPath = buildFSUrl({ path: row.ref.path, field: id });
   const [value, setValue] = useRecoilState(fieldAtom(fieldPath));
   const isFieldChanged = useRecoilValue(fieldChangedAtom(fieldPath));
-  const [isFocus, setFocus] = useState(false);
-  const [isEditable, setEditable] = useState(false);
   const [instanceValue, setInstanceValue] = useState(value);
   const [isHighlight, toggleHighlight] = useState(false);
   const wrapperEl = useRef(null);
   const inputEl = useRef<HTMLInputElement>(null);
 
-  const onChange = (e) => {
-    setInstanceValue(e.target.value);
+  const fieldType = useMemo(() => {
+    return getFireStoreType(instanceValue);
+  }, [instanceValue]);
+
+  const onChange = (newInstanceValue) => {
+    if (fieldType === "number" && isNumeric(newInstanceValue)) {
+      // Respect current type
+      setInstanceValue(Number(newInstanceValue));
+    } else {
+      setInstanceValue(newInstanceValue);
+    }
   };
 
   const onBlur = () => {
-    setFocus(false);
     if (instanceValue !== value) {
       setValue(instanceValue);
     }
@@ -78,88 +78,169 @@ const EditableCell = ({
     }
   }, [value]);
 
-  const onFocus = () => {
-    setFocus(true);
+  const handleClickFollowLink = (
+    e: MouseEvent | null,
+    link: string,
+    isInternal = true
+  ) => {
+    if (e === null || e.ctrlKey || e.metaKey) {
+      if (isInternal) {
+        actionGoTo(link);
+      } else {
+        window.open(link, "_blank");
+      }
+    }
   };
 
-  useClickAway(() => {
-    setFocus(false);
-  }, wrapperEl);
-
-  const handleKeyDownCapture = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // TODO: Capture copy command here
-    inputEl.current?.focus();
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      setInstanceValue(value);
+    }
   };
 
-  return (
-    <div
-      className="w-full h-full outline-none"
-      onClick={() => setFocus(true)}
-      onFocus={() => setFocus(true)}
-      onBlur={() => setFocus(false)}
-      onKeyDownCapture={handleKeyDownCapture}
-      ref={wrapperEl}
-      tabIndex={tabIndex}
-    >
+  const editorComponent = useMemo(() => {
+    let defaultEditor: ReactElement = (
       <input
         ref={inputEl}
         className={classNames(
-          "w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5",
+          "w-full bg-transparent truncate h-full outline-none ring-inset focus:bg-blue-100 p-1.5 focus:ring-1 focus:ring-blue-400",
           {
             ["bg-red-300"]: isFieldChanged,
             ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
-            ["ring-1 ring-blue-400 bg-blue-100 ring-inset"]: isFocus,
+            ["text-right"]: fieldType === "number",
           }
         )}
         value={instanceValue}
-        onChange={onChange}
+        onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
-        cm-template="rowContext"
+        onKeyDown={onKeyDown}
       />
+    );
+
+    if (!isUndefined(instanceValue)) {
+      switch (fieldType) {
+        case "array":
+          defaultEditor = (
+            <div className="p-1.5 font-mono text-red-700">array</div>
+          );
+          break;
+        case "map":
+          defaultEditor = (
+            <div className="p-1.5 font-mono text-red-700">map</div>
+          );
+          break;
+        case "geopoint":
+          defaultEditor = (
+            <div className="p-1.5 font-mono text-red-700">geopoint</div>
+          );
+          break;
+        case "timestamp":
+          defaultEditor = (
+            <DateTimePicker
+              value={value as firebase.firestore.Timestamp}
+              onChange={(newValue) => setValue(newValue)}
+            />
+          );
+          break;
+        case "boolean":
+          defaultEditor = (
+            <div className="p-1">
+              <Field>
+                <Checkbox
+                  checked={value as boolean}
+                  onChange={() => setValue(!value)}
+                >
+                  <Label hidden>{value ? "true" : "false"}</Label>
+                </Checkbox>
+              </Field>
+            </div>
+          );
+          break;
+        case "reference":
+          const refValue = instanceValue as DocRef;
+          defaultEditor = (
+            <Tooltip
+              placement="top-start"
+              delayMS={100}
+              hasArrow={false}
+              size="medium"
+              type="light"
+              className="max-w-2xl"
+              content={
+                <span>
+                  <a
+                    className="text-blue-400 cursor-pointer"
+                    onClick={() => handleClickFollowLink(null, refValue.path)}
+                  >
+                    Follow reference
+                  </a>{" "}
+                  (cmd + click)
+                </span>
+              }
+            >
+              <input
+                ref={inputEl}
+                className={classNames(
+                  "focus:ring-1 p-1.5 bg-transparent outline-none focus:ring-blue-400 h-full w-full truncate underline text-blue-400",
+                  {
+                    ["bg-red-300"]: isFieldChanged,
+                    ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
+                  }
+                )}
+                onClick={(e) => handleClickFollowLink(e as any, refValue.path)}
+                tabIndex={tabIndex}
+                value={refValue.path}
+                onChange={(e) => onChange(new DocRef(e.target.value))}
+                onBlur={onBlur}
+                onKeyDown={onKeyDown}
+              />
+            </Tooltip>
+          );
+          break;
+      }
+    }
+
+    return defaultEditor;
+  }, [fieldType, instanceValue, onChange, setValue]);
+
+  return (
+    <div ref={wrapperEl} className="w-full h-full outline-none group">
+      {editorComponent}
     </div>
   );
 };
 
-export const ReadOnlyField = ({ value, children }: IReadonlyCell) => {
+interface IIDReadonlyCell {
+  value?: string;
+  children?: ReactNode;
+  isNew?: boolean;
+}
+
+export const IDReadOnlyField = ({
+  value,
+  children,
+  isNew = false,
+}: IIDReadonlyCell) => {
+  const currentPath = useRecoilValue(navigatorPathAtom);
+  const isActive = value === getPathEntities(currentPath).pop();
+
   if (children) {
     return <div className="w-full h-full px-px">{children}</div>;
   }
+
   return (
-    <div className="w-full h-full px-px">
+    <div className="w-full h-full px-px font-mono">
       <input
-        className="focus:ring-1 focus:ring-blue-400 w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5"
+        className={classNames(
+          "focus:ring-1 focus:ring-blue-400 w-full h-full bg-transparent outline-none ring-inset focus:bg-blue-100 p-1.5 font-mono text-sm",
+          {
+            ["pl-0.5 border-l-4 border-blue-400"]: isActive,
+            ["bg-green-400"]: isNew,
+          }
+        )}
         value={value}
         readOnly
       />
-    </div>
-  );
-};
-
-export const IDField = ({ value }: { value: string }) => {
-  return (
-    <div className="relative w-full h-full px-px">
-      <input
-        className="focus:ring-1 focus:ring-blue-400 w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5"
-        value={value}
-        readOnly
-        disabled
-      />
-
-      <div className="absolute w-3 transform -translate-y-1/2 cursor-pointer right-2 top-1/2">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={1}
-            d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
-          />
-        </svg>
-      </div>
     </div>
   );
 };

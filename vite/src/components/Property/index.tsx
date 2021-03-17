@@ -1,47 +1,69 @@
-import { docAtom, pathExpanderAtom } from "@/atoms/firestore";
+import { docAtom } from "@/atoms/firestore";
 import { navigatorPathAtom } from "@/atoms/navigator";
 import { defaultEditorAtom } from "@/atoms/ui";
-import { getListCollections } from "@/utils/common";
-import { Anchor, Button } from "@zendeskgarden/react-buttons";
+import { Button } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
-import React, { useMemo, useState } from "react";
+import { Tooltip } from "@zendeskgarden/react-tooltips";
+import classNames from "classnames";
+import React, { useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import MonacoProperty from "./MonacoProperty";
+import MonacoProperty, { MonacoPropertyError } from "./MonacoProperty";
 import PropertyTable from "./PropertyTable";
 
 const Property = () => {
   const currentPath = useRecoilValue(navigatorPathAtom);
-  const pathAvailable = useRecoilValue(pathExpanderAtom);
   const doc = useRecoilValue(docAtom(currentPath));
   const [searchInput, setSearchInput] = useState("");
   const [editorType, setEditorType] = useRecoilState(defaultEditorAtom);
 
-  const listCollections = useMemo(() => {
-    return getListCollections(currentPath, pathAvailable);
-  }, [currentPath, pathAvailable]);
-
   if (!doc) {
-    // TODO: Render last doc or select doc in collection
+    // TODO: Render empty state or let user create doc for this path
     return null;
   }
 
   return (
     <div className="flex flex-col h-full">
-      <Input
-        placeholder="Search for property or value..."
-        isCompact
-        value={searchInput}
-        onChange={(e) => setSearchInput(e.target.value)}
-      />
-      <div className="h-full max-h-full overflow-auto">
-        <h3>Collections</h3>
-        {listCollections.map((collection) => (
-          <div className="block" key={collection}>
-            <Anchor href={collection}>{collection}</Anchor>
-          </div>
-        ))}
-        <h3>Fields</h3>
-        <div className="flex flex-row justify-end">
+      <div className="flex flex-row items-center justify-between">
+        {editorType === "basic" ? (
+          <Input
+            placeholder="Search for property or value..."
+            isCompact
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        ) : (
+          <Tooltip
+            placement="top-start"
+            delayMS={100}
+            hasArrow={false}
+            size="medium"
+            type="light"
+            className="max-w-2xl"
+            content={
+              <span>
+                Type <code className="text-red-700 bg-gray-100 p-0.5">/</code>{" "}
+                to start insert new type
+              </span>
+            }
+          >
+            <a className="text-xs text-blue-500 cursor-pointer">
+              <svg
+                className="inline-block w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                  clipRule="evenodd"
+                />
+              </svg>{" "}
+              How to insert Timestamp, Geopoint or Reference?
+            </a>
+          </Tooltip>
+        )}
+        <div className="flex flex-row justify-self-end">
           <Button
             size="small"
             onClick={() => setEditorType("basic")}
@@ -85,6 +107,8 @@ const Property = () => {
             </svg>
           </Button>
         </div>
+      </div>
+      <div className="h-full max-h-full mt-2 overflow-auto">
         {editorType === "basic" && (
           <PropertyTable searchInput={searchInput} doc={doc} />
         )}

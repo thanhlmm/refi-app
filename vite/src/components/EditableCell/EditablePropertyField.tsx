@@ -21,7 +21,7 @@ import { getRecoilExternalLoadable } from "@/atoms/RecoilExternalStatePortal";
 import { newFieldAtom } from "@/atoms/ui";
 
 interface IEditablePropertyFieldProps {
-  row: ClientDocumentSnapshot;
+  docPath: string;
   column: {
     id: string;
   };
@@ -29,11 +29,11 @@ interface IEditablePropertyFieldProps {
   canExpand: boolean;
   isExpanded: boolean;
   depth: number;
-  toggleExpand: () => void;
+  toggleExpand: (boolean) => void;
 }
 
 export const EditablePropertyField = ({
-  row,
+  docPath,
   column: { id },
   tabIndex,
   canExpand,
@@ -41,11 +41,9 @@ export const EditablePropertyField = ({
   toggleExpand,
   depth,
 }: IEditablePropertyFieldProps): React.ReactElement => {
-  const fieldPath = buildFSUrl({ path: row.ref.path, field: id });
+  const fieldPath = buildFSUrl({ path: docPath, field: id });
   const isFieldChanged = useRecoilValue(fieldChangedAtom(fieldPath));
   const [instanceValue, setInstanceValue] = useState(id);
-  const [isHighlight, toggleHighlight] = useState(false);
-  const [isHovered, setHovered] = useState(false);
   const wrapperEl = useRef(null);
   const inputEl = useRef<HTMLTextAreaElement>(null);
 
@@ -60,6 +58,7 @@ export const EditablePropertyField = ({
 
   const onChange = useCallback(
     (e) => {
+      // TODO: Notify to focus on next value input if this is new field
       const prefix =
         fieldData.parent.length > 0 ? fieldData.parent.join(".") + "." : "";
       setInstanceValue(prefix + e.target.value.substr(prefix.length));
@@ -89,7 +88,7 @@ export const EditablePropertyField = ({
 
   const setInputAutoFocus = async () => {
     const newFieldPath = await getRecoilExternalLoadable(
-      newFieldAtom(row.ref.path)
+      newFieldAtom(docPath)
     ).toPromise();
     if (id === newFieldPath) {
       inputEl.current?.focus();
@@ -103,8 +102,6 @@ export const EditablePropertyField = ({
   return (
     <div
       ref={wrapperEl}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
       className={classNames("relative w-full outline-none", {
         [`border-gray-400 border-l-${Math.min(depth * 2, 8)}`]: depth > 0,
       })}
@@ -120,7 +117,7 @@ export const EditablePropertyField = ({
           <button
             role="button"
             className="p-1 text-xs outline-none"
-            onClick={toggleExpand}
+            onClick={() => toggleExpand(!isExpanded)}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -143,10 +140,13 @@ export const EditablePropertyField = ({
       )}
       <DataInput
         ref={inputEl}
-        className={classNames("font-bold focus:ring-1 focus:ring-blue-400", {
-          ["bg-red-300"]: isFieldChanged,
-          ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
-        })}
+        className={classNames(
+          "font-semibold text-gray-800 focus:ring-1 focus:ring-blue-400",
+          {
+            ["bg-red-300"]: isFieldChanged,
+            // ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
+          }
+        )}
         tabIndex={tabIndex}
         value={instanceValue}
         onChange={onChange}

@@ -15,7 +15,7 @@ const ObjectInput = ({ fieldPath, toggleExpand }: IObjectInputProps) => {
     const fieldAtomInstance = fieldAtom(fieldPath);
     const { path, field } = parseFSUrl(fieldPath);
     const newFieldName = uniqueId(FIELD_KEY_PREFIX);
-    setRecoilExternalState(fieldAtomInstance, (value) => ({
+    setRecoilExternalState(fieldAtomInstance, (value: any) => ({
       ...value,
       [newFieldName]: "",
     }));

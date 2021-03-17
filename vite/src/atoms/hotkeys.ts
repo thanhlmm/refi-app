@@ -1,6 +1,6 @@
 import { isCollection } from "@/utils/common";
 import { actionCommitChange, actionDuplicateDoc } from "./firestore.action";
-import { navigatorPathAtom } from "./navigator";
+import { navigatorCollectionPathAtom, navigatorPathAtom } from "./navigator";
 import {
   actionExportDocCSV,
   actionExportDocJSON,
@@ -18,6 +18,7 @@ import {
   isModalNewsAtom,
   isShowDocFinderModalCommandAtom,
   isShowPreviewChangeModalAtom,
+  viewModePathInputAtom,
 } from "./ui";
 import { actionToggleImportModal } from "./ui.action";
 
@@ -32,11 +33,12 @@ export type IGlobalHotKeys = Record<
 >;
 
 export const globalHotKeys: IGlobalHotKeys = {
-  // OPEN_DOC_SEARCH: {
-  //   name: "Search documents, collections by name",
-  //   group: "navigator",
-  //   sequences: "command+p",
-  // },
+  OPEN_PATH_INPUT: {
+    name: "Goto documents, collections by name",
+    group: "navigator",
+    sequences: "command+p",
+    handler: () => setRecoilExternalState(viewModePathInputAtom, false),
+  },
   OPEN_COMMAND_LIST: {
     name: "Open command list",
     group: "navigator",
@@ -149,12 +151,15 @@ export const globalHotKeys: IGlobalHotKeys = {
       actionDuplicateDoc(docPath);
     },
   },
-  IMPORT_DOCS_JSON: {
-    name: "Import from JSON",
+  IMPORT_DATA: {
+    name: "Import data",
     group: "action",
     sequences: "command+i",
-    handler: () => {
-      actionToggleImportModal();
+    handler: async () => {
+      const collectionPath = await getRecoilExternalLoadable(
+        navigatorCollectionPathAtom
+      ).toPromise();
+      actionToggleImportModal(collectionPath);
     },
   },
 };

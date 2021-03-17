@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 export const useContextMenu = <T>(
   actionId: string,
-  cb: (T) => void,
+  cb: (arg: T) => void,
   elementId?: string
 ): void => {
   useEffect(() => {
@@ -15,7 +15,7 @@ export const useContextMenu = <T>(
     );
 
     return () => {
-      window.api.contextMenu.clearRendererBindings();
+      window.api.contextMenu.clearRendererBindings(actionId, elementId);
     };
   }, []);
 };

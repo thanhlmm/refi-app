@@ -1,16 +1,44 @@
 import {
+  changedDocAtom,
+  deletedDocsAtom,
+  newDocsAtom,
+} from "@/atoms/firestore";
+import {
   actionCommitChange,
   actionReverseChange,
 } from "@/atoms/firestore.action";
-import { isCommittableAtom, isShowPreviewChangeModalAtom } from "@/atoms/ui";
+import { isShowPreviewChangeModalAtom } from "@/atoms/ui";
 import PathInput from "@/components/PathInput";
 import { Button, IconButton } from "@zendeskgarden/react-buttons";
-import React from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import React, { useEffect, useState } from "react";
+import { useRecoilCallback, useSetRecoilState } from "recoil";
 
 const NavBar = () => {
   const setShowChangeModal = useSetRecoilState(isShowPreviewChangeModalAtom);
-  const isCommittable = useRecoilValue(isCommittableAtom);
+  // const isCommittable = useRecoilValue(isCommittableAtom);
+  const [isCommittable, setCommittable] = useState(false);
+
+  const checkCommittable = useRecoilCallback(({ snapshot }) => async () => {
+    const changedDocs = await snapshot.getPromise(changedDocAtom);
+    const newDocs = await snapshot.getPromise(newDocsAtom);
+    const deletedDocs = await snapshot.getPromise(deletedDocsAtom);
+    setCommittable(
+      changedDocs.length > 0 || newDocs.length > 0 || deletedDocs.length > 0
+    );
+  });
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      checkCommittable();
+    }, 300);
+
+    return () => {
+      clearInterval(id);
+    };
+  }, []);
+
+  console.count("NavBar render");
+  console.log(isCommittable);
 
   return (
     <div className="flex flex-row space-x-2">

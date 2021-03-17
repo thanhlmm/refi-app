@@ -134,7 +134,7 @@ const PropertyList = () => {
   }, []);
 
   return (
-    <div className="overflow-y-auto w-54">
+    <div className="w-54">
       <form onSubmit={handleSubmit(handleAddProperty)} className="p-0.5">
         <Controller
           control={control}
@@ -152,7 +152,7 @@ const PropertyList = () => {
           )}
         />
       </form>
-      <div className="mt-2">
+      <div className="mt-2 overflow-y-auto max-h-60">
         <DragDropContext onDragEnd={handleDropEnd}>
           <Droppable droppableId="droppablePropertyList">
             {(provided, snapshot) => (

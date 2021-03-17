@@ -1,7 +1,12 @@
-import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import {
+  ClientDocumentSnapshot,
+  IFieldValue,
+} from "@/types/ClientDocumentSnapshot";
 import { getParentPath } from "@/utils/common";
+import { IPrimitiveType } from "@/utils/simplifr";
 import "firebase/firestore";
-import { difference, isObject } from "lodash";
+import { DocRef } from "firestore-serializers/src/DocRef";
+import { difference, isObject, isUndefined } from "lodash";
 import * as immutable from "object-path-immutable";
 import { atom, atomFamily, selector, selectorFamily } from "recoil";
 import { queryVersionAtom } from "./navigator";
@@ -31,7 +36,7 @@ export const projectIdAtom = atom<string>({
   default: "",
 });
 
-export const deletedDocsAtom = atom<IFireStorePath[]>({
+export const deletedDocsAtom = atom<ClientDocumentSnapshot[]>({
   key: "FireStore_docs_deleted",
   default: [],
 });
@@ -67,6 +72,7 @@ export const docAtom = atomFamily<
   ],
 });
 
+// NOTICE: This atom is impact your performance
 export const collectionAtom = selectorFamily<
   ClientDocumentSnapshot[],
   IFireStorePath
@@ -83,6 +89,7 @@ export const collectionAtom = selectorFamily<
   },
 });
 
+// NOTICE: This atom is impact your performance
 export const collectionWithQueryAtom = selectorFamily<
   ClientDocumentSnapshot[],
   IFireStorePath
@@ -102,6 +109,7 @@ export const collectionWithQueryAtom = selectorFamily<
   },
 });
 
+// NOTICE: This atom is impact your performance
 export const allDocsAtom = selector<ClientDocumentSnapshot[]>({
   key: "FireStore_all_docs",
   get: ({ get }) => {
@@ -114,27 +122,31 @@ export const allDocsAtom = selector<ClientDocumentSnapshot[]>({
   },
 });
 
-export const fieldAtom = selectorFamily<any, string>({
+export const fieldAtom = selectorFamily<IFieldValue | undefined, string>({
   key: "FireStore_doc_field",
   get: (url) => ({ get }) => {
     const { path, field } = parseFSUrl(url);
     const doc = get(docAtom(path));
 
     if (doc) {
-      return immutable.get(doc.data(), field);
+      return (immutable.get(doc.data(), field) as unknown) as IFieldValue;
     }
 
     return undefined;
   },
   set: (url) => ({ set, get }, newValue) => {
-    // TODO: Use immer to store field patch
+    if (isUndefined(newValue)) {
+      return;
+    }
+
     const { path, field } = parseFSUrl(url);
     const doc = get(docAtom(path));
     if (doc) {
       const newDoc = doc.clone().setField(field, newValue);
       const oldValue = immutable.get(doc.data(), field);
-      if (isObject(oldValue) && isObject(oldValue)) {
+      if (newValue && isObject(oldValue) && isObject(oldValue)) {
         // Add changes if the object inside changed
+        // TODO: Use immer to store field patch
         newDoc.addChange(
           difference(Object.keys(newValue), Object.keys(oldValue)).map(
             (key) => `${field}.${key}`
@@ -160,6 +172,7 @@ export const fieldChangedAtom = selectorFamily<boolean, string>({
   },
 });
 
+// NOTICE: This atom is impact your performance
 export const changedDocAtom = selector<ClientDocumentSnapshot[]>({
   key: "FireStore_docs_changed",
   get: ({ get }) => {
@@ -201,6 +214,16 @@ export const hasNewDocAtom = selectorFamily<boolean, string>({
     }
 
     return false;
+  },
+});
+
+// NOTICE: This atom is impact your performance
+export const hasModifiedDocAtom = selectorFamily<boolean, string>({
+  key: "FireStore_collection_modified",
+  get: (path) => ({ get }) => {
+    const docsChange = get(changedDocAtom);
+
+    return docsChange.some((doc) => doc.ref.path.startsWith(path));
   },
 });
 

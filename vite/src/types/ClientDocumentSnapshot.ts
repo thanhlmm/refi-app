@@ -1,11 +1,21 @@
+import { IPrimitiveType } from "@/utils/simplifr";
 import { DocumentData, DocumentSnapshot, IDocRef } from "firestore-serializers";
 import { DocRef } from "firestore-serializers/src/DocRef";
-import { uniq } from "lodash";
+import { isUndefined, uniq } from "lodash";
 import * as immutable from "object-path-immutable";
+
+export type IFieldValue =
+  | IPrimitiveType
+  | DocRef
+  | firebase.firestore.GeoPoint
+  | firebase.firestore.Timestamp
+  | IFieldValue[];
+
+export type IDocData = Record<string, IFieldValue>;
 
 export class ClientDocumentSnapshot {
   readonly id: string;
-  private objectData: DocumentData;
+  private objectData: IDocData;
   public exists = true;
   readonly ref: IDocRef;
   private changedField: string[] = [];
@@ -32,7 +42,7 @@ export class ClientDocumentSnapshot {
   }
 
   constructor(
-    data: DocumentData,
+    data: DocumentData | IDocData,
     id: string,
     path: string,
     queryVersion?: number,
@@ -45,7 +55,7 @@ export class ClientDocumentSnapshot {
     this.isNew = isNew;
   }
 
-  public data(): DocumentData {
+  public data(): IDocData {
     return this.objectData;
   }
 
@@ -71,13 +81,25 @@ export class ClientDocumentSnapshot {
     return this;
   }
 
-  public clone(newData?: any): ClientDocumentSnapshot {
+  public removeField(field: string): ClientDocumentSnapshot {
+    this.objectData = immutable.del(this.objectData, field);
+    this.addChange([field]);
+
+    return this;
+  }
+
+  public clone(newData?: IDocData, newId?: string): ClientDocumentSnapshot {
+    const newDocId = isUndefined(newId) ? this.id : newId;
+    const newDocRef = isUndefined(newId)
+      ? this.ref.path
+      : this.ref.path.replace(this.id, newId);
+
     const newDoc = new ClientDocumentSnapshot(
       newData || this.data(),
-      this.id,
-      this.ref.path,
+      newDocId,
+      newDocRef,
       this.queryVersion,
-      this.isNew
+      this.isNew || !isUndefined(newId)
     );
 
     newDoc.addChange(this.changedFields());
