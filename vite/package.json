@@ -41,6 +41,7 @@
     "rc-tree": "^4.1.1",
     "react": "^17.0.0",
     "react-beautiful-dnd": "^13.0.0",
+    "react-custom-scrollbars": "^4.2.1",
     "react-datetime": "^3.0.4",
     "react-debounce-props": "^2.0.0",
     "react-dom": "^17.0.0",

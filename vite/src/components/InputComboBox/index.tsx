@@ -8,6 +8,7 @@ interface IInputComboBoxProps<T> {
   items: T[];
   selectedItem: T;
   handleSelectedItemChange: (T) => void;
+  placeholder?: string;
 }
 
 const InputComboBox = ({
@@ -15,6 +16,7 @@ const InputComboBox = ({
   selectedItem,
   handleSelectedItemChange,
   inputRef,
+  placeholder,
 }: IInputComboBoxProps<string>): ReactElement => {
   const [inputItems, setInputItems] = useState(items);
   const {
@@ -38,13 +40,19 @@ const InputComboBox = ({
             : true
         )
       );
+      handleSelectedItemChange(inputValue);
     },
   });
 
   return (
     <div className="relative">
       <div {...getComboboxProps()} className="relative">
-        <Input {...getInputProps()} ref={inputRef} isCompact />
+        <Input
+          {...getInputProps()}
+          ref={inputRef}
+          placeholder={placeholder}
+          isCompact
+        />
       </div>
       {isOpen && (
         <ul

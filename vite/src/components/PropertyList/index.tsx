@@ -98,7 +98,7 @@ const PropertyList = () => {
   const [propertyList, setPropertyList] = useRecoilState(
     propertyListAtom(collectionPath)
   );
-  const { handleSubmit, reset, control } = useForm({
+  const { handleSubmit, reset, control, getValues } = useForm({
     defaultValues: { property: "" },
   });
 
@@ -148,6 +148,7 @@ const PropertyList = () => {
               value={value}
               onChange={onChange}
               inputRef={ref as any}
+              placeholder="Add more property to table"
             />
           )}
         />

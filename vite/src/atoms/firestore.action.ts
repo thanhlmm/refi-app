@@ -26,6 +26,7 @@ import {
 import * as immutable from "object-path-immutable";
 import { navigatorPathAtom, queryVersionAtom } from "./navigator";
 import { actionGoTo } from "./navigator.action";
+import { notifyErrorPromise } from "./ui.action";
 
 export const actionStoreDocs = (
   docs: ClientDocumentSnapshot[],
@@ -88,9 +89,20 @@ export const actionDeleteCollection = async (path: string): Promise<void> => {
   const docsInCollection = await getRecoilExternalLoadable(
     collectionAtom(path)
   ).toPromise();
-  docsInCollection.forEach((doc) => {
-    actionDeleteDoc(doc.ref.path);
+
+  const updater: any[] = docsInCollection.map((doc) => ({
+    atom: docAtom(doc.ref.path),
+    valOrUpdater: null,
+  }));
+
+  updater.push({
+    atom: deletedDocsAtom,
+    valOrUpdater: (docs) =>
+      uniqBy([...docs, ...docsInCollection], (doc) => doc.ref.path),
   });
+
+  setRecoilBatchUpdate(updater);
+  // setTimeout(() => { });
 };
 
 export const actionUpdateDoc = (doc: ClientDocumentSnapshot): void => {
@@ -139,13 +151,13 @@ export const actionCommitChange = async (): Promise<boolean> => {
     .send("fs.updateDocs", {
       docs: serializeQuerySnapshot({ docs: docsChange }),
     })
-    .then((a) => console.log(a));
+    .catch(notifyErrorPromise);
 
   window
     .send("fs.addDocs", {
       docs: serializeQuerySnapshot({ docs: newDocs }),
     })
-    .then((a) => console.log(a));
+    .catch(notifyErrorPromise);
 
   window
     .send("fs.deleteDocs", {
@@ -153,7 +165,8 @@ export const actionCommitChange = async (): Promise<boolean> => {
     })
     .then(() => {
       resetRecoilExternalState(deletedDocsAtom);
-    });
+    })
+    .catch(notifyErrorPromise);
   return true;
 };
 
@@ -212,7 +225,8 @@ export const actionReverseDocChange = async (
       setRecoilExternalState(deletedDocsAtom, (docs) =>
         docs.filter((doc) => doc.ref.path !== docPath)
       );
-    });
+    })
+    .catch(notifyErrorPromise);
 };
 
 export const actionAddPathExpander = (paths: string[]) => {
@@ -242,14 +256,17 @@ export const actionImportDocs = async (path: string, docs: any[]) => {
       docs,
       path,
     })
-    .then((a) => console.log(a));
+    .catch(notifyErrorPromise);
 };
 
-export const actionNewDocument = async (path) => {
+export const actionNewDocument = async (
+  collectionPath: string,
+  id?: string
+) => {
   // const newDocId = uniqueId(NEW_DOC_PREFIX);
   // TODO: Sort new document to the bottom of table
-  const newDocId = newId();
-  const newPath = `${path}/${newDocId}`;
+  const newDocId = id || newId();
+  const newPath = prettifyPath(`${collectionPath}/${newDocId}`);
 
   const { queryVersion } = await getRecoilExternalLoadable(
     queryVersionAtom

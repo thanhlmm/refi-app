@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelect } from "downshift";
 import classNames from "classnames";
 
@@ -33,8 +33,23 @@ function DropdownMenu({
     items: menu,
     onSelectedItemChange: ({ selectedItem }) => selectedItem?.onClick(),
   });
+  const [shouldBottom, setBottom] = useState(true);
+
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (menuRef.current) {
+      console.log(menuRef.current?.getBoundingClientRect());
+      const elementPosition = menuRef.current?.getBoundingClientRect();
+      console.log(window.innerHeight - elementPosition.top);
+      if (window.innerHeight - elementPosition.top < 400) {
+        setBottom(false);
+      }
+    }
+  }, []);
+
   return (
-    <div className={classNames(className, "relative")}>
+    <div className={classNames(className, "relative")} ref={menuRef}>
       {React.cloneElement(children, getToggleButtonProps({ disabled }))}
       <ul
         {...getMenuProps()}
@@ -44,8 +59,11 @@ function DropdownMenu({
             "left-0": placement === "left",
             "right-0": placement === "right",
             "opacity-100 pointer-events-auto": isOpen,
-          },
-          isSmall ? "top-7" : "top-9"
+            "top-7": isSmall && shouldBottom,
+            "top-9": isSmall && shouldBottom,
+            "-bottom-7": isSmall && !shouldBottom,
+            "-bottom-9": isSmall && !shouldBottom,
+          }
         )}
       >
         {isOpen &&

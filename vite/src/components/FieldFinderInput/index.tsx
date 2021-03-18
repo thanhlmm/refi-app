@@ -8,12 +8,14 @@ interface IFieldFinderInputProps {
   value: string;
   onChange: (string) => void;
   inputRef?: HTMLInputElement;
+  placeholder?: string;
 }
 
 const FieldFinderInput = ({
   value = "",
   onChange,
   inputRef,
+  placeholder,
 }: IFieldFinderInputProps): ReactElement => {
   const allColumnsRecursive = useRecoilValue(allColumnsRecursiveAtom);
 
@@ -23,6 +25,7 @@ const FieldFinderInput = ({
       selectedItem={value}
       handleSelectedItemChange={onChange}
       inputRef={inputRef}
+      placeholder={placeholder}
     />
   );
 };

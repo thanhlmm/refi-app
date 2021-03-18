@@ -1,14 +1,18 @@
 import { docAtom } from "@/atoms/firestore";
 import { navigatorPathAtom } from "@/atoms/navigator";
 import { defaultEditorAtom } from "@/atoms/ui";
+import { getPathEntities, isCollection, prettifyPath } from "@/utils/common";
 import { Button } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
 import { Tooltip } from "@zendeskgarden/react-tooltips";
 import classNames from "classnames";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import MonacoProperty, { MonacoPropertyError } from "./MonacoProperty";
 import PropertyTable from "./PropertyTable";
+import EmptyBox from "./EmptyBox.png";
+import Launching from "./Launching.png";
+import { actionNewDocument } from "@/atoms/firestore.action";
 
 const Property = () => {
   const currentPath = useRecoilValue(navigatorPathAtom);
@@ -16,9 +20,60 @@ const Property = () => {
   const [searchInput, setSearchInput] = useState("");
   const [editorType, setEditorType] = useRecoilState(defaultEditorAtom);
 
+  const handleCreateDocument = useCallback(() => {
+    if (isCollection(currentPath)) {
+      actionNewDocument(currentPath);
+      return;
+    }
+
+    const paths = getPathEntities(currentPath);
+    const newId = paths.pop() || "newId";
+    actionNewDocument(paths.join("/"), newId);
+    return;
+  }, [currentPath]);
+
   if (!doc) {
-    // TODO: Render empty state or let user create doc for this path
-    return null;
+    if (currentPath === "/") {
+      return null;
+    }
+
+    if (isCollection(currentPath)) {
+      return (
+        <div className="flex flex-col items-center justify-center w-full h-full">
+          <div className="w-1/4">
+            <img src={Launching} />
+          </div>
+          <h2 className="mt-4">
+            Click document on the table to start editing or{" "}
+          </h2>
+          <Button
+            size="small"
+            className="mt-3"
+            onClick={handleCreateDocument}
+            isPrimary
+          >
+            New Document
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col items-center justify-center w-full h-full">
+        <div className="w-1/4">
+          <img src={EmptyBox} />
+        </div>
+        <h2 className="mt-4">Opps...The document is not exist</h2>
+        <Button
+          size="small"
+          className="mt-3"
+          onClick={handleCreateDocument}
+          isPrimary
+        >
+          Create
+        </Button>
+      </div>
+    );
   }
 
   return (

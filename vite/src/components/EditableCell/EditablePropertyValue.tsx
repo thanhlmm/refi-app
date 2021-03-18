@@ -256,6 +256,8 @@ export const EditablePropertyValue = ({
                 instanceValue?.toString() || ""
               ),
             })}
+            minRows={2}
+            maxRows={12}
             onClick={(e) =>
               handleClickFollowLink(e, instanceValue?.toString() || "", false)
             }

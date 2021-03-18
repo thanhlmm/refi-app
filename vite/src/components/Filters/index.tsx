@@ -64,7 +64,7 @@ const Filters = () => {
             }
             onClose={() => setShowPropertyList(false)}
             placement={"bottom-start"}
-            className="p-3 leading-normal"
+            className="p-2 leading-normal"
           >
             <PropertyList />
           </TooltipModal>

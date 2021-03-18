@@ -36,6 +36,7 @@ const monacoOption = {
     horizontalScrollbarSize: 5,
     verticalScrollbarSize: 5,
   },
+  wordWrap: "bounded",
   theme: "dark",
   "semanticHighlighting.enabled": true,
 };
@@ -102,8 +103,7 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
 
     try {
       const newDoc = deserializeData(doc, docStr);
-      console.log(simplify(newDoc));
-      const changes = diff(doc.data(), doc.data()) || [];
+      const changes = diff(doc.data(), newDoc.data()) || [];
       if (changes.length > 0) {
         const fieldChanges = changes
           .map((change) => change.path?.join("."))
@@ -118,11 +118,11 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
   }, 300);
 
   return (
-    <>
+    <div className="flex flex-col h-full overflow-hidden">
       <Editor
         defaultLanguage="json"
         value={defaultValue}
-        height="90%"
+        height="100%"
         theme="monacoProperty-light"
         wrapperClassName="border border-gray-300 pt-2 pb-2"
         onChange={setDefaultValue}
@@ -130,13 +130,21 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
         options={monacoOption as any}
       />
       <MonacoPropertyError path={doc.ref.path} />
-    </>
+    </div>
   );
 };
 
 export const MonacoPropertyError = ({ path }: { path: string }) => {
   const error = useRecoilValue(monacoDataErrorAtom(path));
-  return <div className="mt-1 text-xs text-red-700">{error}</div>;
+
+  return (
+    <div
+      className="p-1 text-xs text-red-700 truncate border-b border-l border-r border-gray-300"
+      style={{ minHeight: "1.5rem" }}
+    >
+      {error}
+    </div>
+  );
 };
 
 export default MonacoProperty;

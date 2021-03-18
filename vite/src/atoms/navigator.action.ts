@@ -20,12 +20,11 @@ import {
   getRecoilExternalLoadable,
   setRecoilExternalState,
 } from "./RecoilExternalStatePortal";
+import { notifyErrorPromise } from "./ui.action";
 
 export const actionGoTo = (path: string): void => {
   setRecoilExternalState(navigatorPathAtom, prettifyPath(path));
 };
-
-window.form = actionGoTo;
 
 export const actionRemoveProperty = (
   collectionPath: string,
@@ -41,7 +40,7 @@ export const actionAddProperty = (
   property: string
 ): void => {
   setRecoilExternalState(propertyListAtom(collectionPath), (propertyList) =>
-    uniq([property, ...propertyList])
+    uniq([property, ...propertyList].filter(Boolean))
   );
 };
 
@@ -106,7 +105,8 @@ export const actionExportCollectionJSON = async (
       });
 
       return true;
-    });
+    })
+    .catch(notifyErrorPromise);
 };
 
 export const actionExportCollectionCSV = async (
@@ -125,7 +125,8 @@ export const actionExportCollectionCSV = async (
       });
 
       return true;
-    });
+    })
+    .catch(notifyErrorPromise);
 };
 
 export const actionExportViewJSON = async (

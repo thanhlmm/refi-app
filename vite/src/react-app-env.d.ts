@@ -34,10 +34,17 @@ interface IContextMenu {
   ) => void;
 }
 
+type NotificationFuncType = (
+  type: "error" | "warning" | "success",
+  message: string,
+  showTime = 3000
+) => void;
+
 interface Window {
   send: SendFuncType;
   listen: ListenFuncType;
   form: any; // DEBUG
+  notification: NotificationFuncType;
   api: {
     contextMenu: IContextMenu;
   };

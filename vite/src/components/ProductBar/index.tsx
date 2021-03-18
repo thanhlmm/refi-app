@@ -40,6 +40,27 @@ const ProductBar = (): ReactElement => {
 
   const emotion = watch("emotion");
 
+  const handleChooseEmotion = (type: "happy" | "bad") => {
+    setValue("emotion", type, { shouldValidate: true });
+
+    switch (type) {
+      case "happy":
+        setValue(
+          "feedback",
+          `Which job make your happy?\n\n\n\nWhich feature would bring you more joy?\n\n\n\n`
+        );
+        break;
+      case "bad":
+        setValue(
+          "feedback",
+          `Which job make you disappointed?\n\n\n\nHow should we improve it?\n\n\n\n`
+        );
+        break;
+    }
+  };
+
+  console.log(emotion);
+
   return (
     <>
       <div className="flex flex-row items-center space-x-2 text-sm">
@@ -62,6 +83,7 @@ const ProductBar = (): ReactElement => {
           focusOnMount
           isAnimated={false}
           backdropProps={{ onClick: () => setShowNews(false) }}
+          className="w-10/12 h-5/6"
         >
           <Header>🔥 What&apos;s new </Header>
           <Body className="p-2">
@@ -89,13 +111,13 @@ const ProductBar = (): ReactElement => {
                     className={classNames(
                       "text-lg rounded w-8 h-8 outline-none pr-1",
                       {
-                        ["bg-gray-200"]: emotion === "happy",
+                        ["bg-gray-300"]: emotion === "happy",
                       }
                     )}
                     type="button"
                     role="button"
-                    onClick={(e) => {
-                      setValue("emotion", "happy", { shouldValidate: true });
+                    onClick={() => {
+                      handleChooseEmotion("happy");
                     }}
                   >
                     <span>😉</span>
@@ -105,13 +127,13 @@ const ProductBar = (): ReactElement => {
                     className={classNames(
                       "text-lg rounded w-8 h-8 outline-none pr-1",
                       {
-                        ["bg-gray-200"]: emotion === "bad",
+                        ["bg-gray-300"]: emotion === "bad",
                       }
                     )}
                     type="button"
                     role="button"
                     onClick={(e) => {
-                      setValue("emotion", "bad");
+                      handleChooseEmotion("bad");
                     }}
                   >
                     <span>😖</span>

@@ -79,7 +79,7 @@ export let resetRecoilExternalState: <T>(
 
 let currentSnapshot: Snapshot;
 let gotoSnapshot: (snapshot: Snapshot) => void;
-export interface IRecoilUpdateCommand<T> {
+export interface IRecoilUpdateCommand<T = any> {
   atom: RecoilState<T>;
   valOrUpdater: ((currVal: T) => T) | T;
 }

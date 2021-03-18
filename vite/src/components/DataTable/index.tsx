@@ -24,12 +24,19 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import { useFlexLayout, useSortBy, useTable } from "react-table";
+import {
+  useFlexLayout,
+  useResizeColumns,
+  useSortBy,
+  useTable,
+} from "react-table";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { IDReadOnlyField } from "../EditableCell";
 import scrollbarWidth from "./scroll-bar-width";
+import classNames from "classnames";
+import { Scrollbars } from "react-custom-scrollbars";
 
 function TableWrapper({
   columns,
@@ -58,6 +65,7 @@ function TableWrapper({
     headerGroups,
     rows,
     prepareRow,
+    totalColumnsWidth,
   } = useTable(
     {
       columns,
@@ -66,6 +74,7 @@ function TableWrapper({
       disableMultiSort: false,
     } as any,
     useSortBy,
+    // useResizeColumns,
     useFlexLayout
   );
 
@@ -118,6 +127,14 @@ function TableWrapper({
 
   const scrollBarSize = useMemo(() => scrollbarWidth(), []);
 
+  const handleScroll = useCallback(({ target }) => {
+    const { scrollTop } = target;
+    console.log(scrollTop);
+
+    (listRef.current as any)?.scrollTo(scrollTop);
+    window.form = listRef.current;
+  }, []);
+
   // TODO: Integrate column resize
   return (
     <table
@@ -137,32 +154,49 @@ function TableWrapper({
                 {...column.getHeaderProps(
                   (column as any).getSortByToggleProps()
                 )}
-                className="text-left text-gray-500 border-r border-gray-200 px-1.5 py-1"
+                className="text-left text-gray-500 border-r border-gray-200"
               >
                 {column.render("Header", {
                   isSorted: (column as any)?.isSorted,
                   isSortedDesc: (column as any).isSortedDesc,
                   toggleSortBy: (column as any).toggleSortBy,
                 })}
+                {/* <div
+                  {...column.getResizerProps()}
+                  className={classNames(
+                    "bg-blue-700 w-px h-full inline-block transform -translate-x-1 hover:w-1 hover:scale-x-150 pl-1"
+                  )}
+                /> */}
               </th>
             ))}
           </div>
         ))}
       </thead>
       <tbody {...getTableBodyProps()} className="block h-full">
-        <AutoSizer disableWidth>
-          {({ height }) => (
-            <FixedSizeList
-              height={height}
-              itemCount={rows.length}
-              itemSize={35}
-              width="100%"
-              ref={listRef}
-            >
-              {RenderRow}
-            </FixedSizeList>
-          )}
-        </AutoSizer>
+        <Scrollbars
+          style={{ height: "100%", width: "100%" }}
+          // autoHide
+          // autoHeight
+          // autoHeightMin={600}
+          // autoHeightMax={700}
+          onScroll={handleScroll}
+          hideTracksWhenNotNeeded
+        >
+          <AutoSizer disableWidth>
+            {({ height }) => (
+              <FixedSizeList
+                height={height}
+                itemCount={rows.length}
+                itemSize={35}
+                width="100%"
+                ref={listRef}
+                style={{ overflow: false }}
+              >
+                {RenderRow}
+              </FixedSizeList>
+            )}
+          </AutoSizer>
+        </Scrollbars>
       </tbody>
     </table>
   );
@@ -230,7 +264,7 @@ function ColumnHeader({
 
   return (
     <div
-      className="flex flex-row items-center justify-between"
+      className="flex flex-row items-center justify-between p-1.5"
       cm-template="columnHeaderContext"
       cm-payload-column={fieldPath}
       cm-id={fieldPath}
@@ -333,7 +367,7 @@ function DataTable() {
       {
         Header: () => (
           <div
-            className="w-5 text-gray-400 cursor-pointer"
+            className="flex justify-center w-5 h-full text-gray-400 cursor-pointer"
             role="presentation"
             onClick={() => actionToggleModalPickProperty(true)}
           >

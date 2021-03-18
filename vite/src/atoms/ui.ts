@@ -1,4 +1,4 @@
-import { atom, atomFamily, selector } from "recoil";
+import { atom, atomFamily, DefaultValue, selector } from "recoil";
 import { changedDocAtom, deletedDocsAtom, newDocsAtom } from "./firestore";
 import { userPersistAtom } from "./persistAtom";
 
@@ -82,12 +82,10 @@ export const largeDataAtom = selector({
     const { totalDocs } = get(isParsingLargeDataAtom);
     return new Promise((resolve) => {
       setTimeout(() => {
-        console.log("Time out");
         requestAnimationFrame(() => {
-          console.log("animation frame");
           resolve(true);
         });
-      }, Math.min(totalDocs * 10, 5000)); // Assumption parsing time of one doc is 10ms
+      }, 100);
     });
   },
 });
@@ -123,4 +121,38 @@ export const monacoDataErrorAtom = atomFamily<string, string>({
 export const importCollectionPathAtom = atom<string>({
   key: "ui/importCollectionPath",
   default: "",
+});
+
+interface INotificationMessages {
+  id: string;
+  type: "error" | "warning" | "success";
+  message: string;
+  showTime: number;
+}
+
+export const notifierAtom = atom<INotificationMessages[]>({
+  key: "ui/notifier",
+  default: [],
+  effects_UNSTABLE: [
+    ({ onSet, setSelf }) => {
+      onSet((newNotification) => {
+        if (newNotification instanceof DefaultValue) {
+          return;
+        }
+        const latestNotification = [...newNotification].pop();
+        if (latestNotification) {
+          setTimeout(() => {
+            setSelf((list) => {
+              if (Array.isArray(list)) {
+                return list.filter((list) => list.id !== latestNotification.id);
+              }
+              return list;
+            });
+          }, latestNotification.showTime);
+        }
+
+        return;
+      });
+    },
+  ],
 });

@@ -27,7 +27,9 @@ const createWindow = (socketName: string): void => {
   mainWindow = new BrowserWindow({
     show: false,
     width: 1000,
-    height: 800,
+    height: 1000,
+    minWidth: 1500,
+    minHeight: 900,
     backgroundColor: "#fff",
     webPreferences: {
       enableRemoteModule: false,

@@ -5,7 +5,7 @@ import {
   queryVersionAtom,
   sorterAtom,
 } from "@/atoms/navigator";
-import { actionTriggerLoadData } from "@/atoms/ui.action";
+import { actionTriggerLoadData, notifyErrorPromise } from "@/atoms/ui.action";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import firebase from "firebase";
 import { deserializeDocumentSnapshotArray } from "firestore-serializers";
@@ -106,7 +106,8 @@ const DataSubscriber = () => {
       })
       .then(({ id }) => {
         subscribeId.current = id;
-      });
+      })
+      .catch(notifyErrorPromise);
 
     return () => {
       unsubscribe();

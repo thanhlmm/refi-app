@@ -1,5 +1,6 @@
 import {
   allDocsAtom,
+  deletedDocsAtom,
   hasNewDocAtom,
   pathExpanderAtom,
 } from "@/atoms/firestore";
@@ -17,7 +18,8 @@ import {
   actionExportDocJSON,
   actionGoTo,
 } from "@/atoms/navigator.action";
-import { actionToggleImportModal } from "@/atoms/ui.action";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { actionToggleImportModal, notifyErrorPromise } from "@/atoms/ui.action";
 import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import {
@@ -298,12 +300,12 @@ const addNewCollectionNode = (
 
 interface ITreeViewProps {
   allDocs: ClientDocumentSnapshot[];
+  deletedDocs: ClientDocumentSnapshot[];
   pathAvailable: string[];
 }
 
-function TreeView({ allDocs, pathAvailable }: ITreeViewProps) {
+function TreeView({ allDocs, deletedDocs, pathAvailable }: ITreeViewProps) {
   const [path, setPath] = useRecoilState(navigatorPathAtom);
-  console.log(allDocs.length);
   // const allDocs = useRecoilValue(allDocsAtom);
   // const pathAvailable = useRecoilValue(pathExpanderAtom);
   const [searchInput, setSearchInput] = useState("");
@@ -325,7 +327,8 @@ function TreeView({ allDocs, pathAvailable }: ITreeViewProps) {
       .send("fs.pathExpander", { path: prettifyPath(node.key.toString()) })
       .then((response: string[]) => {
         actionAddPathExpander(response);
-      });
+      })
+      .catch(notifyErrorPromise);
 
     return;
   }, []);
@@ -338,7 +341,10 @@ function TreeView({ allDocs, pathAvailable }: ITreeViewProps) {
   );
 
   const allPaths = useMemo(() => {
-    let paths = [...pathAvailable, ...allDocs.map((doc) => doc.ref.path)];
+    let paths = [
+      ...pathAvailable,
+      ...allDocs.map((doc) => doc.ref.path),
+    ].filter((item) => !deletedDocs.find((doc) => doc.ref.path === item));
 
     if (searchInput) {
       paths = paths.filter((path) =>
@@ -347,7 +353,7 @@ function TreeView({ allDocs, pathAvailable }: ITreeViewProps) {
     }
 
     return paths;
-  }, [pathAvailable, allDocs, searchInput]);
+  }, [pathAvailable, allDocs, deletedDocs, searchInput]);
 
   const treeData = useMemo(() => {
     const currentTree = constructData(
@@ -478,7 +484,7 @@ function TreeView({ allDocs, pathAvailable }: ITreeViewProps) {
         onChange={(e) => setSearchInput(e.target.value)}
       />
       <div
-        className="h-full mt-2"
+        className="flex flex-col h-full mt-2"
         tabIndex={1}
         ref={treeWrapperRef}
         onFocus={handleOnFocus}
@@ -506,37 +512,27 @@ function TreeView({ allDocs, pathAvailable }: ITreeViewProps) {
             </svg>
           </button>
         </div>
-        <Tree
-          showLine
-          treeData={treeData as any}
-          onSelect={handleSelectTree}
-          height={800}
-          loadData={handleExpandData}
-          virtual
-          focusable
-          itemHeight={24}
-          className="h-full"
-          defaultExpandedKeys={[path]}
-          selectedKeys={[path]}
-          expandedKeys={expandedKeysWithFilter}
-          onExpand={handleOnExpand}
-        />
-        {/* <AutoSizer disableWidth>
-          {({ height }) => (
-            <Tree
-              showLine
-              treeData={treeData as any}
-              onSelect={handleSelectTree}
-              height={height}
-              loadData={handleExpandData}
-              virtual
-              focusable
-              itemHeight={24}
-              className="h-full"
-              selectedKeys={selectedKeys}
-            />
-          )}
-        </AutoSizer> */}
+        <div className="w-full h-full">
+          <AutoSizer disableWidth>
+            {({ height }) => (
+              <Tree
+                showLine
+                treeData={treeData as any}
+                onSelect={handleSelectTree}
+                height={height}
+                loadData={handleExpandData}
+                virtual
+                focusable
+                itemHeight={24}
+                className="h-full"
+                defaultExpandedKeys={[path]}
+                selectedKeys={[path]}
+                expandedKeys={expandedKeysWithFilter}
+                onExpand={handleOnExpand}
+              />
+            )}
+          </AutoSizer>
+        </div>
       </div>
     </div>
   );
@@ -544,29 +540,34 @@ function TreeView({ allDocs, pathAvailable }: ITreeViewProps) {
 
 const TreeViewDebouncer = () => {
   const allDocs = useRecoilValue(allDocsAtom);
+  const deletedDocs = useRecoilValue(deletedDocsAtom);
   const pathAvailable = useRecoilValue(pathExpanderAtom);
-  const [debouncedDocs, setDebouncedDoc] = useState<ClientDocumentSnapshot[]>(
+  const [debouncedDocs, setDebouncedDocs] = useState<ClientDocumentSnapshot[]>(
     allDocs
   );
+  const [debouncedDeletedDocs, setDebouncedDeletedDocs] = useState<
+    ClientDocumentSnapshot[]
+  >(deletedDocs);
   const [debouncedPathAvailable, setDebouncedPathAvailable] = useState<
     string[]
   >(pathAvailable);
 
-  console.log({ allDocs });
-  // useRecoilValue(largeDataAtom); // Make parent suspense
-
   useDebounce(
     () => {
-      console.log("Typing stopped");
-      setDebouncedDoc(allDocs);
+      setDebouncedDocs(allDocs);
+      setDebouncedDeletedDocs(deletedDocs);
       setDebouncedPathAvailable(pathAvailable);
     },
     250,
-    [allDocs, pathAvailable]
+    [allDocs, deletedDocs, pathAvailable]
   );
 
   return (
-    <TreeView allDocs={debouncedDocs} pathAvailable={debouncedPathAvailable} />
+    <TreeView
+      allDocs={debouncedDocs}
+      deletedDocs={debouncedDeletedDocs}
+      pathAvailable={debouncedPathAvailable}
+    />
   );
 };
 
