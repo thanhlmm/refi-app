@@ -88,10 +88,7 @@ export const actionAddSorter = (
   ]);
 };
 
-export const actionExportCollectionJSON = async (
-  collectionPath: string
-): Promise<boolean> => {
-  console.trace();
+export const actionExportCollectionJSON = async (collectionPath: string) => {
   return window
     .send("fs.exportCollection", {
       path: collectionPath,
@@ -109,9 +106,7 @@ export const actionExportCollectionJSON = async (
     .catch(notifyErrorPromise);
 };
 
-export const actionExportCollectionCSV = async (
-  collectionPath: string
-): Promise<boolean> => {
+export const actionExportCollectionCSV = async (collectionPath: string) => {
   return window
     .send("fs.exportCollection", {
       path: collectionPath,
