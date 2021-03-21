@@ -146,7 +146,7 @@ const EditableCell = ({
           break;
         case "boolean":
           defaultEditor = (
-            <div className="p-1">
+            <div className="p-1.5">
               <Field>
                 <Checkbox
                   checked={value as boolean}
