@@ -10,6 +10,6 @@ export default defineConfig({
   plugins: [reactRefresh()],
   build: {
     brotliSize: false,
-    sourcemap: "inline",
+    // sourcemap: "inline",
   },
 });

@@ -18,7 +18,15 @@ jobs:
         run: cd vite && yarn
       - name: Build Vite
         run: cd vite && yarn run build
+      - name: Install electron package
+        run: cd server && yarn
+      - name: Build Electron
+        run: cd server && yarn run package
       - uses: actions/upload-artifact@v1
         with:
           name: build_file
           path: vite/dist
+      - uses: actions/upload-artifact@v1
+        with:
+          name: electron_file
+          path: server/out
