@@ -1,7 +1,7 @@
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { chunk, flatten, intersection, uniq } from "lodash";
 import { isObject, simplify } from "./simplifr";
-import firebase from "firebase";
+import firebase from "firebase/app";
 
 export const isCollection = (path = ""): boolean => {
   return !Boolean(path.split("/").length % 2);

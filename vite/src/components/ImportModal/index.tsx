@@ -45,8 +45,6 @@ const ImportModal = () => {
   });
 
   const onSubmit = (value: any) => {
-    console.log(value);
-
     actionImportDocs(value.path, docs).then(() => {
       setFile(undefined);
       setShowImportModal(false);

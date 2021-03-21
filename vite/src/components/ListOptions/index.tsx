@@ -46,7 +46,6 @@ const ListOptions = ({
 
   useEffect(() => {
     if (!currentOption) {
-      console.log("reset active");
       setActive(1);
     }
   }, [currentOption]);

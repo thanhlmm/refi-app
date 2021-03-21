@@ -7,7 +7,7 @@ import {
 } from "@/atoms/navigator";
 import { actionTriggerLoadData, notifyErrorPromise } from "@/atoms/ui.action";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import firebase from "firebase";
+import firebase from "firebase/app";
 import { deserializeDocumentSnapshotArray } from "firestore-serializers";
 import { useEffect, useRef } from "react";
 import { useRecoilValue } from "recoil";

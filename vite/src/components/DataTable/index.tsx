@@ -17,26 +17,13 @@ import { largeDataAtom } from "@/atoms/ui";
 import { actionToggleModalPickProperty } from "@/atoms/ui.action";
 import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import React, {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react";
-import {
-  useFlexLayout,
-  useResizeColumns,
-  useSortBy,
-  useTable,
-} from "react-table";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { Scrollbars } from "react-custom-scrollbars";
+import { useFlexLayout, useSortBy, useTable } from "react-table";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { IDReadOnlyField } from "../EditableCell";
-import scrollbarWidth from "./scroll-bar-width";
-import classNames from "classnames";
-import { Scrollbars } from "react-custom-scrollbars";
 
 function TableWrapper({
   columns,
@@ -125,14 +112,10 @@ function TableWrapper({
     [prepareRow, rows]
   );
 
-  const scrollBarSize = useMemo(() => scrollbarWidth(), []);
-
   const handleScroll = useCallback(({ target }) => {
     const { scrollTop } = target;
-    console.log(scrollTop);
 
     (listRef.current as any)?.scrollTo(scrollTop);
-    window.form = listRef.current;
   }, []);
 
   // TODO: Integrate column resize

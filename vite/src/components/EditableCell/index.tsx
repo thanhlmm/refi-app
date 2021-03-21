@@ -98,6 +98,8 @@ const EditableCell = ({
     }
   };
 
+  // TODO: Add quick look for object type. It will open a modal showing what inside, user can see it but can not edit it
+
   const editorComponent = useMemo(() => {
     let defaultEditor: ReactElement = (
       <input

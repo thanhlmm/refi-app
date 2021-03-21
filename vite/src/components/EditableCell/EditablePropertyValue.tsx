@@ -139,18 +139,20 @@ export const EditablePropertyValue = ({
     []
   );
 
-  let defaultEditor: ReactElement;
+  let defaultEditor: ReactElement | null;
 
   switch (fieldType) {
     case "timestamp":
       defaultEditor = (
         <DateTimePicker
           value={instanceValue as firebase.firestore.Timestamp}
-          onChange={onChange}
+          onChange={setValue}
         />
       );
       break;
-    // TODO: Add quick look for object type. It will open a modal showing what inside, user can see it but can not edit it
+    case "null":
+      defaultEditor = null;
+      break;
     case "map":
       defaultEditor = (
         <ObjectInput fieldPath={fieldPath} toggleExpand={toggleExpand} />

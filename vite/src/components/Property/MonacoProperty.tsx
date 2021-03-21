@@ -8,7 +8,7 @@ import {
 import { simplify } from "@/utils/simplifr";
 import Editor, { OnValidate, useMonaco } from "@monaco-editor/react";
 import { diff } from "deep-diff";
-import firebase from "firebase";
+import firebase from "firebase/app";
 import {
   deserializeDocumentSnapshot,
   serializeDocumentSnapshot,

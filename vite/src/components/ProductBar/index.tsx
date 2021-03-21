@@ -12,7 +12,7 @@ import React, { ReactElement, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRecoilState } from "recoil";
 import classNames from "classnames";
-import firebase from "firebase";
+import firebase from "firebase/app";
 
 const ProductBar = (): ReactElement => {
   const [isShowNews, setShowNews] = useRecoilState(isModalNewsAtom);
@@ -58,8 +58,6 @@ const ProductBar = (): ReactElement => {
         break;
     }
   };
-
-  console.log(emotion);
 
   return (
     <>

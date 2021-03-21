@@ -12,6 +12,9 @@ import findOpenSocket from './utils/find-open-socket';
 import db from './client/db';
 import ContextMenu from './lib/electron-context-menu'
 import { contextConfig } from './contextMenu';
+import serve from 'electron-serve';
+
+const loadURL = serve({ directory: 'build' });
 
 let serverProcess: any;
 let serverSocket: string;
@@ -22,7 +25,7 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
   app.quit();
 }
 
-const createWindow = (socketName: string): void => {
+const createWindow = async (socketName: string) => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     show: false,
@@ -45,11 +48,11 @@ const createWindow = (socketName: string): void => {
   mainWindow.show();
 
   // and load the index.html of the app.
-  mainWindow.loadURL(
-    isDev
-      ? "http://localhost:3000"
-      : `file://${path.join(__dirname, "../build/index.html")}` // TODO: Map to right path
-  );
+  if (isDev) {
+    mainWindow.loadURL("http://localhost:3000");
+  } else {
+    await loadURL(mainWindow);
+  }
 
   // Open the DevTools.
   if (isDev) {

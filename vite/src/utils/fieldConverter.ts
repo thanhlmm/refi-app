@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { DocRef } from "firestore-serializers/src/DocRef";
 import { getFireStoreType } from "./simplifr";
-import firebase from "firebase";
+import firebase from "firebase/app";
 import { isNumeric } from "@/utils/common";
 
 export const fieldConverter: Record<
@@ -25,10 +25,12 @@ export const fieldConverter: Record<
       case "timestamp":
         // Try to parse
         try {
-          return firebase.firestore.Timestamp.fromDate(dayjs(value).toDate());
+          return dayjs(value).isValid()
+            ? firebase.firestore.Timestamp.fromDate(dayjs(value).toDate())
+            : firebase.firestore.Timestamp.now();
         } catch (error) {
           console.log(error);
-          return firebase.firestore.Timestamp.fromDate(new Date());
+          return firebase.firestore.Timestamp.now();
         }
       case "geopoint":
         try {
@@ -104,12 +106,15 @@ export const fieldConverter: Record<
   null: () => {
     return null;
   },
-  timestamp: (toType: RefiFS.IFieldType, value: string) => {
+  timestamp: (
+    toType: RefiFS.IFieldType,
+    value: firebase.firestore.Timestamp
+  ) => {
     switch (toType) {
       case "string":
-        return value;
+        return value.toDate().toISOString();
       case "number":
-        return Number(dayjs(value).toDate());
+        return value.toMillis();
       default:
         return null;
     }

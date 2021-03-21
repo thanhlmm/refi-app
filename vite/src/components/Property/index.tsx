@@ -40,11 +40,11 @@ const Property = () => {
     if (isCollection(currentPath)) {
       return (
         <div className="flex flex-col items-center justify-center w-full h-full">
-          <div className="w-1/4">
+          {/* <div className="w-1/4">
             <img src={Launching} />
-          </div>
+          </div> */}
           <h2 className="mt-4">
-            Click document on the table to start editing or{" "}
+            Click document on the table to start editing or
           </h2>
           <Button
             size="small"

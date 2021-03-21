@@ -4,7 +4,7 @@ import {
   deserializeDocumentSnapshotArray,
   serializeQuerySnapshot,
 } from "firestore-serializers";
-import firebase from "firebase";
+import firebase from "firebase/app";
 import { differenceBy, uniq, uniqBy, uniqueId } from "lodash";
 import {
   changedDocAtom,

@@ -39,9 +39,7 @@ function DropdownMenu({
 
   useEffect(() => {
     if (menuRef.current) {
-      console.log(menuRef.current?.getBoundingClientRect());
       const elementPosition = menuRef.current?.getBoundingClientRect();
-      console.log(window.innerHeight - elementPosition.top);
       if (window.innerHeight - elementPosition.top < 400) {
         setBottom(false);
       }
