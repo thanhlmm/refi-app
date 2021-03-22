@@ -1,10 +1,12 @@
 import {
   changedDocAtom,
+  collectionHasBeenDeleteAtom,
   deletedDocsAtom,
   newDocsAtom,
 } from "@/atoms/firestore";
 import {
   actionCommitChange,
+  actionReverseChange,
   actionReverseDocChange,
 } from "@/atoms/firestore.action";
 import { isShowPreviewChangeModalAtom } from "@/atoms/ui";
@@ -30,16 +32,17 @@ const PreviewChanges = () => {
   const changedDocs = useRecoilValue(changedDocAtom);
   const newDocs = useRecoilValue(newDocsAtom);
   const deletedDocs = useRecoilValue(deletedDocsAtom);
+  const deletedCollections = useRecoilValue(collectionHasBeenDeleteAtom);
 
   const changes = useMemo(() => {
     return [...changedDocs, ...newDocs, ...deletedDocs];
   }, [changedDocs, newDocs, deletedDocs]);
 
   useEffect(() => {
-    if (changes.length <= 0) {
+    if (changes.length <= 0 && deletedCollections.length <= 0) {
       setShowChangeModal(false);
     }
-  }, [changes]);
+  }, [changes, deletedCollections]);
 
   const groupSimilarDoc = useMemo(() => {
     return groupBy(changes, (doc) => getParentPath(doc.ref.path));
@@ -52,7 +55,7 @@ const PreviewChanges = () => {
 
   const handleOnReverseAll = () => {
     // TODO: Show confirm dialog
-    actionCommitChange();
+    actionReverseChange();
     setShowChangeModal(false);
   };
 
@@ -103,6 +106,28 @@ const PreviewChanges = () => {
           </Header>
 
           <ModalBody className="px-4">
+            <table className="w-full table-fixed">
+              <thead>
+                <tr>
+                  <th className="w-full"></th>
+                  <th className="w-20"></th>
+                  <th className="w-10"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {deletedCollections.map((collection) => (
+                  <tr key={collection}>
+                    <td>
+                      <b>{collection}</b>
+                    </td>
+                    <td>
+                      <Tag className="text-white bg-red-400">deleted</Tag>
+                    </td>
+                    <td />
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             {Object.keys(groupSimilarDoc)
               .sort((a, b) => a.localeCompare(b))
               .map((collection) => {
@@ -185,7 +210,7 @@ const PreviewChanges = () => {
                     d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
                   />
                 </svg>
-                Reverse all
+                Revert all
               </Button>
             </FooterItem>
             <FooterItem>

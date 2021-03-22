@@ -10,6 +10,7 @@ import { getPathEntities } from "@/utils/common";
 import { Span } from "@zendeskgarden/react-typography";
 import { viewModePathInputAtom } from "@/atoms/ui";
 import { useCopyToClipboard } from "react-use";
+import { actionGoTo } from "@/atoms/navigator.action";
 
 function PathInput() {
   const [path, setPath] = useRecoilState(navigatorPathAtom);
@@ -49,6 +50,15 @@ function PathInput() {
     }
   }, [copyStatus]);
 
+  const handleClickEntity = (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+    entity: string
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    actionGoTo(path.substring(0, path.indexOf(entity) + entity.length));
+  };
+
   const PathViewer = useMemo(() => {
     const entities = getPathEntities(path);
     let currentEntity = entities.pop();
@@ -61,7 +71,9 @@ function PathInput() {
         onClick={() => toggleViewMode(false)}
       >
         {entities.map((entity) => (
-          <Anchor key={entity}>{entity}</Anchor>
+          <Anchor key={entity} onClick={(e) => handleClickEntity(e, entity)}>
+            {entity}
+          </Anchor>
         ))}
 
         <Span>{currentEntity}</Span>

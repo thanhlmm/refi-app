@@ -10,6 +10,9 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import DropdownMenu from "@/components/DropdownMenu";
 import SorterList from "../SorterList";
 import FilterItem from "./FilterItem";
+import { Tooltip } from "@zendeskgarden/react-tooltips";
+import ShortcutKey from "../ShortcutKey";
+import { globalHotKeys } from "@/atoms/hotkeys";
 
 const Filters = () => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
@@ -90,20 +93,54 @@ const Filters = () => {
           </TooltipModal>
         </div>
         <div className="flex flex-row space-x-2">
-          <Button
-            size="small"
-            onClick={() => actionNewDocument(collectionPath)}
+          <Tooltip
+            placement="bottom"
+            appendToNode={document.body}
+            zIndex={40}
+            delayMS={100}
+            hasArrow={false}
+            size="medium"
+            type="light"
+            className="max-w-2xl p-2"
+            content={
+              <ShortcutKey
+                size="small"
+                hotkey={globalHotKeys.NEW_DOCUMENT.sequences}
+              />
+            }
           >
-            New document
-          </Button>
-          <div className="flex flex-row">
             <Button
               size="small"
-              isPrimary
-              onClick={() => actionSubmitQuery(true)}
+              onClick={() => actionNewDocument(collectionPath)}
             >
-              Query
+              New document
             </Button>
+          </Tooltip>
+          <div className="flex flex-row">
+            <Tooltip
+              placement="bottom"
+              appendToNode={document.body}
+              zIndex={40}
+              delayMS={100}
+              hasArrow={false}
+              size="medium"
+              type="light"
+              className="max-w-2xl p-2"
+              content={
+                <ShortcutKey
+                  size="small"
+                  hotkey={globalHotKeys.SEND_QUERY.sequences}
+                />
+              }
+            >
+              <Button
+                size="small"
+                isPrimary
+                onClick={() => actionSubmitQuery(true)}
+              >
+                Query
+              </Button>
+            </Tooltip>
             <DropdownMenu menu={queryMenu} placement="right" className="ml-px">
               <Button size="small" isPrimary className="px-0.5">
                 <svg

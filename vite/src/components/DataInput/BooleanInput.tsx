@@ -12,7 +12,7 @@ const BooleanInput = ({ value, onChange }: IBooleanInputProps) => {
   };
 
   return (
-    <div className="p-1">
+    <div className="h-12 p-1">
       <Field>
         <Checkbox checked={value} onChange={handleCheckBoxChange}>
           <Label isRegular hidden>

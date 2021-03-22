@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.0.10",
+    "@popperjs/core": "^2.9.1",
     "@zendeskgarden/container-focusjail": "^1.4.6",
     "@zendeskgarden/react-breadcrumbs": "^8.32.1",
     "@zendeskgarden/react-buttons": "^8.32.1",
@@ -24,7 +25,6 @@
     "@zendeskgarden/react-theming": "^8.32.1",
     "@zendeskgarden/react-tooltips": "^8.32.1",
     "@zendeskgarden/react-typography": "^8.32.1",
-    "ahooks": "^2.9.6",
     "csvtojson": "^2.0.10",
     "dayjs": "^1.10.4",
     "deep-diff": "^1.0.2",
@@ -80,7 +80,6 @@
     "@typescript-eslint/eslint-plugin": "^4.15.1",
     "@typescript-eslint/parser": "^4.15.1",
     "@vitejs/plugin-react-refresh": "^1.1.0",
-    "@welldone-software/why-did-you-render": "^6.1.1",
     "classnames": "^2.2.6",
     "cross-env": "^7.0.3",
     "eslint": "^7.20.0",

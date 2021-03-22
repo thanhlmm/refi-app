@@ -7,6 +7,7 @@ import {
 } from "firestore-serializers";
 import { uniq, uniqueId } from "lodash";
 import { collectionWithQueryAtom, docAtom } from "./firestore";
+import { actionAddPathExpander } from "./firestore.action";
 import {
   navigatorCollectionPathAtom,
   navigatorPathAtom,
@@ -94,7 +95,7 @@ export const actionExportCollectionJSON = async (collectionPath: string) => {
       path: collectionPath,
     })
     .then(({ docs }: { docs: string }) => {
-      const docsAsString = removeFirebaseSerializeMetaData(docs);
+      const docsAsString = removeFirebaseSerializeMetaData(docs, ["__path__"]);
       exportFromJSON({
         data: docsAsString,
         fileName: collectionPath.replaceAll("/", "_"),
@@ -112,7 +113,7 @@ export const actionExportCollectionCSV = async (collectionPath: string) => {
       path: collectionPath,
     })
     .then(({ docs }: { docs: string }) => {
-      const docsAsString = removeFirebaseSerializeMetaData(docs);
+      const docsAsString = removeFirebaseSerializeMetaData(docs, ["__path__"]);
       exportFromJSON({
         data: docsAsString,
         fileName: collectionPath.replaceAll("/", "_"),
@@ -137,7 +138,8 @@ export const actionExportViewJSON = async (
   const docsAsString = removeFirebaseSerializeMetaData(
     serializeQuerySnapshot({
       docs,
-    })
+    }),
+    ["__path__"]
   );
 
   exportFromJSON({
@@ -162,7 +164,8 @@ export const actionExportViewCSV = async (
   const docsAsString = removeFirebaseSerializeMetaData(
     serializeQuerySnapshot({
       docs,
-    })
+    }),
+    ["__path__"]
   );
 
   exportFromJSON({
@@ -238,4 +241,14 @@ export const actionAddFilter = (
       isActive: true,
     },
   ]);
+};
+
+export const actionPathExpand = (path: string) => {
+  window
+    .send("fs.pathExpander", { path: prettifyPath(path) })
+    .then((response: string[]) => {
+      console.log(response);
+      actionAddPathExpander(response);
+    })
+    .catch(notifyErrorPromise);
 };

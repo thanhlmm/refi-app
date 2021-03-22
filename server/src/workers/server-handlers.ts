@@ -32,6 +32,7 @@ handlers["fs.updateDocs"] = fsService.updateDocs.bind(fsService);
 handlers["fs.addDoc"] = fsService.addDoc.bind(fsService);
 handlers["fs.addDocs"] = fsService.addDocs.bind(fsService);
 handlers["fs.deleteDocs"] = fsService.deleteDocs.bind(fsService);
+handlers["fs.deleteCollections"] = fsService.deleteCollections.bind(fsService);
 handlers["fs.importDocs"] = fsService.importDocs.bind(fsService);
 handlers["fs.exportCollection"] = fsService.exportCollection.bind(fsService);
 handlers["fs.getDocs"] = fsService.getDocs.bind(fsService);

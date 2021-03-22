@@ -81,7 +81,6 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
         <UniversalHotKey />
         <DataSubscriber />
         <URLSynchronizer />
-        {/* <RecoilSelector /> */}
         <ReactGridLayout
           className="transition-none layout"
           layout={layout}
@@ -92,7 +91,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
           isDraggable={false}
           isResizable={false}
         >
-          <div key="nav-bar">
+          <div key="nav-bar" className="z-30">
             <NavBar />
           </div>
           <div key="sidebar">

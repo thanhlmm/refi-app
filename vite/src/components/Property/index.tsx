@@ -94,6 +94,8 @@ const Property = () => {
             size="medium"
             type="light"
             className="max-w-2xl"
+            appendToNode={document.body}
+            zIndex={40}
             content={
               <span>
                 Type <code className="text-red-700 bg-gray-100 p-0.5">/</code>{" "}

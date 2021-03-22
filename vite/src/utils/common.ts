@@ -4,6 +4,10 @@ import { isObject, simplify } from "./simplifr";
 import firebase from "firebase/app";
 
 export const isCollection = (path = ""): boolean => {
+  console.log("isCollection", path);
+  if (path === "/") {
+    return false;
+  }
   return !Boolean(path.split("/").length % 2);
 };
 
@@ -125,6 +129,7 @@ export const buildTableSubRows = (
 ): ITableSubRow[] => {
   return rows
     .filter(({ field }) => field.split(".").length === level && field !== "")
+    .sort((a, b) => a.field.localeCompare(b.field))
     .reduce((rowWithSub: ITableSubRow[], { field, value }) => {
       if (isObject(value)) {
         rowWithSub.push({
@@ -161,9 +166,10 @@ export const reorder = function <T>(
   return result;
 };
 
-export const removeFirebaseSerializeMetaData = (docStr: string): string => {
-  const metaDataField = ["__id__", "__path__"];
-
+export const removeFirebaseSerializeMetaData = (
+  docStr: string,
+  metaDataField: string[] = ["__id__", "__path__"]
+): string => {
   try {
     const docData: any | any[] = JSON.parse(docStr);
     if (Array.isArray(docData)) {

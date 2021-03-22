@@ -12,8 +12,8 @@ const Notifier = () => {
   };
 
   const notificationList = notifications.map((notif) => (
-    <Notification key={notif.id} type={notif.type} className="mt-4">
-      <Title>{notif.type}</Title>
+    <Notification key={notif.id} type={notif.type} className="mt-4 w-96">
+      <Title className="capitalize">{notif.type}</Title>
       {notif.message}
       <Close
         aria-label="Close Alert"

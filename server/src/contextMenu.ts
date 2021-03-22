@@ -54,7 +54,8 @@ export const contextConfig = {
   "treeCollectionContext": [
     {
       id: "NEW_DOC",
-      label: "New document"
+      label: "New document",
+      accelerator: "CommandOrControl+N"
     },
     {
       type: "separator"
@@ -99,11 +100,13 @@ export const contextConfig = {
     },
     {
       id: "EXPORT_VIEW_CSV",
-      label: "Export current table as CSV"
+      label: "Export current table as CSV",
+      accelerator: "CommandOrControl+E"
     },
     {
       id: "EXPORT_VIEW_JSON",
-      label: "Export current table as JSON"
+      label: "Export current table as JSON",
+      accelerator: "CommandOrControl+Shift+E"
     },
     {
       type: "separator"

@@ -12,10 +12,10 @@ import {
   deletedDocsAtom,
   docAtom,
   docsLibraryAtom,
-  hasBeenDeleteAtom,
+  collectionHasBeenDeleteAtom,
   newDocsAtom,
   parseFSUrl,
-  pathExpanderAtom,
+  pathExpanderPureAtom,
 } from "./firestore";
 import {
   getRecoilExternalLoadable,
@@ -84,7 +84,7 @@ export const actionRemoveDocs = (
 
 // This is trigger from user
 export const actionDeleteCollection = async (path: string): Promise<void> => {
-  setRecoilExternalState(hasBeenDeleteAtom(path), true);
+  console.log(`start delete collection ${path}`);
   // Marks all docs as delete
   const docsInCollection = await getRecoilExternalLoadable(
     collectionAtom(path)
@@ -101,8 +101,14 @@ export const actionDeleteCollection = async (path: string): Promise<void> => {
       uniqBy([...docs, ...docsInCollection], (doc) => doc.ref.path),
   });
 
-  setRecoilBatchUpdate(updater);
-  // setTimeout(() => { });
+  updater.push({
+    atom: collectionHasBeenDeleteAtom,
+    valOrUpdater: (paths) => uniq([...paths, path]),
+  });
+
+  requestAnimationFrame(() => {
+    setRecoilBatchUpdate(updater);
+  });
 };
 
 export const actionUpdateDoc = (doc: ClientDocumentSnapshot): void => {
@@ -143,9 +149,20 @@ export const actionCommitChange = async (): Promise<boolean> => {
   ).toPromise();
 
   const newDocs = await getRecoilExternalLoadable(newDocsAtom).toPromise();
-  const deletedDocs = await getRecoilExternalLoadable(
+  const allDeletedDocs = await getRecoilExternalLoadable(
     deletedDocsAtom
   ).toPromise();
+
+  const deletedCollections = await getRecoilExternalLoadable(
+    collectionHasBeenDeleteAtom
+  ).toPromise();
+
+  const deletedDocs = allDeletedDocs.filter(
+    (doc) =>
+      !deletedCollections.find((collection) =>
+        doc.ref.path.startsWith(collection)
+      )
+  );
 
   window
     .send("fs.updateDocs", {
@@ -165,6 +182,23 @@ export const actionCommitChange = async (): Promise<boolean> => {
     })
     .then(() => {
       resetRecoilExternalState(deletedDocsAtom);
+    })
+    .catch(notifyErrorPromise);
+
+  window
+    .send("fs.deleteCollections", {
+      collections: deletedCollections,
+    })
+    .then(() => {
+      resetRecoilExternalState(collectionHasBeenDeleteAtom);
+      setRecoilExternalState(pathExpanderPureAtom, (paths) =>
+        paths.filter(
+          (path) =>
+            !deletedCollections.find((collection) =>
+              path.startsWith(collection)
+            )
+        )
+      );
     })
     .catch(notifyErrorPromise);
   return true;
@@ -230,7 +264,7 @@ export const actionReverseDocChange = async (
 };
 
 export const actionAddPathExpander = (paths: string[]) => {
-  setRecoilExternalState(pathExpanderAtom, (currentValue) =>
+  setRecoilExternalState(pathExpanderPureAtom, (currentValue) =>
     uniq([...currentValue, ...paths.map((path) => prettifyPath(path))])
   );
 };
@@ -249,14 +283,27 @@ export const actionDuplicateDoc = async (path: string) => {
   actionGoTo(newDoc.ref.path);
 };
 
-export const actionImportDocs = async (path: string, docs: any[]) => {
+interface IActionImportDocsOption {
+  idField?: string;
+  autoParseJSON?: boolean;
+}
+
+export const actionImportDocs = async (
+  path: string,
+  docs: any[],
+  option: IActionImportDocsOption
+) => {
+  console.log({
+    docs,
+    path,
+    option,
+  });
   // TODO: Check if path is collection
-  return window
-    .send("fs.importDocs", {
-      docs,
-      path,
-    })
-    .catch(notifyErrorPromise);
+  return window.send("fs.importDocs", {
+    docs,
+    path,
+    option,
+  });
 };
 
 export const actionNewDocument = async (

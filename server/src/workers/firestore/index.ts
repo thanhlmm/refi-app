@@ -4,6 +4,7 @@ import { getDocMetaData } from "../../utils/converter";
 import { v4 as uuidv4 } from 'uuid';
 import { deserializeDocumentSnapshotArray, DocumentSnapshot, serializeDocumentSnapshot, serializeQuerySnapshot } from "firestore-serializers";
 import { isCollection } from "../../utils/navigator";
+import { chunk, get } from "lodash";
 
 export default class FireStoreService implements NSFireStore.IService {
   private ctx: IServiceContext;
@@ -138,8 +139,9 @@ export default class FireStoreService implements NSFireStore.IService {
 
   public async subscribePathExplorer({ path, topic }: NSFireStore.IPathSubscribe) {
     console.log("received event fs.pathExplorer", { path, topic });
+    // TODO: Change me to not realtime
     const close = this.fsClient()
-      .collection(path)
+      .collection(path !== '/' ? path : undefined)
       .onSnapshot(
         async (querySnapshot) => {
           const data: any[] = [];
@@ -168,12 +170,15 @@ export default class FireStoreService implements NSFireStore.IService {
     const fs = this.fsClient();
     const docsSnapshot = deserializeDocumentSnapshotArray(docs, admin.firestore.GeoPoint, admin.firestore.Timestamp, path => fs.doc(path))
     try {
-      await fs.runTransaction(async (tx) => {
-        docsSnapshot.forEach(docSnapshot => {
-          console.log(docSnapshot.data());
-          tx.set(fs.doc(docSnapshot.ref.path), docSnapshot.data())
-        })
-      });
+      const docsTrunk = chunk(docsSnapshot, 500); // Split by 500 each chunk
+      // TODO: Make it parallel
+      docsTrunk.forEach(async (chunk) => {
+        await fs.runTransaction(async (tx) => {
+          chunk.forEach(docSnapshot => {
+            tx.set(fs.doc(docSnapshot.ref.path), docSnapshot.data())
+          })
+        });
+      })
 
       console.log('Transaction success!');
     } catch (e) {
@@ -205,39 +210,111 @@ export default class FireStoreService implements NSFireStore.IService {
   public async addDocs({ docs }: NSFireStore.IAddDocs): Promise<boolean> {
     const fs = this.fsClient();
     const docsSnapshot = deserializeDocumentSnapshotArray(docs, admin.firestore.GeoPoint, admin.firestore.Timestamp, path => fs.doc(path))
-    const batch = fs.batch();
-    docsSnapshot.forEach((doc) => {
-      const newDocRef = fs.doc(doc.ref.path);
-      batch.set(newDocRef, doc.data())
-    })
 
-    await batch.commit();
+    const docsTrunk = chunk(docsSnapshot, 500); // Split by 500 each chunk
+    docsTrunk.forEach(async (chunk) => {
+      const batch = fs.batch();
+      chunk.forEach((doc) => {
+        const newDocRef = fs.doc(doc.ref.path);
+        batch.set(newDocRef, doc.data())
+      })
+  
+      await batch.commit();
+    })
     return true
   }
 
   public async deleteDocs({ docs }: NSFireStore.IRemoveDocs): Promise<boolean> {
     const fs = this.fsClient();
-    const batch = fs.batch();
-    docs.forEach((path) => {
-      const newDocRef = fs.doc(path);
-      batch.delete(newDocRef)
-    })
 
-    await batch.commit();
+    const docsTrunk = chunk(docs, 500); // Split by 500 each chunk
+    docsTrunk.forEach(async (chunk) => {
+      const batch = fs.batch();
+      chunk.forEach((path) => {
+        const newDocRef = fs.doc(path);
+        batch.delete(newDocRef)
+      })
+  
+      await batch.commit();
+    })
     return true;
   }
 
-  public async importDocs({ docs, path }: NSFireStore.IImportDocs): Promise<boolean> {
+  public async deleteCollections({ collections }: NSFireStore.IRemoveCollections): Promise<boolean> {
+    const fs = this.fsClient();
+
+    await Promise.all(collections.map(collectionPath => {
+      const collectionRef = fs.collection(collectionPath);
+      const query = collectionRef.orderBy('__name__').limit(500);
+
+      return new Promise(async (resolve, reject) => {
+        this.deleteQueryBatch(query, resolve).catch(reject);
+      });
+    }))
+
+    return true;
+  }
+
+  private async deleteQueryBatch(query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, resolve: (value: boolean) => void) {
+    const db = this.fsClient();
+    const snapshot = await query.get();
+
+    const batchSize = snapshot.size;
+    if (batchSize === 0) {
+      // When there are no documents left, we are done
+      resolve(true);
+      return;
+    }
+
+    // Delete documents in a batch
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+
+    // Recurse on the next process tick, to avoid
+    // exploding the stack.
+    process.nextTick(() => {
+      this.deleteQueryBatch(query, resolve);
+    });
+  }
+
+  public async importDocs({ docs, path, option: { idField = null, autoParseJSON } }: NSFireStore.IImportDocs): Promise<boolean> {
     const fs = this.fsClient();
     const collection = fs.collection(path);
-    const batch = fs.batch();
-    // TODO: What is we have more than 500 document?
-    docs.forEach((doc) => {
-      const newDocRef = collection.doc();
-      batch.set(newDocRef, doc)
-    })
 
-    await batch.commit();
+    console.log({ path, idField, autoParseJSON })
+
+    const docsTrunk = chunk(docs, 500); // Split by 500 each chunk
+
+    docsTrunk.forEach(async (chunk) => {
+      const batch = fs.batch();
+      chunk.forEach((doc) => {
+        const id = idField ? get(doc, idField) : undefined;
+        const newDocRef = id ? collection.doc(id) : collection.doc();
+        console.log(collection);
+        let docData = doc;
+        if (autoParseJSON) {
+          Object.keys(docData).forEach(key => {
+            const field = docData[key];
+            try {
+              docData[key] = JSON.parse(field);
+            } catch (error) {
+              console.warn(`Can not parse json for field ${key}`)
+              docData[key] = field;
+            }
+          })
+        }
+
+        delete doc.__id__;
+        delete doc.__path__;
+        batch.set(newDocRef, docData)
+      })
+  
+      await batch.commit();
+    });
+
     return true
   }
 
@@ -274,7 +351,7 @@ export default class FireStoreService implements NSFireStore.IService {
       return docsSnapshot.docs.map(doc => doc.ref.path);
     }
 
-    const listCollections = await fs.doc(path).listCollections();
+    const listCollections = await (path !== '/' ? fs.doc(path).listCollections() : fs.listCollections());
     return listCollections.map(collection => collection.path);
   }
 }

@@ -2,6 +2,7 @@ import { globalHotKeysHandler } from "@/atoms/hotkeys";
 import { isModalCommandAtom } from "@/atoms/ui";
 import EscExit from "@/components/EscExit";
 import ListOptions from "@/components/ListOptions";
+import ShortcutKey from "@/components/ShortcutKey";
 import { useFocusJail } from "@zendeskgarden/container-focusjail";
 import { Input } from "@zendeskgarden/react-forms";
 import { Body as ModalBody, Modal } from "@zendeskgarden/react-modals";
@@ -37,7 +38,7 @@ const CommandOption = ({
     href="#"
     key={command.name}
     className={classNames(
-      "flex flex-row justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-300 hover:text-gray-900",
+      "flex flex-row justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 hover:text-gray-900",
       { ["bg-gray-200"]: isActive }
     )}
     role="menuitem"
@@ -48,8 +49,12 @@ const CommandOption = ({
       }
     }}
   >
-    {command.name}{" "}
-    <span>{command.sequences.map((data) => data.sequence).join(";")}</span>
+    {command.name}
+    <span>
+      {command.sequences.map((data, index) => (
+        <ShortcutKey key={index} hotkey={data.sequence} />
+      ))}
+    </span>
   </a>
 );
 

@@ -1,7 +1,14 @@
 module.exports = {
   important: "#root-body",
   theme: {
-    extend: {},
+    extend: {
+      fontSize: {
+        key: "10px",
+      },
+      minHeight: {
+        12: "3rem",
+      },
+    },
     fontFamily: {
       sans: ["Inter", "sans-serif"],
       mono: ["Menlo", "Monaco", "Courier New", "monospace"],

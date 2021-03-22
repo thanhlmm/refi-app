@@ -3,7 +3,10 @@ import firebase from "firebase/app";
 import moment from "moment";
 import React, { ReactElement, useState } from "react";
 import * as DatetimeModule from "react-datetime";
-const Datetime = (DatetimeModule as any).default.default;
+const Datetime =
+  process.env.NODE_ENV === "production"
+    ? (DatetimeModule as any).default.default
+    : (DatetimeModule as any).default;
 import "./DateTimePicker.css";
 
 interface IDateTimePickerProps {
@@ -42,7 +45,7 @@ const DateTimePicker = ({
       className="h-full"
       inputProps={{
         className: classNames(
-          "w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5 border-none focus:ring-1 text-sm text-gray-800",
+          "w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5 border-none focus:ring-1 text-sm text-gray-800 bg-transparent",
           {
             ["focus:ring-red-400"]: !isValid,
             ["focus:ring-blue-400"]: isValid,

@@ -9,7 +9,7 @@ import { Checkbox, Field, Label } from "@zendeskgarden/react-forms";
 import { Tooltip } from "@zendeskgarden/react-tooltips";
 import classNames from "classnames";
 import { DocRef } from "firestore-serializers/src/DocRef";
-import { isUndefined } from "lodash";
+import { isEqual, isUndefined } from "lodash";
 import React, {
   ReactElement,
   ReactNode,
@@ -71,7 +71,8 @@ const EditableCell = ({
 
   // Sync the external into instanceValue
   useEffect(() => {
-    if (value !== instanceValue) {
+    if (!isUndefined(value) && !isEqual(instanceValue, value)) {
+      console.log("Old", instanceValue, "new", value);
       // TODO: Check if value return is null, 0, ""
       setInstanceValue(value || "");
       toggleHight();
@@ -107,8 +108,6 @@ const EditableCell = ({
         className={classNames(
           "w-full bg-transparent truncate h-full outline-none ring-inset focus:bg-blue-100 p-1.5 focus:ring-1 focus:ring-blue-400",
           {
-            ["bg-red-300"]: isFieldChanged,
-            ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
             ["text-right"]: fieldType === "number",
           }
         )}
@@ -206,7 +205,13 @@ const EditableCell = ({
   }, [fieldType, instanceValue, onChange, setValue]);
 
   return (
-    <div ref={wrapperEl} className="w-full h-full outline-none group">
+    <div
+      ref={wrapperEl}
+      className={classNames("w-full h-full outline-none group", {
+        ["bg-red-300"]: isFieldChanged,
+        ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
+      })}
+    >
       {editorComponent}
     </div>
   );

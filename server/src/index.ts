@@ -25,7 +25,7 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
   app.quit();
 }
 
-const createWindow = async (socketName: string) => {
+const createWindow = async () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     show: false,
@@ -58,12 +58,6 @@ const createWindow = async (socketName: string) => {
   if (isDev) {
     mainWindow.webContents.openDevTools({ mode: 'bottom' });
   }
-
-  mainWindow.webContents.on("did-finish-load", () => {
-    mainWindow.webContents.send("set-socket", {
-      name: socketName,
-    });
-  });
 };
 
 // TODO: Also restart background process when user reload the app
@@ -88,6 +82,12 @@ function createBackgroundProcess(socketName: string) {
     });
   }
 
+  setTimeout(() => {
+    mainWindow.webContents.send("set-socket", {
+      name: socketName,
+    });
+  }, 500);
+
   serverProcess.on("message", (msg: any) => {
     console.log(msg);
   });
@@ -108,7 +108,7 @@ function bootstrap() {
 app.whenReady().then(async () => {
   bootstrap();
   serverSocket = serverSocket || (await findOpenSocket());
-  createWindow(serverSocket);
+  createWindow();
   createBackgroundProcess(serverSocket);
 
   if (isDev) {
@@ -140,7 +140,7 @@ app.on('window-all-closed', () => {
 
   ContextMenu.clearMainBindings(ipcMain);
 
-  if (isDev && serverProcess) {
+  if (serverProcess) {
     console.log("kill server");
     serverProcess.kill();
     serverProcess = null;
@@ -171,11 +171,9 @@ app.on('activate', async () => {
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
     serverSocket = serverSocket || (await findOpenSocket());
-    createWindow(serverSocket);
+    createWindow();
 
-    if (isDev) {
-      createBackgroundProcess(serverSocket);
-    }
+    createBackgroundProcess(serverSocket);
   }
 });
 

@@ -80,9 +80,17 @@ declare namespace NSFireStore {
     docs: string[];
   }
 
+  interface IRemoveCollections {
+    collections: string[];
+  }
+
   interface IImportDocs {
     docs: any[];
     path: string;
+    option?: {
+      idField?: string;
+      autoParseJSON?: boolean;
+    };
   }
 
   interface IExportCollection {
@@ -106,6 +114,7 @@ declare namespace NSFireStore {
     addDoc({ doc, path }: NSFireStore.IAddDoc): Promise<string>
     addDocs({ docs }: NSFireStore.IAddDocs): Promise<boolean>;
     deleteDocs({ docs }: NSFireStore.IRemoveDocs): Promise<boolean>;
+    deleteCollections({ collections }: NSFireStore.IRemoveCollections): Promise<boolean>;
     importDocs({ docs, path }: NSFireStore.IImportDocs): Promise<boolean>;
     exportCollection({ path }: NSFireStore.IExportCollection): Promise<IExportCollectionResponse>;
     getDocs(params: NSFireStore.IGetDocs): Promise<string>;

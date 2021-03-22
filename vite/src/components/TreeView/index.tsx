@@ -17,6 +17,7 @@ import {
   actionExportDocCSV,
   actionExportDocJSON,
   actionGoTo,
+  actionPathExpand,
 } from "@/atoms/navigator.action";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { actionToggleImportModal, notifyErrorPromise } from "@/atoms/ui.action";
@@ -103,36 +104,35 @@ function buildTree(
       "cm-payload-path": [parent, key].join("/"),
       "cm-id": "tree",
     },
-    icon: () => {
+    icon: ({ expanded }: { expanded: boolean }) => {
       return (
         <div className="w-4">
           {isCollection ? (
             <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
               xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              ccm-template="treeCollectionContext"
+              fill="currentColor"
             >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M5 2.5l.5-.5h2l.5.5v11l-.5.5h-2l-.5-.5v-11zM6 3v10h1V3H6zm3.171.345l.299-.641 1.88-.684.64.299 3.762 10.336-.299.641-1.879.684-.64-.299L9.17 3.345zm1.11.128l3.42 9.396.94-.341-3.42-9.397-.94.342zM1 2.5l.5-.5h2l.5.5v11l-.5.5h-2l-.5-.5v-11zM2 3v10h1V3H2z"
               />
             </svg>
           ) : (
             <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
               xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+              fill="currentColor"
             >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M13.71 4.29l-3-3L10 1H4L3 2v12l1 1h9l1-1V5l-.29-.71zM13 14H4V2h5v4h4v8zm-3-9V2l3 3h-3z"
               />
             </svg>
           )}
@@ -278,17 +278,16 @@ const addNewCollectionNode = (
       return (
         <div className="w-4">
           <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
             xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            ccm-template="treeCollectionContext"
+            fill="currentColor"
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M5 2.5l.5-.5h2l.5.5v11l-.5.5h-2l-.5-.5v-11zM6 3v10h1V3H6zm3.171.345l.299-.641 1.88-.684.64.299 3.762 10.336-.299.641-1.879.684-.64-.299L9.17 3.345zm1.11.128l3.42 9.396.94-.341-3.42-9.397-.94.342zM1 2.5l.5-.5h2l.5.5v11l-.5.5h-2l-.5-.5v-11zM2 3v10h1V3H2z"
             />
           </svg>
         </div>
@@ -323,14 +322,7 @@ function TreeView({ allDocs, deletedDocs, pathAvailable }: ITreeViewProps) {
   }, []);
 
   const handleExpandData = useCallback(async (node: EventDataNode) => {
-    window
-      .send("fs.pathExpander", { path: prettifyPath(node.key.toString()) })
-      .then((response: string[]) => {
-        actionAddPathExpander(response);
-      })
-      .catch(notifyErrorPromise);
-
-    return;
+    actionPathExpand(node.key.toString());
   }, []);
 
   const handleOnAddCollection = useCallback(
@@ -493,21 +485,21 @@ function TreeView({ allDocs, deletedDocs, pathAvailable }: ITreeViewProps) {
           <span>{window.projectId}</span>
 
           <button
-            className="w-6 p-1 hover:bg-gray-400"
+            className="h-full px-1.5 hover:bg-gray-400"
             role="button"
             onClick={() => handleAddCollection("")}
           >
             <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
               xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+              fill="currentColor"
             >
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M14.5 2H7.71l-.85-.85L6.51 1h-5l-.5.5v11l.5.5H7v-1H1.99V6h4.49l.35-.15.86-.86H14v1.5l-.001.51h1.011V2.5L14.5 2zm-.51 2h-6.5l-.35.15-.86.86H2v-3h4.29l.85.85.36.15H14l-.01.99zM13 16h-1v-3H9v-1h3V9h1v3h3v1h-3v3z"
               />
             </svg>
           </button>

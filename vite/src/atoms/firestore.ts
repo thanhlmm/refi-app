@@ -6,7 +6,7 @@ import { getParentPath } from "@/utils/common";
 import { IPrimitiveType } from "@/utils/simplifr";
 import "firebase/firestore";
 import { DocRef } from "firestore-serializers/src/DocRef";
-import { difference, isObject, isUndefined } from "lodash";
+import { difference, isObject, isUndefined, uniq } from "lodash";
 import * as immutable from "object-path-immutable";
 import { atom, atomFamily, selector, selectorFamily } from "recoil";
 import { queryVersionAtom } from "./navigator";
@@ -227,12 +227,24 @@ export const hasModifiedDocAtom = selectorFamily<boolean, string>({
   },
 });
 
-export const hasBeenDeleteAtom = atomFamily<boolean, string>({
+export const collectionHasBeenDeleteAtom = atom<string[]>({
   key: "FireStore_collection_deleted",
-  default: false,
+  default: [],
 });
 
-export const pathExpanderAtom = atom<string[]>({
+export const pathExpanderPureAtom = atom<string[]>({
   key: "FireStore_path_expander",
   default: [],
+});
+
+export const pathExpanderAtom = selector<string[]>({
+  key: "FireStore_path_expander_without_deleted",
+  get: ({ get }) => {
+    const deletedCollections = get(collectionHasBeenDeleteAtom);
+
+    return get(pathExpanderPureAtom).filter(
+      (path) =>
+        !deletedCollections.find((collection) => path.startsWith(collection))
+    );
+  },
 });

@@ -1,21 +1,36 @@
 import { Input } from "@zendeskgarden/react-forms";
-import { useCombobox } from "downshift";
-import React, { ReactElement, useState } from "react";
 import classNames from "classnames";
+import { useCombobox } from "downshift";
+import React, { ReactElement, useMemo, useRef, useState } from "react";
 
 interface ISelectComboBoxProps<T> {
   items: T[];
   selectedItem: T;
   handleSelectedItemChange: (T) => void;
+  className?: string;
 }
 
 const SelectComboBox = ({
   items,
   selectedItem,
   handleSelectedItemChange,
+  className,
 }: ISelectComboBoxProps<string>): ReactElement => {
-  const [inputItems, setInputItems] = useState(items);
   const [inputValue, setInputText] = useState<string>(selectedItem);
+  const inputWrapperRef = useRef(null);
+  const menuRef = useRef(null);
+
+  const inputItems = useMemo(() => {
+    if (items.includes(inputValue)) {
+      return items;
+    }
+
+    return items.filter((item) =>
+      inputValue
+        ? item.toLowerCase().startsWith(inputValue.toLowerCase())
+        : true
+    );
+  }, [items, inputValue]);
   const {
     isOpen,
     getToggleButtonProps,
@@ -32,13 +47,7 @@ const SelectComboBox = ({
       return handleSelectedItemChange(selectedItem);
     },
     onInputValueChange: ({ inputValue }) => {
-      setInputItems(
-        items.filter((item) =>
-          inputValue
-            ? item.toLowerCase().startsWith(inputValue.toLowerCase())
-            : true
-        )
-      );
+      console.log({ inputValue });
       setInputText(inputValue || "");
     },
   });
@@ -50,11 +59,13 @@ const SelectComboBox = ({
   };
 
   return (
-    <div className="relative">
+    <div className={className}>
       <div {...getComboboxProps()} className="relative">
         <Input
           {...getInputProps({
             onBlur: handleInputBlur,
+            ref: inputWrapperRef,
+            className: "pr-4 truncate",
           })}
           isCompact
         />
@@ -80,29 +91,27 @@ const SelectComboBox = ({
           </svg>
         </button>
       </div>
-      {isOpen && (
-        <ul
-          {...getMenuProps()}
-          className={classNames(
-            "absolute z-20 opacity-0 pointer-events-none max-w-md min-w-full overflow-y-auto bg-white border border-gray-300 shadow-md max-h-64 top-8",
-            {
-              "opacity-100 pointer-events-auto": isOpen,
-            }
-          )}
-        >
-          {inputItems.map((item, index) => (
-            <li
-              key={`${item}${index}`}
-              {...getItemProps({ item, index })}
-              className={classNames("h-7 p-1 truncate", {
-                ["bg-blue-200"]: highlightedIndex === index,
-              })}
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul
+        {...getMenuProps({ ref: menuRef, style: { minWidth: "100px" } })}
+        className={classNames(
+          "absolute z-20 opacity-0 pointer-events-none max-w-md w-auto overflow-y-auto bg-white border border-gray-300 shadow-md max-h-64 top-8",
+          {
+            "opacity-100 pointer-events-auto": isOpen,
+          }
+        )}
+      >
+        {inputItems.map((item, index) => (
+          <li
+            key={`${item}${index}`}
+            {...getItemProps({ item, index })}
+            className={classNames("h-7 p-1 truncate cursor-pointer", {
+              ["bg-blue-200"]: highlightedIndex === index,
+            })}
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

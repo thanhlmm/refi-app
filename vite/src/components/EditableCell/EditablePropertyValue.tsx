@@ -12,7 +12,7 @@ import { getFireStoreType } from "@/utils/simplifr";
 import { Tooltip } from "@zendeskgarden/react-tooltips";
 import classNames from "classnames";
 import { DocRef } from "firestore-serializers/src/DocRef";
-import { isUndefined } from "lodash";
+import { isEqual, isUndefined } from "lodash";
 import React, {
   ReactElement,
   useCallback,
@@ -95,7 +95,7 @@ export const EditablePropertyValue = ({
 
   // Sync the external into instanceValue
   useEffect(() => {
-    if (!isUndefined(value) && value !== instanceValue) {
+    if (!isUndefined(value) && !isEqual(instanceValue, value)) {
       setInstanceValue(value);
       toggleHight();
     }
@@ -192,13 +192,7 @@ export const EditablePropertyValue = ({
         >
           <DataInput
             ref={inputEl}
-            className={classNames(
-              "focus:ring-1 focus:ring-blue-400 underline text-blue-400",
-              {
-                ["bg-red-300"]: isFieldChanged,
-                ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
-              }
-            )}
+            className="text-blue-400 underline focus:ring-1 focus:ring-blue-400"
             onClick={(e) => handleClickFollowLink(e, refValue.path)}
             tabIndex={tabIndex}
             value={refValue.path}
@@ -252,8 +246,6 @@ export const EditablePropertyValue = ({
           <DataInput
             ref={inputEl}
             className={classNames("focus:ring-1 focus:ring-blue-400", {
-              ["bg-red-300"]: isFieldChanged,
-              ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
               ["underline text-blue-400"]: /^(https?:\/\/[^\s]+)$/.test(
                 instanceValue?.toString() || ""
               ),
@@ -276,7 +268,10 @@ export const EditablePropertyValue = ({
 
   return (
     <div
-      className="relative w-full h-full outline-none"
+      className={classNames("relative w-full outline-none min-h-12", {
+        ["bg-red-300"]: isFieldChanged,
+        ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
+      })}
       ref={wrapperEl}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

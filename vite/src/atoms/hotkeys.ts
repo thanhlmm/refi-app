@@ -1,5 +1,9 @@
 import { isCollection } from "@/utils/common";
-import { actionCommitChange, actionDuplicateDoc } from "./firestore.action";
+import {
+  actionCommitChange,
+  actionDuplicateDoc,
+  actionNewDocument,
+} from "./firestore.action";
 import { navigatorCollectionPathAtom, navigatorPathAtom } from "./navigator";
 import {
   actionExportDocCSV,
@@ -34,7 +38,7 @@ export type IGlobalHotKeys = Record<
 
 export const globalHotKeys: IGlobalHotKeys = {
   OPEN_PATH_INPUT: {
-    name: "Goto documents, collections by name",
+    name: "Go to documents, collections by path",
     group: "navigator",
     sequences: "command+p",
     handler: () => setRecoilExternalState(viewModePathInputAtom, false),
@@ -62,6 +66,12 @@ export const globalHotKeys: IGlobalHotKeys = {
       setRecoilExternalState(isShowPreviewChangeModalAtom, (value) => !value);
     },
   },
+  REVERT_CHANGES: {
+    name: "Revert changes",
+    group: "action",
+    sequences: "command+r",
+    handler: () => { },
+  },
   WHATS_NEWS: {
     name: "What's news",
     group: "general",
@@ -86,10 +96,18 @@ export const globalHotKeys: IGlobalHotKeys = {
       actionSubmitQuery(true);
     },
   },
+  SEND_QUERY_WITHOUT_FILTER: {
+    name: "Query without filter",
+    group: "action",
+    sequences: "command+shift+Enter",
+    handler: () => {
+      actionSubmitQuery(false);
+    },
+  },
   EXPORT_QUERY_JSON: {
     name: "Export: Current table as JSON",
     group: "action",
-    sequences: "",
+    sequences: "command+e",
     handler: () => {
       actionExportViewJSON();
     },
@@ -97,7 +115,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   EXPORT_QUERY_CSV: {
     name: "Export: Current table as CSV",
     group: "action",
-    sequences: "",
+    sequences: "command+shift+e",
     handler: () => {
       actionExportViewCSV();
     },
@@ -160,6 +178,17 @@ export const globalHotKeys: IGlobalHotKeys = {
         navigatorCollectionPathAtom
       ).toPromise();
       actionToggleImportModal(collectionPath);
+    },
+  },
+  NEW_DOCUMENT: {
+    name: "New document",
+    group: "action",
+    sequences: "command+n",
+    handler: async () => {
+      const collectionPath = await getRecoilExternalLoadable(
+        navigatorCollectionPathAtom
+      ).toPromise();
+      actionNewDocument(collectionPath);
     },
   },
 };
