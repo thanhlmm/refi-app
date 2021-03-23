@@ -10,8 +10,8 @@ import {
   useRecoilCallback,
   useRecoilTransactionObserver_UNSTABLE,
 } from "recoil";
-import { BehaviorSubject, from, fromEvent, Observable, Subject } from "rxjs";
-import { filter, map, switchMap } from "rxjs/operators";
+import { BehaviorSubject, Observable } from "rxjs";
+import { filter, switchMap } from "rxjs/operators";
 import { dummyAtom } from "./ui";
 
 /**
@@ -108,22 +108,15 @@ const atomsObservable = new BehaviorSubject<RecoilValue<unknown>>(dummyAtom);
 
 const handleChanges = (changes: Iterable<RecoilValue<unknown>>) => {
   for (const change of changes) {
-    // console.log(change, change.key);
-    if (!isUndefined(change)) {
-      atomsObservable.next(change);
-    }
+    atomsObservable.next(change);
   }
 };
-
-// atomsObservable.subscribe({
-//   next: (v) => console.log(`BbserverA: ${v?.key}`),
-// });
 
 export const atomObservable: <T>(atom: RecoilValue<T>) => Observable<T> = (
   atom
 ) => {
   return atomsObservable.pipe(
-    filter((change) => change?.key === atom.key),
+    filter((change) => change.key === atom.key),
     switchMap(() => getRecoilExternalLoadable(atom).toPromise())
   );
 };
@@ -144,7 +137,6 @@ export function RecoilExternalStatePortal() {
   useRecoilTransactionObserver_UNSTABLE(({ snapshot }) => {
     getRecoilExternalLoadable = snapshot.getLoadable;
     currentSnapshot = snapshot;
-    atomsObservable.next();
     handleChanges(snapshot.getNodes_UNSTABLE({ isModified: true }));
   });
 
