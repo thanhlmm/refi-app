@@ -54,6 +54,14 @@ const createWindow = async () => {
     await loadURL(mainWindow);
   }
 
+  mainWindow.webContents.on("did-finish-load", () => {
+    if (serverSocket) {
+      mainWindow.webContents.send("set-socket", {
+        name: serverSocket,
+      });
+    }
+  });
+
   // Open the DevTools.
   if (isDev) {
     mainWindow.webContents.openDevTools({ mode: 'bottom' });
@@ -61,7 +69,9 @@ const createWindow = async () => {
 };
 
 // TODO: Also restart background process when user reload the app
-function createBackgroundProcess(socketName: string) {
+async function createBackgroundProcess() {
+  console.log('create background process again', serverSocket);
+  serverSocket = serverSocket || (await findOpenSocket());
   console.log("Create background process");
   if (serverProcess) {
     // Ignore if server already created
@@ -70,7 +80,7 @@ function createBackgroundProcess(socketName: string) {
   serverProcess = fork(__dirname + "/workers/server.js", [
     "--subprocess",
     app.getVersion(),
-    socketName,
+    serverSocket,
   ], {
     cwd: app.getPath('userData')
   });
@@ -84,7 +94,7 @@ function createBackgroundProcess(socketName: string) {
 
   setTimeout(() => {
     mainWindow.webContents.send("set-socket", {
-      name: socketName,
+      name: serverSocket,
     });
   }, 500);
 
@@ -107,9 +117,8 @@ function bootstrap() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
   bootstrap();
-  serverSocket = serverSocket || (await findOpenSocket());
   createWindow();
-  createBackgroundProcess(serverSocket);
+  createBackgroundProcess();
 
   if (isDev) {
     const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
@@ -144,6 +153,7 @@ app.on('window-all-closed', () => {
     console.log("kill server");
     serverProcess.kill();
     serverProcess = null;
+    serverSocket = null;
   }
 });
 
@@ -170,10 +180,8 @@ app.on('activate', async () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
-    serverSocket = serverSocket || (await findOpenSocket());
     createWindow();
-
-    createBackgroundProcess(serverSocket);
+    createBackgroundProcess();
   }
 });
 

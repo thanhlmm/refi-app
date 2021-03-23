@@ -4,7 +4,6 @@ import { isObject, simplify } from "./simplifr";
 import firebase from "firebase/app";
 
 export const isCollection = (path = ""): boolean => {
-  console.log("isCollection", path);
   if (path === "/") {
     return false;
   }
@@ -37,15 +36,12 @@ export const getParentPath = (url: string) => {
   return prettifyPath(entities.join("/"));
 };
 
-export const getAllCollectionsPath = (url: string) => {
-  const collections = prettifyPath(url)
-    .split("/")
-    .reduce((prev: string[], current: string) => {
-      const lastPath = prev[prev.length - 1];
-      return [...prev, [lastPath, current].join("/").replace("//", "/")];
-    }, [])
-    .filter((collection, index) => index % 2);
-  return ["/", ...collections];
+export const getIdFromPath = (path: string): string | undefined => {
+  if (isCollection(path)) {
+    return undefined;
+  }
+
+  return getPathEntities(path).pop();
 };
 
 export const getRecursivePath = (url: string) => {

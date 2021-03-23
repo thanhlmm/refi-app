@@ -19,11 +19,19 @@ import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Scrollbars } from "react-custom-scrollbars";
-import { useFlexLayout, useSortBy, useTable } from "react-table";
+import {
+  useBlockLayout,
+  useFlexLayout,
+  useSortBy,
+  useTable,
+} from "react-table";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { IDReadOnlyField } from "../EditableCell";
+import { useCustomCompareEffect } from "react-use";
+import { atomObservable } from "@/atoms/RecoilExternalStatePortal";
+import { getIdFromPath } from "@/utils/common";
 
 function TableWrapper({
   columns,
@@ -61,21 +69,80 @@ function TableWrapper({
       disableMultiSort: false,
     } as any,
     useSortBy,
-    // useResizeColumns,
     useFlexLayout
+    // useBlockLayout
+    // useResizeColumns,
   );
 
   const listRef = useRef();
+  const headerRef = useRef<HTMLDivElement>(null);
+  const newestDocRef = useRef<undefined | ClientDocumentSnapshot>(undefined);
+  const scrollerRef = useRef(null);
 
   useEffect(() => {
-    // Scroll to bottom when new doc is added
-    const lastIndex = data.length - 1;
-    const lastRow = data[lastIndex];
+    const pathObserver = atomObservable(navigatorPathAtom).subscribe({
+      next: (path) => {
+        const docId = getIdFromPath(path);
+        if (docId) {
+          scrollToDocId(docId);
+        }
+      },
+      error: (error) => {
+        console.log(error);
+      },
+    });
 
-    if (lastRow && lastRow.isNew) {
-      (listRef.current as any)?.scrollToItem(lastIndex);
-    }
+    return () => {
+      return pathObserver.unsubscribe();
+    };
   }, [data]);
+
+  // Hook to auto scroll to newest doc
+  useCustomCompareEffect(
+    () => {
+      const newestDoc = data
+        .filter((doc) => doc.isNew)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+        .pop();
+
+      if (newestDoc && newestDoc.id !== newestDocRef.current?.id) {
+        newestDocRef.current = newestDoc;
+        scrollToDocId(newestDoc.id);
+      }
+    },
+    [data.length],
+    ([prevLength], [nextLength]) => {
+      return prevLength <= nextLength;
+    }
+  );
+
+  const scrollToDocId = useCallback(
+    (id: string) => {
+      const docElement = document.querySelector(`[data-id='${id}']`);
+      if (docElement) {
+        const observer = new IntersectionObserver(
+          function (entries, observer) {
+            if (!entries[0].isIntersecting) {
+              console.log("scrollIntoView");
+              docElement.scrollIntoView();
+            }
+
+            observer.disconnect();
+          },
+          { threshold: [1] }
+        );
+        observer.observe(docElement);
+        // Ignore scroll if element is in view
+        return;
+      }
+      const dataIndex = data.findIndex((doc) => doc.id === id);
+      const position = (listRef.current as any)?._getItemStyle(dataIndex);
+      if (position && position.top >= 0) {
+        (scrollerRef.current as any)?.scrollTop(position.top);
+      }
+    },
+    [data]
+  );
 
   const RenderRow = useCallback(
     ({ index, style }) => {
@@ -85,12 +152,17 @@ function TableWrapper({
       return (
         <div
           {...row.getRowProps({
-            style,
+            style: {
+              ...style,
+              minWidth: "100%",
+              width: "auto",
+            },
           })}
           className="border-b border-gray-300 hover:bg-gray-200 group"
           key={rowOrigin.id}
           cm-template="rowContext"
           cm-id="rowContext"
+          data-id={rowOrigin.id}
           cm-payload-id={rowOrigin.id}
           cm-payload-path={rowOrigin.ref.path}
           onClick={(e) => onRowClick(e, rowOrigin)}
@@ -113,75 +185,74 @@ function TableWrapper({
   );
 
   const handleScroll = useCallback(({ target }) => {
-    const { scrollTop } = target;
-
+    const { scrollTop, scrollLeft } = target;
     (listRef.current as any)?.scrollTo(scrollTop);
+    headerRef.current?.scrollTo(scrollLeft, 0);
   }, []);
 
   // TODO: Integrate column resize
   return (
-    <table
-      {...getTableProps()}
-      className="w-full h-full border-b border-gray-300"
-    >
-      <thead>
-        {headerGroups.map((headerGroup) => (
-          // eslint-disable-next-line react/jsx-key
-          <div
-            {...headerGroup.getHeaderGroupProps()}
-            className="border-t border-b border-gray-300"
-          >
-            {headerGroup.headers.map((column) => (
-              // eslint-disable-next-line react/jsx-key
-              <th
-                {...column.getHeaderProps(
-                  (column as any).getSortByToggleProps()
-                )}
-                className="text-left text-gray-500 border-r border-gray-200"
-              >
-                {column.render("Header", {
-                  isSorted: (column as any)?.isSorted,
-                  isSortedDesc: (column as any).isSortedDesc,
-                  toggleSortBy: (column as any).toggleSortBy,
-                })}
-                {/* <div
-                  {...column.getResizerProps()}
-                  className={classNames(
-                    "bg-blue-700 w-px h-full inline-block transform -translate-x-1 hover:w-1 hover:scale-x-150 pl-1"
-                  )}
-                /> */}
-              </th>
-            ))}
-          </div>
-        ))}
-      </thead>
-      <tbody {...getTableBodyProps()} className="block h-full">
-        <Scrollbars
-          style={{ height: "100%", width: "100%" }}
-          // autoHide
-          // autoHeight
-          // autoHeightMin={600}
-          // autoHeightMax={700}
-          onScroll={handleScroll}
-          hideTracksWhenNotNeeded
+    <AutoSizer>
+      {({ height, width }) => (
+        <table
+          {...getTableProps()}
+          className="w-full h-full border-b border-gray-300"
         >
-          <AutoSizer disableWidth>
-            {({ height }) => (
+          <thead>
+            {headerGroups.map((headerGroup) => (
+              // eslint-disable-next-line react/jsx-key
+              <div
+                {...headerGroup.getHeaderGroupProps({
+                  style: {
+                    width,
+                    overflow: "hidden",
+                  },
+
+                  className: "border-t border-b border-gray-300",
+                })}
+                ref={headerRef}
+              >
+                {headerGroup.headers.map((column) => (
+                  // eslint-disable-next-line react/jsx-key
+                  <th
+                    {...column.getHeaderProps(
+                      (column as any).getSortByToggleProps()
+                    )}
+                    className="text-left text-gray-500 border-r border-gray-200"
+                  >
+                    {column.render("Header", {
+                      isSorted: (column as any)?.isSorted,
+                      isSortedDesc: (column as any).isSortedDesc,
+                      toggleSortBy: (column as any).toggleSortBy,
+                    })}
+                  </th>
+                ))}
+              </div>
+            ))}
+          </thead>
+          <tbody {...getTableBodyProps()} className="block h-full">
+            <Scrollbars
+              style={{ height: height - 36, width }}
+              autoHide
+              onScroll={handleScroll}
+              hideTracksWhenNotNeeded
+              ref={scrollerRef}
+            >
               <FixedSizeList
-                height={height}
+                height={height - 34}
                 itemCount={rows.length}
-                itemSize={35}
-                width="100%"
+                itemSize={36}
+                width={width}
                 ref={listRef}
                 style={{ overflow: false }}
               >
                 {RenderRow}
               </FixedSizeList>
-            )}
-          </AutoSizer>
-        </Scrollbars>
-      </tbody>
-    </table>
+            </Scrollbars>
+          </tbody>
+        </table>
+      )}
+    </AutoSizer>
   );
 }
 
@@ -435,7 +506,7 @@ function DataTable() {
   );
 
   return (
-    <div className="h-full mt-2 overflow-x-auto border-l border-r border-gray-300">
+    <div className="w-full h-full mt-2 border-l border-r border-gray-300">
       <TableWrapper
         columns={columnViewer}
         data={data}

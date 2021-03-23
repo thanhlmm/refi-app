@@ -3,22 +3,34 @@ import { navigatorPathAtom } from "@/atoms/navigator";
 import { defaultEditorAtom } from "@/atoms/ui";
 import { getPathEntities, isCollection, prettifyPath } from "@/utils/common";
 import { Button } from "@zendeskgarden/react-buttons";
-import { Input } from "@zendeskgarden/react-forms";
+import { Input, InputGroup } from "@zendeskgarden/react-forms";
 import { Tooltip } from "@zendeskgarden/react-tooltips";
 import classNames from "classnames";
-import React, { useCallback, useState } from "react";
+import React, {
+  ChangeEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import MonacoProperty, { MonacoPropertyError } from "./MonacoProperty";
 import PropertyTable from "./PropertyTable";
 import EmptyBox from "./EmptyBox.png";
 import Launching from "./Launching.png";
 import { actionNewDocument } from "@/atoms/firestore.action";
+import {
+  resetRecoilExternalState,
+  setRecoilExternalState,
+} from "@/atoms/RecoilExternalStatePortal";
+import { actionGoTo } from "@/atoms/navigator.action";
 
 const Property = () => {
   const currentPath = useRecoilValue(navigatorPathAtom);
   const doc = useRecoilValue(docAtom(currentPath));
   const [searchInput, setSearchInput] = useState("");
   const [editorType, setEditorType] = useRecoilState(defaultEditorAtom);
+  const idInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateDocument = useCallback(() => {
     if (isCollection(currentPath)) {
@@ -31,6 +43,12 @@ const Property = () => {
     actionNewDocument(paths.join("/"), newId);
     return;
   }, [currentPath]);
+
+  useEffect(() => {
+    if (doc && idInputRef.current) {
+      idInputRef.current.value = doc.id;
+    }
+  }, [doc?.id]);
 
   if (!doc) {
     if (currentPath === "/") {
@@ -76,9 +94,54 @@ const Property = () => {
     );
   }
 
+  const onIdKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (!idInputRef.current) {
+      return;
+    }
+    if (e.key === "Escape") {
+      idInputRef.current.value = doc.id;
+      return;
+    }
+
+    if (e.key === "Enter") {
+      handleOnChangeId(idInputRef.current.value);
+      return;
+    }
+  };
+
+  const handleOnChangeId = (id: string) => {
+    const newDoc = doc.clone(undefined, id);
+    const letOldPath = currentPath;
+    setRecoilExternalState(docAtom(newDoc.ref.path), newDoc);
+    actionGoTo(newDoc.ref.path);
+    resetRecoilExternalState(docAtom(letOldPath));
+  };
+
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-row items-center justify-between">
+      <div>
+        <InputGroup isCompact>
+          <div
+            className={classNames("w-8 p-1 text-center text-gray-700 border", {
+              ["border-gray-200"]: !doc.isNew,
+              ["border-gray-300"]: doc.isNew,
+            })}
+          >
+            #
+          </div>
+          <Input
+            ref={idInputRef}
+            isCompact
+            className="font-mono"
+            placeholder="Document id"
+            defaultValue={doc.id}
+            disabled={!doc.isNew}
+            onBlur={(e) => handleOnChangeId(e.target.value)}
+            onKeyDown={onIdKeyDown}
+          />
+        </InputGroup>
+      </div>
+      <div className="flex flex-row items-center justify-between mt-3">
         {editorType === "basic" ? (
           <Input
             placeholder="Search for property or value..."
@@ -105,7 +168,7 @@ const Property = () => {
           >
             <a className="text-xs text-blue-500 cursor-pointer">
               <svg
-                className="inline-block w-4"
+                className="inline-block w-4 mb-0.5"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
@@ -121,7 +184,7 @@ const Property = () => {
           </Tooltip>
         )}
         <div className="flex flex-row justify-self-end">
-          <Button
+          {/* <Button
             size="small"
             onClick={() => setEditorType("basic")}
             isPrimary={editorType === "basic"}
@@ -162,7 +225,7 @@ const Property = () => {
                 d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
               />
             </svg>
-          </Button>
+          </Button> */}
         </div>
       </div>
       <div className="h-full max-h-full mt-2 overflow-auto">

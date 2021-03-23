@@ -58,6 +58,7 @@
     "react-window": "^1.8.6",
     "recoil": "0.1.3",
     "recoil-persist": "^2.3.0",
+    "rxjs": "^6.6.6",
     "styled-components": "^5.2.1"
   },
   "devDependencies": {

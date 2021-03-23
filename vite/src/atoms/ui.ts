@@ -63,7 +63,7 @@ export const importFileAtom = atom<File | undefined>({
 
 export const defaultEditorAtom = atom<"basic" | "advantage">({
   key: "ui/defaultEditor",
-  default: "basic",
+  default: "advantage",
   effects_UNSTABLE: [userPersistAtom],
 });
 
@@ -155,4 +155,9 @@ export const notifierAtom = atom<INotificationMessages[]>({
       });
     },
   ],
+});
+
+export const dummyAtom = atom({
+  key: "ui/dummy",
+  default: null,
 });

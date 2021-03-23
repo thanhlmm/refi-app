@@ -21,6 +21,7 @@ export class ClientDocumentSnapshot {
   private changedField: string[] = [];
   queryVersion?: number;
   readonly isNew: boolean;
+  readonly createdAt: Date = new Date();
 
   static transformFromFirebase(
     docs: DocumentSnapshot[],

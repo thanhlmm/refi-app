@@ -247,7 +247,6 @@ export const actionPathExpand = (path: string) => {
   window
     .send("fs.pathExpander", { path: prettifyPath(path) })
     .then((response: string[]) => {
-      console.log(response);
       actionAddPathExpander(response);
     })
     .catch(notifyErrorPromise);
