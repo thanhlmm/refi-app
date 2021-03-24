@@ -29,12 +29,16 @@ const ShortcutKey = ({
       return "⌥";
     }
 
-    if (key === "control") {
+    if (key === "control" && window.os === "Darwin") {
       return "⌃";
     }
 
     if (key === "Enter") {
       return "Enter";
+    }
+
+    if (key === "Control") {
+      return "Ctrl";
     }
 
     return key.toUpperCase();

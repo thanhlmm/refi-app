@@ -17,7 +17,7 @@ import firebase from "firebase/app";
 const ProductBar = (): ReactElement => {
   const [isShowNews, setShowNews] = useRecoilState(isModalNewsAtom);
   const [isShowFeedback, setShowFeedback] = useRecoilState(isModalFeedbackAtom);
-  const { register, handleSubmit, setValue, watch } = useForm();
+  const { register, handleSubmit, setValue, watch, getValues } = useForm();
   useEffect(() => {
     register("emotion", { required: true });
   }, []);
@@ -57,6 +57,11 @@ const ProductBar = (): ReactElement => {
         );
         break;
     }
+  };
+
+  const handleTweet = () => {
+    const content = getValues().feedback;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURI(content)}`);
   };
 
   return (
@@ -163,11 +168,7 @@ const ProductBar = (): ReactElement => {
                 <Button size="small" isPrimary type="submit">
                   Send
                 </Button>
-                <Button
-                  size="small"
-                  isPrimary
-                  onClick={() => setShowFeedback(false)}
-                >
+                <Button size="small" isPrimary onClick={() => handleTweet()}>
                   Tweet it
                   <svg
                     className="ml-1"

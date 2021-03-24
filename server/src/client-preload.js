@@ -2,6 +2,7 @@ const { ipcRenderer } = require('electron')
 const ipc = require('node-ipc')
 const uuid = require('uuid')
 const ContextMenu = require("./lib/electron-context-menu").default;
+const os = require("os"); // Comes with node.js
 
 let resolveSocketPromise
 let socketPromise = new Promise(resolve => {
@@ -27,8 +28,10 @@ window.ipc = {
   uuid: uuid
 }
 
+window.os = os.type()
+
 window.api = {
-  contextMenu: ContextMenu.preloadBindings(ipcRenderer)
+  contextMenu: ContextMenu.preloadBindings(ipcRenderer),
 }
 
 console.log('Done preload client');

@@ -43,7 +43,7 @@ const monacoOption = {
 
 const serializeData = (doc: ClientDocumentSnapshot) => {
   return removeFirebaseSerializeMetaData(
-    JSON.stringify(JSON.parse(serializeDocumentSnapshot(doc)), undefined, 2)
+    JSON.stringify(JSON.parse(serializeDocumentSnapshot(doc)))
   );
 };
 

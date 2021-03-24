@@ -4,7 +4,7 @@ if (isDev) {
 }
 process.on('unhandledRejection', console.log);
 
-import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { fork } from "child_process";
 import * as path from 'path';
 import fs from 'fs';
@@ -13,12 +13,13 @@ import db from './client/db';
 import ContextMenu from './lib/electron-context-menu'
 import { contextConfig } from './contextMenu';
 import serve from 'electron-serve';
+import { needConfirm, setConfirmReload, shouldConfirm } from "./lib/confirmReload";
 
 const loadURL = serve({ directory: 'build' });
 
 let serverProcess: any;
 let serverSocket: string;
-let mainWindow: any;
+let mainWindow: BrowserWindow;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -35,10 +36,13 @@ const createWindow = async () => {
     minHeight: 900,
     backgroundColor: "#fff",
     webPreferences: {
+      devTools: isDev,
       enableRemoteModule: false,
       contextIsolation: false,
       nodeIntegration: false,
       preload: __dirname + "/client-preload.js",
+      disableDialogs: false,
+      safeDialogs: true
     },
   });
 

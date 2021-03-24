@@ -1,6 +1,10 @@
-import { allColumnsRecursiveAtom, propertyListAtom } from "@/atoms/navigator";
-import { Input } from "@zendeskgarden/react-forms";
-import React, { ChangeEvent, ReactElement, useMemo } from "react";
+import {
+  allColumnsRecursiveAtom,
+  navigatorCollectionPathAtom,
+  propertyListAtom,
+} from "@/atoms/navigator";
+import { uniq } from "lodash";
+import React, { ReactElement } from "react";
 import { useRecoilValue } from "recoil";
 import InputComboBox from "../InputComboBox";
 
@@ -17,11 +21,15 @@ const FieldFinderInput = ({
   inputRef,
   placeholder,
 }: IFieldFinderInputProps): ReactElement => {
+  const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
   const allColumnsRecursive = useRecoilValue(allColumnsRecursiveAtom);
+  const propertyList = useRecoilValue(propertyListAtom(collectionPath));
+
+  const items = uniq([...allColumnsRecursive, ...propertyList]);
 
   return (
     <InputComboBox
-      items={allColumnsRecursive}
+      items={items}
       selectedItem={value}
       handleSelectedItemChange={onChange}
       inputRef={inputRef}

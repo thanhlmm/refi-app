@@ -190,7 +190,8 @@ export const actionExportDocJSON = async (
   }
 
   const docsAsString = removeFirebaseSerializeMetaData(
-    serializeDocumentSnapshot(doc)
+    serializeDocumentSnapshot(doc),
+    ["__path__"]
   );
 
   exportFromJSON({
@@ -212,7 +213,8 @@ export const actionExportDocCSV = async (docPath: string): Promise<boolean> => {
   }
 
   const docsAsString = removeFirebaseSerializeMetaData(
-    serializeDocumentSnapshot(doc)
+    serializeDocumentSnapshot(doc),
+    ["__path__"]
   );
 
   exportFromJSON({

@@ -1,29 +1,22 @@
 import { docAtom } from "@/atoms/firestore";
-import { navigatorPathAtom } from "@/atoms/navigator";
-import { defaultEditorAtom } from "@/atoms/ui";
-import { getPathEntities, isCollection, prettifyPath } from "@/utils/common";
-import { Button } from "@zendeskgarden/react-buttons";
-import { Input, InputGroup } from "@zendeskgarden/react-forms";
-import { Tooltip } from "@zendeskgarden/react-tooltips";
-import classNames from "classnames";
-import React, {
-  ChangeEventHandler,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
-import MonacoProperty, { MonacoPropertyError } from "./MonacoProperty";
-import PropertyTable from "./PropertyTable";
-import EmptyBox from "./EmptyBox.png";
-import Launching from "./Launching.png";
 import { actionNewDocument } from "@/atoms/firestore.action";
+import { navigatorPathAtom } from "@/atoms/navigator";
+import { actionGoTo } from "@/atoms/navigator.action";
 import {
   resetRecoilExternalState,
   setRecoilExternalState,
 } from "@/atoms/RecoilExternalStatePortal";
-import { actionGoTo } from "@/atoms/navigator.action";
+import { defaultEditorAtom } from "@/atoms/ui";
+import { getPathEntities, isCollection } from "@/utils/common";
+import { Button } from "@zendeskgarden/react-buttons";
+import { Input, InputGroup } from "@zendeskgarden/react-forms";
+import { Tooltip } from "@zendeskgarden/react-tooltips";
+import classNames from "classnames";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
+import EmptyBox from "./EmptyBox.png";
+import MonacoProperty from "./MonacoProperty";
+import PropertyTable from "./PropertyTable";
 
 const Property = () => {
   const currentPath = useRecoilValue(navigatorPathAtom);
@@ -110,6 +103,9 @@ const Property = () => {
   };
 
   const handleOnChangeId = (id: string) => {
+    if (id === doc.id) {
+      return;
+    }
     const newDoc = doc.clone(undefined, id);
     const letOldPath = currentPath;
     setRecoilExternalState(docAtom(newDoc.ref.path), newDoc);
@@ -122,17 +118,20 @@ const Property = () => {
       <div>
         <InputGroup isCompact>
           <div
-            className={classNames("w-8 p-1 text-center text-gray-700 border", {
-              ["border-gray-200"]: !doc.isNew,
-              ["border-gray-300"]: doc.isNew,
-            })}
+            className={classNames(
+              "w-8 p-1 text-center text-gray-700 border font-bold",
+              {
+                ["border-gray-200"]: !doc.isNew,
+                ["border-gray-300"]: doc.isNew,
+              }
+            )}
           >
-            #
+            _id
           </div>
           <Input
             ref={idInputRef}
             isCompact
-            className="font-mono"
+            className="font-mono disabled:text-gray-700 disabled:border-gray-200"
             placeholder="Document id"
             defaultValue={doc.id}
             disabled={!doc.isNew}

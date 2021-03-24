@@ -3,13 +3,13 @@ import {
   querierAtom,
   querierOptionAtom,
 } from "@/atoms/navigator";
-import SelectComboBox from "@/components/SelectComboBox";
 import FieldFinderInput from "@/components/FieldFinderInput";
+import SelectComboBox from "@/components/SelectComboBox";
 import { operatorOptions } from "@/utils/searcher";
 import { IconButton } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
 import immer from "immer";
-import React, { useEffect, useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 
 const FilterItem = ({ id }: { id: string }) => {
@@ -35,6 +35,7 @@ const FilterItem = ({ id }: { id: string }) => {
   };
 
   const handleSetField = (value) => {
+    console.trace("here");
     setFilter(
       immer((curFilter) => {
         if (curFilter) {
@@ -47,7 +48,9 @@ const FilterItem = ({ id }: { id: string }) => {
   const handleSetOperatorType = (value) => {
     setFilter(
       immer((curFilter) => {
-        curFilter.operator.type = value;
+        if (curFilter) {
+          curFilter.operator.type = value;
+        }
       })
     );
   };
@@ -55,7 +58,9 @@ const FilterItem = ({ id }: { id: string }) => {
   const handleChangeValue = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilter(
       immer((curFilter) => {
-        curFilter.operator.values = e.target.value;
+        if (curFilter) {
+          curFilter.operator.values = e.target.value;
+        }
       })
     );
   };

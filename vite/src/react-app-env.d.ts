@@ -47,6 +47,8 @@ interface Window {
   notification: NotificationFuncType;
   api: {
     contextMenu: IContextMenu;
+    setConfirmReload: (boolean) => void;
   };
   projectId: string;
+  os: "Darwin" | string;
 }

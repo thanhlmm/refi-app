@@ -27,8 +27,8 @@ const InputComboBox = ({
     highlightedIndex,
     getItemProps,
   } = useCombobox({
+    defaultInputValue: selectedItem,
     items: inputItems,
-    selectedItem,
     onSelectedItemChange: ({ selectedItem }) => {
       return handleSelectedItemChange(selectedItem);
     },

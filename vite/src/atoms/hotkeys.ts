@@ -1,4 +1,4 @@
-import { isCollection } from "@/utils/common";
+import { isCollection, mapHotKeys } from "@/utils/common";
 import {
   actionCommitChange,
   actionDuplicateDoc,
@@ -20,7 +20,6 @@ import {
   isModalCommandAtom,
   isModalFeedbackAtom,
   isModalNewsAtom,
-  isShowDocFinderModalCommandAtom,
   isShowPreviewChangeModalAtom,
   viewModePathInputAtom,
 } from "./ui";
@@ -31,7 +30,7 @@ export type IGlobalHotKeys = Record<
   {
     name: string;
     group: "navigator" | "action" | "general";
-    sequences: string;
+    sequences: string | string[];
     handler: () => void;
   }
 >;
@@ -40,20 +39,20 @@ export const globalHotKeys: IGlobalHotKeys = {
   OPEN_PATH_INPUT: {
     name: "Go to documents, collections by path",
     group: "navigator",
-    sequences: "command+p",
+    sequences: mapHotKeys("command+p"),
     handler: () => setRecoilExternalState(viewModePathInputAtom, false),
   },
   OPEN_COMMAND_LIST: {
     name: "Open command list",
     group: "navigator",
-    sequences: "command+shift+p",
+    sequences: mapHotKeys(["command+shift+p", "command+/"]),
     handler: () =>
       setRecoilExternalState(isModalCommandAtom, (value) => !value),
   },
   COMMIT_CHANGES: {
     name: "Commit changes",
     group: "action",
-    sequences: "command+s",
+    sequences: mapHotKeys("command+s"),
     handler: async () => {
       await actionCommitChange();
     },
@@ -61,7 +60,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   PREVIEW_CHANGES: {
     name: "Preview changes",
     group: "action",
-    sequences: "command+shift+s", // TODO: Check the right key
+    sequences: mapHotKeys("command+shift+s"), // TODO: Check the right key
     handler: () => {
       setRecoilExternalState(isShowPreviewChangeModalAtom, (value) => !value);
     },
@@ -69,13 +68,15 @@ export const globalHotKeys: IGlobalHotKeys = {
   REVERT_CHANGES: {
     name: "Revert changes",
     group: "action",
-    sequences: "command+r",
-    handler: () => { },
+    sequences: mapHotKeys("command+r"),
+    handler: () => {
+      // actionReverseChange();
+    },
   },
   WHATS_NEWS: {
     name: "What's news",
     group: "general",
-    sequences: "",
+    sequences: mapHotKeys(""),
     handler: () => {
       setRecoilExternalState(isModalNewsAtom, (value) => !value);
     },
@@ -83,7 +84,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   LEAVE_FEEDBACK: {
     name: "Leave Feedback",
     group: "general",
-    sequences: "",
+    sequences: mapHotKeys(""),
     handler: () => {
       setRecoilExternalState(isModalFeedbackAtom, (value) => !value);
     },
@@ -91,7 +92,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   SEND_QUERY: {
     name: "Query",
     group: "action",
-    sequences: "command+Enter",
+    sequences: mapHotKeys("command+Enter"),
     handler: () => {
       actionSubmitQuery(true);
     },
@@ -99,7 +100,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   SEND_QUERY_WITHOUT_FILTER: {
     name: "Query without filter",
     group: "action",
-    sequences: "command+shift+Enter",
+    sequences: mapHotKeys("command+shift+Enter"),
     handler: () => {
       actionSubmitQuery(false);
     },
@@ -107,7 +108,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   EXPORT_QUERY_JSON: {
     name: "Export: Current table as JSON",
     group: "action",
-    sequences: "command+e",
+    sequences: mapHotKeys("command+e"),
     handler: () => {
       actionExportViewJSON();
     },
@@ -115,7 +116,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   EXPORT_QUERY_CSV: {
     name: "Export: Current table as CSV",
     group: "action",
-    sequences: "command+shift+e",
+    sequences: mapHotKeys("command+shift+e"),
     handler: () => {
       actionExportViewCSV();
     },
@@ -123,7 +124,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   EXPORT_DOC_JSON: {
     name: "Export: Current document as JSON",
     group: "action",
-    sequences: "",
+    sequences: mapHotKeys(""),
     handler: async () => {
       const docPath = await getRecoilExternalLoadable(
         navigatorPathAtom
@@ -139,7 +140,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   EXPORT_DOC_CSV: {
     name: "Export: Current document as CSV",
     group: "action",
-    sequences: "",
+    sequences: mapHotKeys(""),
     handler: async () => {
       const docPath = await getRecoilExternalLoadable(
         navigatorPathAtom
@@ -155,7 +156,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   DUPLICATE_DOC: {
     name: "Duplicate current doc",
     group: "action",
-    sequences: "command+d",
+    sequences: mapHotKeys("command+d"),
     handler: async () => {
       const docPath = await getRecoilExternalLoadable(
         navigatorPathAtom
@@ -172,7 +173,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   IMPORT_DATA: {
     name: "Import data",
     group: "action",
-    sequences: "command+i",
+    sequences: mapHotKeys("command+i"),
     handler: async () => {
       const collectionPath = await getRecoilExternalLoadable(
         navigatorCollectionPathAtom
@@ -183,7 +184,7 @@ export const globalHotKeys: IGlobalHotKeys = {
   NEW_DOCUMENT: {
     name: "New document",
     group: "action",
-    sequences: "command+n",
+    sequences: mapHotKeys("command+n"),
     handler: async () => {
       const collectionPath = await getRecoilExternalLoadable(
         navigatorCollectionPathAtom

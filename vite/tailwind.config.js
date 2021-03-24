@@ -17,6 +17,8 @@ module.exports = {
   variants: {
     extend: {
       borderWidth: ["last"],
+      textColor: ["disabled"],
+      borderColor: ["disabled"],
     },
   },
   plugins: [require("@tailwindcss/typography"), require("@tailwindcss/forms")],

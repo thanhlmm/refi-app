@@ -20,8 +20,8 @@ import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Scrollbars } from "react-custom-scrollbars";
 import {
-  useBlockLayout,
   useFlexLayout,
+  useResizeColumns,
   useSortBy,
   useTable,
 } from "react-table";
@@ -31,7 +31,8 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { IDReadOnlyField } from "../EditableCell";
 import { useCustomCompareEffect } from "react-use";
 import { atomObservable } from "@/atoms/RecoilExternalStatePortal";
-import { getIdFromPath } from "@/utils/common";
+import { getIdFromPath, ignoreBackdropEvent } from "@/utils/common";
+import classNames from "classnames";
 
 function TableWrapper({
   columns,
@@ -47,9 +48,9 @@ function TableWrapper({
 }) {
   const defaultColumn = React.useMemo(
     () => ({
-      minWidth: 30,
+      minWidth: 50,
       width: 100,
-      maxWidth: 200,
+      maxWidth: 600,
     }),
     []
   );
@@ -69,9 +70,9 @@ function TableWrapper({
       disableMultiSort: false,
     } as any,
     useSortBy,
+    useResizeColumns,
     useFlexLayout
     // useBlockLayout
-    // useResizeColumns,
   );
 
   const listRef = useRef();
@@ -123,16 +124,14 @@ function TableWrapper({
         const observer = new IntersectionObserver(
           function (entries, observer) {
             if (!entries[0].isIntersecting) {
-              console.log("scrollIntoView");
-              docElement.scrollIntoView();
+              docElement.scrollIntoView({ block: "center" });
             }
-
+            // Ignore scroll if element is in view
             observer.disconnect();
           },
           { threshold: [1] }
         );
         observer.observe(docElement);
-        // Ignore scroll if element is in view
         return;
       }
       const dataIndex = data.findIndex((doc) => doc.id === id);
@@ -190,7 +189,6 @@ function TableWrapper({
     headerRef.current?.scrollTo(scrollLeft, 0);
   }, []);
 
-  // TODO: Integrate column resize
   return (
     <AutoSizer>
       {({ height, width }) => (
@@ -220,6 +218,14 @@ function TableWrapper({
                     )}
                     className="text-left text-gray-500 border-r border-gray-200"
                   >
+                    <div
+                      {...(column as any).getResizerProps({
+                        onClick: ignoreBackdropEvent,
+                      })}
+                      className={classNames(
+                        "w-px h-full inline-block transform translate-x-px hover:bg-gray-400 pl-1 absolute top-0 -right-px"
+                      )}
+                    />
                     {column.render("Header", {
                       isSorted: (column as any)?.isSorted,
                       isSortedDesc: (column as any).isSortedDesc,

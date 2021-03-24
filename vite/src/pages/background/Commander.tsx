@@ -48,9 +48,10 @@ const CommandOption = ({
         onClickItem(command.key);
       }
     }}
+    data-id={command.key}
   >
     {command.name}
-    <span>
+    <span className="space-x-4">
       {command.sequences.map((data, index) => (
         <ShortcutKey key={index} hotkey={data.sequence} />
       ))}
@@ -62,6 +63,7 @@ const Commander = () => {
   const setShowModalCommand = useSetRecoilState(isModalCommandAtom);
   const [keyword, setKeyword] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const [activeOption, setActive] = useState<number>(1);
 
   const keyMap = getApplicationKeyMap();
 
@@ -90,24 +92,19 @@ const Commander = () => {
       key: command.key,
     }));
 
-    return [
-      {
-        element: (
-          <Input
-            placeholder="Commit changes, preview changes,... anything in your head 🤓"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            ref={inputRef}
-            autoFocus
-            className="px-3"
-            tabIndex={1}
-          />
-        ),
-        key: "general",
-      },
-      ...filtered,
-    ];
+    return filtered;
   }, [filteredCommands]);
+
+  const currentOption = useMemo(() => options[activeOption], [
+    activeOption,
+    options,
+  ]);
+
+  useEffect(() => {
+    if (!currentOption) {
+      setActive(1);
+    }
+  }, [currentOption]);
 
   const onSelectOption = useCallback((command) => {
     setShowModalCommand(false);
@@ -115,6 +112,28 @@ const Commander = () => {
       globalHotKeysHandler[command]();
     }
   }, []);
+
+  const handleInputKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (
+    e
+  ) => {
+    const maxOptionsIndex = options.length;
+    switch (e.key) {
+      case "ArrowUp":
+        setActive((index) =>
+          index === 0 ? maxOptionsIndex - 1 : (index - 1) % maxOptionsIndex
+        );
+        break;
+      case "ArrowDown":
+        setActive((index) => (index + 1) % maxOptionsIndex);
+        break;
+      case "Enter":
+        onSelectOption(currentOption.key);
+        break;
+      case "Escape":
+        setShowModalCommand(false);
+        break;
+    }
+  };
 
   // TODO: Add a section for recent commands
 
@@ -138,11 +157,20 @@ const Commander = () => {
               aria-orientation="vertical"
               aria-labelledby="options-menu"
             >
+              <Input
+                placeholder="Commit changes, preview changes,... anything in your head 🤓"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                ref={inputRef}
+                autoFocus
+                className="px-3"
+                tabIndex={1}
+              />
               <ListOptions
                 options={options}
                 onChange={onSelectOption}
-                onExit={() => setShowModalCommand(false)}
-                startItem={0}
+                currentOption={currentOption?.key || "general"}
               />
             </div>
           </ModalBody>

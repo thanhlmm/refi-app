@@ -47,7 +47,6 @@ const SelectComboBox = ({
       return handleSelectedItemChange(selectedItem);
     },
     onInputValueChange: ({ inputValue }) => {
-      console.log({ inputValue });
       setInputText(inputValue || "");
     },
   });

@@ -77,7 +77,6 @@ export class ClientDocumentSnapshot {
 
   public setField(field: string, newValue: any): ClientDocumentSnapshot {
     this.objectData = immutable.set(this.objectData, field, newValue);
-    console.log("set field", field, newValue);
     this.addChange([field]);
 
     return this;

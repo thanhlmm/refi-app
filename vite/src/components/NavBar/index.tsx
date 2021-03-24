@@ -47,6 +47,10 @@ const NavBar = () => {
     };
   }, []);
 
+  useEffect(() => {
+    // TODO: Show confirm dialog when reload or exit
+  }, [isCommittable]);
+
   return (
     <div className="flex flex-row space-x-2">
       <div className="flex flex-row space-x-2">

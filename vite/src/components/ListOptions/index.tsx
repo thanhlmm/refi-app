@@ -1,12 +1,4 @@
 import React, { ReactElement, useEffect, useState } from "react";
-import { HotKeys } from "react-hotkeys";
-
-const keyMap = {
-  UP: "up",
-  DOWN: "down",
-  ENTER: "enter",
-  ESC: "Escape",
-};
 
 interface IListOptionsProps {
   options: {
@@ -14,54 +6,35 @@ interface IListOptionsProps {
     key: string;
   }[];
   onChange: (string) => void;
-  onExit: () => void;
-  startItem?: number;
+  currentOption: string;
 }
 
 const ListOptions = ({
   options,
   onChange,
-  onExit,
-  startItem = -1,
+  currentOption,
 }: IListOptionsProps): ReactElement => {
-  const [activeOption, setActive] = useState<number>(startItem);
-  const maxOptionsIndex = options.length - 1;
-
-  const currentOption = options[activeOption];
-
-  const handler = {
-    UP: () => {
-      setActive((index) => (index - 1) % maxOptionsIndex);
-    },
-    DOWN: () => {
-      setActive((index) => (index + 1) % maxOptionsIndex);
-    },
-    ENTER: () => {
-      onChange(options[activeOption]?.key);
-    },
-    ESC: () => {
-      onExit();
-    },
-  };
-
   useEffect(() => {
-    if (!currentOption) {
-      setActive(1);
+    if (currentOption) {
+      const optionElement = document.querySelector(
+        `[data-id='${currentOption}']`
+      );
+      if (optionElement) {
+        optionElement.scrollIntoView({ block: "nearest" });
+      }
     }
   }, [currentOption]);
 
   return (
-    <HotKeys keyMap={keyMap} handlers={handler} allowChanges>
-      <ul>
-        {options.map((option) =>
-          React.cloneElement(option.element, {
-            key: option.key,
-            isActive: currentOption?.key === option?.key,
-            onClickItem: onChange,
-          })
-        )}
-      </ul>
-    </HotKeys>
+    <ul className="overflow-y-auto max-h-96">
+      {options.map((option) =>
+        React.cloneElement(option.element, {
+          key: option.key,
+          isActive: currentOption === option?.key,
+          onClickItem: onChange,
+        })
+      )}
+    </ul>
   );
 };
 

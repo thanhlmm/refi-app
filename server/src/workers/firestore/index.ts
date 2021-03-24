@@ -102,8 +102,6 @@ export default class FireStoreService implements NSFireStore.IService {
       querier = querier.orderBy(field, sort.toLowerCase() as FirebaseFirestore.OrderByDirection);
     })
 
-    console.time('Query time');
-
     const close = querier.onSnapshot(
       async (querySnapshot) => {
         const docChanges = querySnapshot.docChanges();
@@ -119,7 +117,6 @@ export default class FireStoreService implements NSFireStore.IService {
           docs: docChanges.filter(changes => changes.type === 'removed').map(changes => changes.doc)
         })
 
-        console.time('Query time');
         console.log(`send to ${topic} with ${docChanges.length} changes`)
 
         this.ctx.ipc.send(topic, { addedData, modifiedData, removedData, totalDocs: docChanges.length }, { firestore: true });
@@ -284,8 +281,6 @@ export default class FireStoreService implements NSFireStore.IService {
     const fs = this.fsClient();
     const collection = fs.collection(path);
 
-    console.log({ path, idField, autoParseJSON })
-
     const docsTrunk = chunk(docs, 500); // Split by 500 each chunk
 
     docsTrunk.forEach(async (chunk) => {
@@ -293,7 +288,6 @@ export default class FireStoreService implements NSFireStore.IService {
       chunk.forEach((doc) => {
         const id = idField ? get(doc, idField) : undefined;
         const newDocRef = id ? collection.doc(id) : collection.doc();
-        console.log(collection);
         let docData = doc;
         if (autoParseJSON) {
           Object.keys(docData).forEach(key => {
@@ -301,7 +295,7 @@ export default class FireStoreService implements NSFireStore.IService {
             try {
               docData[key] = JSON.parse(field);
             } catch (error) {
-              console.warn(`Can not parse json for field ${key}`)
+              console.warn(`Can not parse json for field ${key}. Use the original value`)
               docData[key] = field;
             }
           })

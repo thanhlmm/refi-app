@@ -180,7 +180,21 @@ export const removeFirebaseSerializeMetaData = (
       });
     }
 
-    return JSON.stringify(docData, undefined, 2);
+    return JSON.stringify(
+      docData,
+      (key, value) => {
+        if (value == null || value.constructor != Object) {
+          return value;
+        }
+        return Object.keys(value)
+          .sort()
+          .reduce((s, k) => {
+            s[k] = value[k];
+            return s;
+          }, {});
+      },
+      2
+    );
   } catch (error) {
     console.log("Error remove metadata");
     console.log(error);
@@ -237,4 +251,15 @@ export function isNumeric(input: string | number): boolean {
   if (typeof input === "number") return true;
   if (typeof input !== "string") return false;
   return !isNaN(+input) && !isNaN(parseFloat(input));
+}
+
+export function mapHotKeys(sequences: string | string[]): string | string[] {
+  const replacer = (input: string) =>
+    window.os === "Darwin" ? input : input.replaceAll("command", "Control");
+
+  if (Array.isArray(sequences)) {
+    return sequences.map(replacer);
+  }
+
+  return replacer(sequences);
 }
