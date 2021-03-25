@@ -50,7 +50,7 @@ const Property = () => {
 
     if (isCollection(currentPath)) {
       return (
-        <div className="flex flex-col items-center justify-center w-full h-full">
+        <div className="flex flex-col items-center justify-center w-full h-full text-center">
           {/* <div className="w-1/4">
             <img src={Launching} />
           </div> */}
@@ -70,7 +70,7 @@ const Property = () => {
     }
 
     return (
-      <div className="flex flex-col items-center justify-center w-full h-full">
+      <div className="flex flex-col items-center justify-center w-full h-full text-center">
         <div className="w-1/4">
           <img src={EmptyBox} />
         </div>

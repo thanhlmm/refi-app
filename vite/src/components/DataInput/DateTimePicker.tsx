@@ -30,7 +30,11 @@ const DateTimePicker = ({
 
   const handleOnClose = (event: string | Event | moment.Moment) => {
     if (moment.isMoment(event)) {
-      onChange(firebase.firestore.Timestamp.fromDate(event.toDate()));
+      if (
+        moment(value.toDate()).format(format) !== moment(event).format(format)
+      ) {
+        onChange(firebase.firestore.Timestamp.fromDate(event.toDate()));
+      }
     }
   };
 

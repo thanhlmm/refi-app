@@ -10,7 +10,7 @@
     "start": "electron-forge start",
     "package": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package",
     "package-window": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform win32",
-    "make": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make --platform darwin",
+    "make": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make --platform darwin  --platform win32",
     "build": "tsc --sourceMap false",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts ."

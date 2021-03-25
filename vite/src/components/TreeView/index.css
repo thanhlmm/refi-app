@@ -201,6 +201,7 @@
 
 .rc-tree-list-holder > div {
   overflow-x: auto !important;
+  height: 100%;
 }
 
 .rc-tree-list-holder-inner {

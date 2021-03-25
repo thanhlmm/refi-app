@@ -36,7 +36,7 @@ const createWindow = async () => {
     minHeight: 900,
     backgroundColor: "#fff",
     webPreferences: {
-      devTools: isDev,
+      // devTools: isDev,
       enableRemoteModule: false,
       contextIsolation: false,
       nodeIntegration: false,

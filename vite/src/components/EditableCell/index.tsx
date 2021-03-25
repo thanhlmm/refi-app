@@ -19,7 +19,8 @@ import React, {
   useState,
 } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import DateTimePicker from "../DataInput/DateTimePicker";
+import CopyIcon from "@/components/CopyIcon";
+import DateTimePicker from "@/components/DataInput/DateTimePicker";
 
 interface IEditableCell {
   row: ClientDocumentSnapshot;
@@ -236,7 +237,7 @@ export const IDReadOnlyField = ({
   }
 
   return (
-    <div className="w-full h-full px-px font-mono">
+    <div className="relative w-full h-full px-px font-mono group">
       <input
         className={classNames(
           "focus:ring-1 focus:ring-blue-400 w-full h-full bg-transparent outline-none ring-inset focus:bg-blue-100 p-1.5 font-mono text-sm",
@@ -247,6 +248,10 @@ export const IDReadOnlyField = ({
         )}
         value={value}
         readOnly
+      />
+      <CopyIcon
+        value={value || ""}
+        className="absolute w-6 transform -translate-y-1/2 bg-white opacity-0 cursor-pointer right-1 top-1/2 group-hover:opacity-100 p-0.5 rounded"
       />
     </div>
   );
