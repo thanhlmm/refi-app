@@ -6,7 +6,7 @@ import { Input } from "@zendeskgarden/react-forms";
 import { Tooltip } from "@zendeskgarden/react-tooltips";
 import { Breadcrumb } from "@zendeskgarden/react-breadcrumbs";
 import { Anchor } from "@zendeskgarden/react-buttons";
-import { getPathEntities } from "@/utils/common";
+import { beautifyId, getCollectionPath, getPathEntities } from "@/utils/common";
 import { Span } from "@zendeskgarden/react-typography";
 import { viewModePathInputAtom } from "@/atoms/ui";
 import { useCopyToClipboard } from "react-use";
@@ -60,21 +60,31 @@ function PathInput() {
   };
 
   const PathViewer = useMemo(() => {
-    const entities = getPathEntities(path);
+    let entities = getPathEntities(path);
     let currentEntity = entities.pop();
     if (["", "/"].includes(path)) {
       currentEntity = window.projectId;
     }
+
+    if (entities.length > 8) {
+      entities = [...entities.slice(0, 3), "...", ...entities.slice(-4)];
+    }
+
     return (
       <Breadcrumb
         className="w-full pl-2 cursor-pointer"
         onClick={() => toggleViewMode(false)}
+        key={getCollectionPath(path)}
       >
-        {entities.map((entity) => (
-          <Anchor key={entity} onClick={(e) => handleClickEntity(e, entity)}>
-            {entity}
-          </Anchor>
-        ))}
+        {entities.map((entity, index) =>
+          entity === "..." ? (
+            <Span>{entity}</Span>
+          ) : (
+            <Anchor key={entity} onClick={(e) => handleClickEntity(e, entity)}>
+              {entity}
+            </Anchor>
+          )
+        )}
 
         <Span>{currentEntity}</Span>
       </Breadcrumb>
@@ -97,6 +107,7 @@ function PathInput() {
           value={pathInput}
           onChange={handleChangeValue}
           onKeyDown={handlePathChange}
+          className="pr-8"
           onBlur={() => toggleViewMode(true)}
         />
       )}

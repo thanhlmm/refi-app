@@ -2,7 +2,7 @@ import React from "react";
 import classNames from "classnames";
 
 interface IShortcutKeyProps {
-  hotkey?: string;
+  hotkey: string | string[];
   size?: "small" | "normal";
   title?: string;
 }
@@ -12,37 +12,35 @@ const ShortcutKey = ({
   size = "normal",
   title = "",
 }: IShortcutKeyProps) => {
-  if (!hotkey) {
-    return null;
-  }
+  const keys = (Array.isArray(hotkey) ? hotkey[0] : hotkey)
+    .split("+")
+    .map((key) => {
+      if (key === "command") {
+        return "⌘";
+      }
 
-  const keys = hotkey.split("+").map((key) => {
-    if (key === "command") {
-      return "⌘";
-    }
+      if (key === "shift") {
+        return "⇧";
+      }
 
-    if (key === "shift") {
-      return "⇧";
-    }
+      if (key === "option") {
+        return "⌥";
+      }
 
-    if (key === "option") {
-      return "⌥";
-    }
+      if (key === "control" && window.os === "Darwin") {
+        return "⌃";
+      }
 
-    if (key === "control" && window.os === "Darwin") {
-      return "⌃";
-    }
+      if (key === "Enter") {
+        return "Enter";
+      }
 
-    if (key === "Enter") {
-      return "Enter";
-    }
+      if (key === "Control") {
+        return "Ctrl";
+      }
 
-    if (key === "Control") {
-      return "Ctrl";
-    }
-
-    return key.toUpperCase();
-  });
+      return key.toUpperCase();
+    });
 
   return (
     <span>

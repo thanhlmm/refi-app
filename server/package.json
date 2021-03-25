@@ -8,8 +8,9 @@
     "watch": "tsc -w",
     "dev": "run-p watch start",
     "start": "electron-forge start",
-    "package": "rm -rf build && cp -r ../vite/dist ./build && npm run build && electron-forge package",
-    "make": "electron-forge make",
+    "package": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package",
+    "package-window": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform win32",
+    "make": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make --platform darwin",
     "build": "tsc --sourceMap false",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts ."
@@ -33,7 +34,9 @@
         {
           "name": "@electron-forge/maker-zip",
           "platforms": [
-            "darwin"
+            "darwin",
+            "linux",
+            "win32"
           ]
         },
         {
@@ -43,6 +46,20 @@
         {
           "name": "@electron-forge/maker-rpm",
           "config": {}
+        }
+      ],
+      "publishers": [
+        {
+          "name": "@electron-forge/publisher-s3",
+          "platforms": [
+            "darwin",
+            "linux",
+            "window"
+          ],
+          "config": {
+            "bucket": "my-bucket",
+            "folder": "my/key/prefix"
+          }
         }
       ]
     }

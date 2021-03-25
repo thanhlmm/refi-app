@@ -217,7 +217,20 @@ export default class FireStoreService implements NSFireStore.IService {
       })
   
       await batch.commit();
+    });
+
+    // Send new docs to background
+    // TODO: Move data_background to another function
+    docsSnapshot.map(doc => {
+      return fs.doc(doc.ref.path).get()
+    });
+
+    const addedData = serializeQuerySnapshot({
+      docs: await Promise.all(docsSnapshot.map(doc => fs.doc(doc.ref.path).get()))
     })
+
+    this.ctx.ipc.send('data_background', { docs: addedData, type: 'added' }, { firestore: true });
+
     return true
   }
 

@@ -93,6 +93,11 @@ export const getAllColumnsRecursive = (
   return uniq(flatten(allColumns));
 };
 
+export const getCollectionPath = (path: string) => {
+  const isCollectionType = isCollection(path);
+  return isCollectionType ? path : getParentPath(path);
+};
+
 export const getSampleColumn = (data: ClientDocumentSnapshot[]): string[] => {
   const allColumns = data.map((row) => Object.keys(row.data()));
   const chunks = chunk(allColumns, 2);

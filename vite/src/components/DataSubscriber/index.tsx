@@ -18,6 +18,11 @@ interface ISubscribeResponse {
   totalDocs: number;
 }
 
+interface IDataBackgroundResponse {
+  docs: string;
+  type: "added" | "remove" | "modified";
+}
+
 const DataSubscriber = () => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
   const { queryVersion, withQuerier } = useRecoilValue(queryVersionAtom);
@@ -78,23 +83,24 @@ const DataSubscriber = () => {
             queryVersion
           );
 
-          actionStoreDocs([...addedDocs, ...modifiedDocs]);
-
-          const removedDocs = deserializeDocumentSnapshotArray(
-            removedData,
-            firebase.firestore.GeoPoint,
-            firebase.firestore.Timestamp
+          const removedDocs = ClientDocumentSnapshot.transformFromFirebase(
+            deserializeDocumentSnapshotArray(
+              removedData,
+              firebase.firestore.GeoPoint,
+              firebase.firestore.Timestamp
+            ),
+            queryVersion
           );
 
-          actionRemoveDocs(
-            ClientDocumentSnapshot.transformFromFirebase(
-              removedDocs,
-              queryVersion
-            )
-          );
+          actionStoreDocs({
+            added: addedDocs,
+            modified: modifiedDocs,
+            removed: removedDocs,
+          });
         }, 0);
       }
     );
+
     window
       .send("fs.queryCollection.subscribe", {
         topic: topicKey,
@@ -113,6 +119,32 @@ const DataSubscriber = () => {
       unsubscribe();
     };
   }, [collectionPath, queryVersion, withQuerier]);
+
+  useEffect(() => {
+    const listener = window.listen(
+      "data_background",
+      ({ docs, type }: IDataBackgroundResponse) => {
+        switch (type) {
+          case "added":
+            const addedDocs = ClientDocumentSnapshot.transformFromFirebase(
+              deserializeDocumentSnapshotArray(
+                docs,
+                firebase.firestore.GeoPoint,
+                firebase.firestore.Timestamp
+              ),
+              queryVersion
+            );
+
+            actionStoreDocs({ added: addedDocs });
+            break;
+        }
+      }
+    );
+
+    return () => {
+      listener();
+    };
+  }, [queryVersion]);
 
   return null;
 };

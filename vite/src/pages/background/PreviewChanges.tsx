@@ -26,6 +26,7 @@ import { groupBy } from "lodash";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import EscExit from "@/components/EscExit";
+import { actionGoTo } from "@/atoms/navigator.action";
 
 const PreviewChanges = () => {
   const setShowChangeModal = useSetRecoilState(isShowPreviewChangeModalAtom);
@@ -76,6 +77,14 @@ const PreviewChanges = () => {
   const handleReverseDoc = useCallback((doc: ClientDocumentSnapshot) => {
     actionReverseDocChange(doc.ref.path, getTag(doc));
   }, []);
+
+  const handleGotoDoc = useCallback(
+    (path: string) => {
+      actionGoTo(path);
+      setShowChangeModal(false);
+    },
+    [setShowChangeModal]
+  );
 
   return (
     <div>
@@ -146,12 +155,47 @@ const PreviewChanges = () => {
                       <tbody>
                         <tr>
                           <td colSpan={3}>
-                            <b>{collection}</b>
+                            <svg
+                              className="inline-block mr-2"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 16 16"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                clipRule="evenodd"
+                                d="M5 2.5l.5-.5h2l.5.5v11l-.5.5h-2l-.5-.5v-11zM6 3v10h1V3H6zm3.171.345l.299-.641 1.88-.684.64.299 3.762 10.336-.299.641-1.879.684-.64-.299L9.17 3.345zm1.11.128l3.42 9.396.94-.341-3.42-9.397-.94.342zM1 2.5l.5-.5h2l.5.5v11l-.5.5h-2l-.5-.5v-11zM2 3v10h1V3H2z"
+                              />
+                            </svg>
+                            {collection}
                           </td>
                         </tr>
                         {sameParentDocs.map((doc) => (
                           <tr key={doc.id} className="hover:bg-gray-200 group">
-                            <td className="pl-2 font-mono text-sm">{doc.id}</td>
+                            <td className="pl-4">
+                              <svg
+                                className="inline-block mr-2"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M13.71 4.29l-3-3L10 1H4L3 2v12l1 1h9l1-1V5l-.29-.71zM13 14H4V2h5v4h4v8zm-3-9V2l3 3h-3z"
+                                />
+                              </svg>
+                              <a
+                                className="font-mono text-sm text-blue-500 underline cursor-pointer"
+                                onClick={() => handleGotoDoc(doc.ref.path)}
+                              >
+                                {doc.id}
+                              </a>
+                            </td>
                             <td>
                               <Tag
                                 className={classNames("text-white", {

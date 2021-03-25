@@ -3,6 +3,7 @@ import { collectionAtom } from "./firestore";
 import {
   getAllColumns,
   getAllColumnsRecursive,
+  getCollectionPath,
   getParentPath,
   getSampleColumn,
   isCollection,
@@ -32,8 +33,7 @@ export const navigatorCollectionPathAtom = selector<string>({
   key: "navigator.collectionPath",
   get: ({ get }) => {
     const path = get(navigatorPathAtom);
-    const isCollectionType = isCollection(path);
-    return isCollectionType ? path : getParentPath(path);
+    return getCollectionPath(path);
   },
 });
 

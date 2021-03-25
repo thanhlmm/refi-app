@@ -195,6 +195,16 @@
   height: 0;
 }
 .rc-tree-indent-unit {
-  width: 16px;
+  @apply w-3;
   display: inline-block;
+}
+
+.rc-tree-list-holder > div {
+  overflow-x: auto !important;
+}
+
+.rc-tree-list-holder-inner {
+  position: relative !important;
+  display: inline-flex !important;
+  min-width: 100%;
 }

@@ -9,7 +9,7 @@ export function useRecoilImmerState<T>(
   const [value, setValue] = useRecoilState(recoilState);
   const setterFunction: SetterOrUpdater<T> = (valOrUpdater) => {
     if (isFunction(valOrUpdater)) {
-      setValue(produce(valOrUpdater as any));
+      setValue(produce(valOrUpdater) as any);
       return;
     }
 

@@ -58,7 +58,7 @@ export const setRecoilExternalStateImmer: <T>(
   valOrUpdater: ((currVal: T) => T) | T
 ) => void = (recoilState, valOrUpdater) => {
   if (isFunction(valOrUpdater)) {
-    setRecoilExternalState(recoilState, produce(valOrUpdater as any));
+    setRecoilExternalState(recoilState, produce(valOrUpdater) as any);
     return;
   }
 

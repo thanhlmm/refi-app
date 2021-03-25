@@ -10,6 +10,8 @@ export default defineConfig({
   plugins: [reactRefresh()],
   build: {
     brotliSize: false,
+    target: "chrome89",
+    polyfillDynamicImport: false,
     // sourcemap: "inline",
   },
 });

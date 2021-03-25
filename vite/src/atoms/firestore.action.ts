@@ -19,6 +19,7 @@ import {
 } from "./firestore";
 import {
   getRecoilExternalLoadable,
+  IRecoilUpdateCommand,
   resetRecoilExternalState,
   setRecoilBatchUpdate,
   setRecoilExternalState,
@@ -29,30 +30,67 @@ import { actionGoTo } from "./navigator.action";
 import { notifyErrorPromise } from "./ui.action";
 
 export const actionStoreDocs = (
-  docs: ClientDocumentSnapshot[],
+  {
+    added = [],
+    modified = [],
+    removed = [],
+  }: {
+    added?: ClientDocumentSnapshot[];
+    modified?: ClientDocumentSnapshot[];
+    removed?: ClientDocumentSnapshot[];
+  },
   override = false
 ): void => {
-  setRecoilBatchUpdate([
-    ...docs.map((doc) => ({ atom: docAtom(doc.ref.path), valOrUpdater: doc })),
-    {
-      // Synchronize data with docsLibraryAtom
-      atom: docsLibraryAtom,
-      valOrUpdater: (curPath) =>
-        uniq([...curPath, ...docs.map((doc) => doc.ref.path)]),
-    },
-  ]);
-  // docs.forEach(async (doc) => {
-  //   // const originalDoc = await getRecoilExternalLoadable(
-  //   //   docAtom(doc.ref.path)
-  //   // ).toPromise();
-  //   // In-case user has modify the original docs
-  //   // NOTICE: We just ignore new update if we're currently edit an document
-  //   // originalDoc.mergeNewDoc(doc);
-  //   setTimeout(() => {
-  //     // To make not let the UI locking
-  //     setRecoilExternalState(docAtom(doc.ref.path), doc);
-  //   }, 0);
-  // });
+  const batches: any[] = [];
+  added.forEach((doc) => {
+    if (override) {
+      batches.push({
+        atom: docAtom(doc.ref.path),
+        valOrUpdater: doc,
+      });
+    } else {
+      batches.push({
+        atom: docAtom(doc.ref.path),
+        valOrUpdater: (curDoc) => {
+          if (curDoc?.isChanged()) {
+            return curDoc;
+          }
+
+          return doc;
+        },
+      });
+    }
+  });
+
+  modified.forEach((doc) => {
+    batches.push({
+      atom: docAtom(doc.ref.path),
+      valOrUpdater: doc,
+    });
+  });
+
+  batches.push({
+    // Synchronize data with docsLibraryAtom. Why I need to do it manually ?_?
+    atom: docsLibraryAtom,
+    valOrUpdater: (curPath) =>
+      uniq([...curPath, ...[...added, ...modified].map((doc) => doc.ref.path)]),
+  });
+
+  removed.forEach((doc) => {
+    console.log(doc);
+    batches.push({
+      atom: docAtom(doc.ref.path),
+      valOrUpdater: null,
+    });
+  });
+
+  batches.push({
+    atom: deletedDocsAtom,
+    valOrUpdater: (docs) =>
+      uniqBy([...docs, ...removed], (doc) => doc.ref.path),
+  });
+
+  setRecoilBatchUpdate(batches);
 };
 
 // This is trigger from user
@@ -60,6 +98,10 @@ export const actionDeleteDoc = async (docPath: string) => {
   const doc = await getRecoilExternalLoadable(docAtom(docPath)).toPromise();
   if (doc) {
     resetRecoilExternalState(docAtom(docPath));
+    if (doc.isNew) {
+      // Ignore if the doc is new and haven't commit to db
+      return true;
+    }
     setRecoilExternalState(deletedDocsAtom, (docs) =>
       uniqBy([...docs, doc], (doc) => doc.ref.path)
     );
@@ -252,7 +294,12 @@ export const actionReverseDocChange = async (
       );
 
       actionStoreDocs(
-        ClientDocumentSnapshot.transformFromFirebase(data, queryVersion),
+        {
+          added: ClientDocumentSnapshot.transformFromFirebase(
+            data,
+            queryVersion
+          ),
+        },
         true
       );
 

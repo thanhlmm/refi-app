@@ -1,11 +1,10 @@
 import {
   allDocsAtom,
   deletedDocsAtom,
-  hasNewDocAtom,
+  docAtom,
   pathExpanderAtom,
 } from "@/atoms/firestore";
 import {
-  actionAddPathExpander,
   actionDeleteCollection,
   actionDeleteDoc,
   actionNewDocument,
@@ -19,8 +18,7 @@ import {
   actionGoTo,
   actionPathExpand,
 } from "@/atoms/navigator.action";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { actionToggleImportModal, notifyErrorPromise } from "@/atoms/ui.action";
+import { actionToggleImportModal } from "@/atoms/ui.action";
 import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import {
@@ -45,6 +43,7 @@ import React, {
   useState,
 } from "react";
 import { useDebounce } from "react-use";
+import AutoSizer from "react-virtualized-auto-sizer";
 import { useRecoilState, useRecoilValue } from "recoil";
 import "./index.css";
 
@@ -55,16 +54,14 @@ interface IFSDataNode extends DataNode {
   name: string;
 }
 
-// TODO: Optimize me
 const NodeComponent = ({ path, name, isCollection }: IFSDataNode) => {
-  const hasNewDoc = useRecoilValue(hasNewDocAtom(path));
-  // const hasBeenModified = useRecoilValue(hasModifiedDocAtom(path));
+  const doc = useRecoilValue(docAtom(path));
 
   return (
     <span
       className={classNames({
-        ["text-green-600"]: hasNewDoc,
-        // ["text-blue-600"]: hasBeenModified,
+        ["text-green-600"]: doc?.isNew,
+        ["text-blue-600"]: doc?.isChanged(),
         ["font-mono text-xs"]: !isCollection,
       })}
     >
@@ -524,14 +521,14 @@ function TreeView({ allDocs, deletedDocs, pathAvailable }: ITreeViewProps) {
           <AutoSizer disableWidth>
             {({ height }) => (
               <Tree
-                showLine
+                // showLine
                 treeData={treeData as any}
                 onSelect={handleSelectTree}
-                height={height}
                 loadData={handleExpandData}
+                height={height}
+                itemHeight={30}
                 virtual
                 focusable
-                itemHeight={24}
                 className="h-full"
                 defaultExpandedKeys={[path]}
                 selectedKeys={[path]}
