@@ -1,8 +1,9 @@
 import isDev from "electron-is-dev";
+import log from 'electron-log';
 if (isDev) {
   require('source-map-support').install();
 }
-process.on('unhandledRejection', console.log);
+process.on('unhandledRejection', log.error);
 
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { fork } from "child_process";
@@ -74,9 +75,8 @@ const createWindow = async () => {
 
 // TODO: Also restart background process when user reload the app
 async function createBackgroundProcess() {
-  console.log('create background process again', serverSocket);
   serverSocket = serverSocket || (await findOpenSocket());
-  console.log("Create background process");
+  log.info(`Create background process for ${serverSocket}`);
   if (serverProcess) {
     // Ignore if server already created
     return;
@@ -89,21 +89,24 @@ async function createBackgroundProcess() {
     cwd: app.getPath('userData')
   });
 
+  log.info(`Done create background process #${serverProcess.pid}`);
+
   if (isDev) {
-    // Print console.log of child process
+    // Print log.info of child process
     serverProcess?.stdout?.on("data", function (data: any) {
-      console.log(data.toString());
+      log.info(data.toString());
     });
   }
 
   setTimeout(() => {
+    log.info('Notified client that the background process is live');
     mainWindow.webContents.send("set-socket", {
       name: serverSocket,
     });
   }, 500);
 
   serverProcess.on("message", (msg: any) => {
-    console.log(msg);
+    log.info(msg);
   });
 }
 
@@ -127,19 +130,8 @@ app.whenReady().then(async () => {
   if (isDev) {
     const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
     installExtension(REACT_DEVELOPER_TOOLS)
-      .then((name: string) => console.log(`Added Extension:  ${name}`))
-      .catch((err: any) => console.log('An error occurred: ', err));
-
-
-    // installExtension('jhfmmdhbinleghabnblahfjfalfgidik')
-    //   .then((name: string) => console.log(`Added Extension:  ${name}`))
-    //   .catch((err: any) => console.log('An error occurred: ', err));
-
-    // installExtension('dhjcdlmklldodggmleehadpjephfgflc') //Recoil Dev Tools
-    //   .then((name: string) => console.log(`Added Extension:  ${name}`))
-    //   .catch((err: any) => console.log('An error occurred: ', err));
-
-
+      .then((name: string) => log.info(`Added Extension:  ${name}`))
+      .catch((err: any) => log.info('An error occurred: ', err));
   }
 });
 
@@ -154,7 +146,7 @@ app.on('window-all-closed', () => {
   ContextMenu.clearMainBindings(ipcMain);
 
   if (serverProcess) {
-    console.log("kill server");
+    log.info("kill server");
     serverProcess.kill();
     serverProcess = null;
     serverSocket = null;
@@ -172,9 +164,9 @@ app.on('web-contents-created', (e, contents) => {
 });
 
 app.on("before-quit", () => {
-  console.log("Before quit");
+  log.info("Before quit");
   if (serverProcess) {
-    console.log("kill server");
+    log.info("kill server");
     serverProcess.kill();
     serverProcess = null;
   }

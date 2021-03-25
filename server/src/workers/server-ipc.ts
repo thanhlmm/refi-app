@@ -1,8 +1,10 @@
-const ipc = require('node-ipc')
+const ipc = require('node-ipc');
+import log from 'electron-log';
 
 export function init(socketName: string, handlers: Record<string, Function>, buffer = false) {
   ipc.config.id = socketName;
-  ipc.config.silent = true;
+  ipc.config.silent = false;
+  ipc.config.logger = log.verbose;
   ipc.config.rawBuffer = buffer;
 
   ipc.serve(() => {

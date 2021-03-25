@@ -57,7 +57,6 @@ export function convertSnapshotToDoc(snapshot: any) {
     objData,
     (value: any, key: string) => docTypes[key] === "DocumentReference"
   );
-  console.log(refFields);
   const resFieldsValue = _mapValues(refFields, (value: any) => value.path);
 
   return {

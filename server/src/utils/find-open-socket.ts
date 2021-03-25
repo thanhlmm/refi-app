@@ -1,4 +1,5 @@
 const ipc = require('node-ipc');
+import log from 'electron-log';
 
 ipc.config.silent = true;
 
@@ -20,11 +21,11 @@ function isSocketTaken(name: string) {
 
 export default async function findOpenSocket() {
   let currentSocket = 1;
-  console.log('checking', currentSocket);
+  log.debug('checking', currentSocket);
   while (await isSocketTaken(`refiapp_${currentSocket}`)) {
     currentSocket++;
-    console.log('checking', currentSocket);
+    log.debug('checking', currentSocket);
   }
-  console.log('found socket', currentSocket);
+  log.debug('found socket', currentSocket);
   return `refiapp_${currentSocket}`;
 }

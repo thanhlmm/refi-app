@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { deserializeDocumentSnapshotArray, DocumentSnapshot, serializeDocumentSnapshot, serializeQuerySnapshot } from "firestore-serializers";
 import { isCollection } from "../../utils/navigator";
 import { chunk, get } from "lodash";
+import log from 'electron-log';
 
 export default class FireStoreService implements NSFireStore.IService {
   private ctx: IServiceContext;
@@ -33,7 +34,7 @@ export default class FireStoreService implements NSFireStore.IService {
 
   public async init({ projectId }: NSFireStore.IFSInit): Promise<string[]> {
     if (this.app?.name === projectId) {
-      console.log(`${projectId} already initiated`);
+      log.warn(`${projectId} already initiated`);
       const collections = await this.fsClient().listCollections();
       return collections.map(collection => collection.path)
     }
@@ -44,13 +45,13 @@ export default class FireStoreService implements NSFireStore.IService {
       credential: admin.credential.cert(serviceAccount),
     }, projectId);
 
-    console.log("Initiated firebase app");
+    log.info("Initiated firebase app");
     const collections = await this.fsClient().listCollections();
     return collections.map(collection => collection.path)
   }
 
   public async subscribeDoc({ path, topic }: NSFireStore.IDocSubscribe) {
-    console.log("received event fs.query.subscribe", { path, topic });
+    log.debug("received event fs.query.subscribe", { path, topic });
     const close = this.fsClient()
       .doc(path)
       // .withConverter(postConverter)
@@ -86,8 +87,8 @@ export default class FireStoreService implements NSFireStore.IService {
   }
 
   public async subscribeCollection({ path, topic, queryOptions, sortOptions }: NSFireStore.ICollectionSubscribe) {
-    console.log("received event fs.queryCollection.subscribe", { path, topic });
-    console.log(sortOptions);
+    log.debug("received event fs.queryCollection.subscribe", { path, topic });
+    log.debug(sortOptions);
 
     const collectionRef = this.fsClient()
       .collection(path);
@@ -117,7 +118,7 @@ export default class FireStoreService implements NSFireStore.IService {
           docs: docChanges.filter(changes => changes.type === 'removed').map(changes => changes.doc)
         })
 
-        console.log(`send to ${topic} with ${docChanges.length} changes`)
+        log.debug(`send to ${topic} with ${docChanges.length} changes`)
 
         this.ctx.ipc.send(topic, { addedData, modifiedData, removedData, totalDocs: docChanges.length }, { firestore: true });
       }
@@ -135,7 +136,7 @@ export default class FireStoreService implements NSFireStore.IService {
   };
 
   public async subscribePathExplorer({ path, topic }: NSFireStore.IPathSubscribe) {
-    console.log("received event fs.pathExplorer", { path, topic });
+    log.debug("received event fs.pathExplorer", { path, topic });
     // TODO: Change me to not realtime
     const close = this.fsClient()
       .collection(path !== '/' ? path : undefined)
@@ -177,9 +178,9 @@ export default class FireStoreService implements NSFireStore.IService {
         });
       })
 
-      console.log('Transaction success!');
+      log.debug('Transaction success!');
     } catch (e) {
-      console.log('Transaction failure:', e);
+      log.error('Transaction failure:', e);
       throw e;
     }
     return true;
@@ -188,12 +189,12 @@ export default class FireStoreService implements NSFireStore.IService {
   public async unsubscribe({ id }: NSFireStore.IListenerKey) {
     const dataSource = this.listListeners.filter((doc) => doc.id === id);
     dataSource.forEach((source) => {
-      console.log(source);
+      log.debug(source);
       source.close();
     });
 
     this.listListeners = this.listListeners.filter((doc) => doc.id !== id);
-    console.log("Success unsubscribe this stream");
+    log.debug("Success unsubscribe this stream");
     return true;
   };
 
@@ -352,7 +353,6 @@ export default class FireStoreService implements NSFireStore.IService {
   public async pathExpander({ path }: { path: string }): Promise<string[]> {
     const fs = this.fsClient();
     const isCollectionPath = isCollection(path);
-    console.log({ path, isCollectionPath });
     if (isCollectionPath) {
       const docsSnapshot = await fs.collection(path).get()
       return docsSnapshot.docs.map(doc => doc.ref.path);

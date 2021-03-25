@@ -2,6 +2,7 @@ import low from 'lowdb';
 import FileSync from 'lowdb/adapters/FileSync';
 import fs from 'fs';
 import path from 'path';
+import log from 'electron-log';
 import { LocalDB } from '../workers/service';
 
 const db = (userDataPath: string) => {
@@ -11,7 +12,7 @@ const db = (userDataPath: string) => {
   // Create folder
   fs.mkdirSync(dbFolderPath, { recursive: true });
   fs.closeSync(fs.openSync(dbPath, 'a'));
-  console.log('Created db file');
+  log.info('Created db file');
 
   const adapter = new FileSync<LocalDB.IDatabase>(dbPath)
   const dbInstance = low(adapter)

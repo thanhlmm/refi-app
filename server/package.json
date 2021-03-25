@@ -10,7 +10,8 @@
     "start": "electron-forge start",
     "package": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package",
     "package-window": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform win32",
-    "make": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make --platform darwin  --platform win32",
+    "package-linux": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform linux",
+    "make": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make -v --platform darwin --platform linux --platform win32",
     "build": "tsc --sourceMap false",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts ."
@@ -28,15 +29,13 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "my_new_app"
+            "name": "RefiApp"
           }
         },
         {
           "name": "@electron-forge/maker-zip",
           "platforms": [
-            "darwin",
-            "linux",
-            "win32"
+            "darwin"
           ]
         },
         {
@@ -50,15 +49,18 @@
       ],
       "publishers": [
         {
-          "name": "@electron-forge/publisher-s3",
+          "name": "@electron-forge/publisher-github",
           "platforms": [
             "darwin",
             "linux",
             "window"
           ],
           "config": {
-            "bucket": "my-bucket",
-            "folder": "my/key/prefix"
+            "repository": {
+              "owner": "thanhlmm",
+              "name": "refi-app"
+            },
+            "prerelease": true
           }
         }
       ]
@@ -85,6 +87,7 @@
   "dependencies": {
     "@types/lowdb": "^1.0.9",
     "electron-is-dev": "^1.2.0",
+    "electron-log": "^4.3.2",
     "electron-serve": "^1.1.0",
     "electron-squirrel-startup": "^1.0.0",
     "firebase-admin": "^9.5.0",
