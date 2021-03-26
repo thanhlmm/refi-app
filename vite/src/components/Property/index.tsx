@@ -14,6 +14,7 @@ import { Tooltip } from "@zendeskgarden/react-tooltips";
 import classNames from "classnames";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
+import CopyIcon from "../CopyIcon";
 import EmptyBox from "./EmptyBox.png";
 import MonacoProperty from "./MonacoProperty";
 import PropertyTable from "./PropertyTable";
@@ -115,7 +116,7 @@ const Property = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <div>
+      <div className="relative group">
         <InputGroup isCompact>
           <div
             className={classNames(
@@ -131,7 +132,7 @@ const Property = () => {
           <Input
             ref={idInputRef}
             isCompact
-            className="font-mono disabled:text-gray-700 disabled:border-gray-200"
+            className="pr-6 font-mono disabled:text-gray-700 disabled:border-gray-200"
             placeholder="Document id"
             defaultValue={doc.id}
             disabled={!doc.isNew}
@@ -139,6 +140,12 @@ const Property = () => {
             onKeyDown={onIdKeyDown}
           />
         </InputGroup>
+        {!doc.isNew && (
+          <CopyIcon
+            value={doc.id}
+            className="absolute w-6 transform -translate-y-1/2 bg-white opacity-0 cursor-pointer right-1 top-1/2 group-hover:opacity-100 p-0.5 rounded"
+          />
+        )}
       </div>
       <div className="flex flex-row items-center justify-between mt-3">
         {editorType === "basic" ? (

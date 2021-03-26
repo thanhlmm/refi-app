@@ -87,7 +87,7 @@ function PathInput() {
   }, [path]);
 
   return (
-    <div className="relative flex flex-row items-center h-full bg-gray-300">
+    <div className="relative flex flex-row items-center h-full bg-gray-300 group">
       {isViewMode ? (
         PathViewer
       ) : (
@@ -103,7 +103,7 @@ function PathInput() {
       )}
       <CopyIcon
         value={path}
-        className="absolute w-5 transform -translate-y-1/2 cursor-pointer right-2 top-1/2"
+        className="absolute w-5 transform -translate-y-1/2 opacity-0 cursor-pointer right-2 top-1/2 group-hover:opacity-100"
       />
     </div>
   );
