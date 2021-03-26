@@ -164,7 +164,7 @@ const Commander = () => {
                 onKeyDown={handleInputKeyDown}
                 ref={inputRef}
                 autoFocus
-                className="px-3"
+                className="px-3 mb-1"
                 tabIndex={1}
               />
               <ListOptions

@@ -51,7 +51,7 @@ export default class FireStoreService implements NSFireStore.IService {
   }
 
   public async subscribeDoc({ path, topic }: NSFireStore.IDocSubscribe) {
-    log.debug("received event fs.query.subscribe", { path, topic });
+    log.verbose("received event fs.query.subscribe", { path, topic });
     const close = this.fsClient()
       .doc(path)
       // .withConverter(postConverter)
@@ -87,8 +87,8 @@ export default class FireStoreService implements NSFireStore.IService {
   }
 
   public async subscribeCollection({ path, topic, queryOptions, sortOptions }: NSFireStore.ICollectionSubscribe) {
-    log.debug("received event fs.queryCollection.subscribe", { path, topic });
-    log.debug(sortOptions);
+    log.verbose("received event fs.queryCollection.subscribe", { path, topic });
+    log.verbose(sortOptions);
 
     const collectionRef = this.fsClient()
       .collection(path);
@@ -118,7 +118,7 @@ export default class FireStoreService implements NSFireStore.IService {
           docs: docChanges.filter(changes => changes.type === 'removed').map(changes => changes.doc)
         })
 
-        log.debug(`send to ${topic} with ${docChanges.length} changes`)
+        log.verbose(`send to ${topic} with ${docChanges.length} changes`)
 
         this.ctx.ipc.send(topic, { addedData, modifiedData, removedData, totalDocs: docChanges.length }, { firestore: true });
       }
@@ -136,7 +136,7 @@ export default class FireStoreService implements NSFireStore.IService {
   };
 
   public async subscribePathExplorer({ path, topic }: NSFireStore.IPathSubscribe) {
-    log.debug("received event fs.pathExplorer", { path, topic });
+    log.verbose("received event fs.pathExplorer", { path, topic });
     // TODO: Change me to not realtime
     const close = this.fsClient()
       .collection(path !== '/' ? path : undefined)
@@ -178,7 +178,7 @@ export default class FireStoreService implements NSFireStore.IService {
         });
       })
 
-      log.debug('Transaction success!');
+      log.verbose('Transaction success!');
     } catch (e) {
       log.error('Transaction failure:', e);
       throw e;
@@ -189,12 +189,12 @@ export default class FireStoreService implements NSFireStore.IService {
   public async unsubscribe({ id }: NSFireStore.IListenerKey) {
     const dataSource = this.listListeners.filter((doc) => doc.id === id);
     dataSource.forEach((source) => {
-      log.debug(source);
+      log.verbose(source);
       source.close();
     });
 
     this.listListeners = this.listListeners.filter((doc) => doc.id !== id);
-    log.debug("Success unsubscribe this stream");
+    log.verbose("Success unsubscribe this stream");
     return true;
   };
 

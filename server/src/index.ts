@@ -3,6 +3,11 @@ import log from 'electron-log';
 if (isDev) {
   require('source-map-support').install();
 }
+
+if (!isDev) {
+  log.transports.file.level = "verbose";
+}
+
 process.on('unhandledRejection', log.error);
 
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
@@ -36,6 +41,7 @@ const createWindow = async () => {
     minWidth: 1500,
     minHeight: 900,
     backgroundColor: "#fff",
+    icon: __dirname + '/assets/icon.icns',
     webPreferences: {
       // devTools: isDev,
       enableRemoteModule: false,

@@ -39,6 +39,14 @@ const ShortcutKey = ({
         return "Ctrl";
       }
 
+      if (key === "Add") {
+        return "+";
+      }
+
+      if (key === "Subtract") {
+        return "-";
+      }
+
       return key.toUpperCase();
     });
 

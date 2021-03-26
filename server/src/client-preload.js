@@ -3,6 +3,7 @@ const ipc = require('node-ipc')
 const uuid = require('uuid')
 const ContextMenu = require("./lib/electron-context-menu").default;
 const os = require("os"); // Comes with node.js
+const { webFrame } = require('electron')
 
 let resolveSocketPromise
 let socketPromise = new Promise(resolve => {
@@ -32,6 +33,12 @@ window.os = os.type()
 
 window.api = {
   contextMenu: ContextMenu.preloadBindings(ipcRenderer),
+  webFrame: {
+    setZoomFactor: (factor) => {
+      webFrame.setZoomFactor(factor)
+    },
+    getZoomFactor: () => webFrame.getZoomFactor()
+  }
 }
 
 console.log('Done preload client');

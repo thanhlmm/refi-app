@@ -1,20 +1,19 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { certs, certsQueryID } from "@/atoms/cert";
+import { ignoreBackdropEvent, toBase64 } from "@/utils/common";
 import { Anchor, Button } from "@zendeskgarden/react-buttons";
+import { FileUpload, Input } from "@zendeskgarden/react-forms";
 import {
-  Modal,
-  Header,
   Body,
   Footer,
   FooterItem,
-  Close,
+  Header,
+  Modal,
 } from "@zendeskgarden/react-modals";
-import { Well, Title, Notification } from "@zendeskgarden/react-notifications";
+import { Notification, Title } from "@zendeskgarden/react-notifications";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Input, FileUpload } from "@zendeskgarden/react-forms";
-import { ignoreBackdropEvent, toBase64 } from "@/utils/common";
-import { useSetRecoilState, useRecoilValueLoadable } from "recoil";
-import { certs, certsQueryID } from "@/atoms/cert";
 import { useHistory } from "react-router-dom";
+import { useRecoilValueLoadable, useSetRecoilState } from "recoil";
 
 const LoginPage: React.FC = () => {
   const userCertsLoadable = useRecoilValueLoadable(certs);
@@ -151,7 +150,10 @@ const LoginPage: React.FC = () => {
               <Input {...getInputProps()} />
             </FileUpload>
             <div>
-              <Anchor href="https://cuthanh.com" className="pt-2 text-sm">
+              <Anchor
+                href="https://www.notion.so/cuthanh/How-to-get-my-credential-file-781fb9bfa0cf479a81b72a272728808c"
+                className="pt-2 text-sm"
+              >
                 I don&apos;t know how to get credential file
               </Anchor>
             </div>

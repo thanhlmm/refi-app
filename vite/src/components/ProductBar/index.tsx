@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { useRecoilState } from "recoil";
 import classNames from "classnames";
 import firebase from "firebase/app";
+import EscExit from "../EscExit";
 
 const ProductBar = (): ReactElement => {
   const [isShowNews, setShowNews] = useRecoilState(isModalNewsAtom);
@@ -81,22 +82,24 @@ const ProductBar = (): ReactElement => {
         </button>
       </div>
       {isShowNews && (
-        <Modal
-          isLarge
-          focusOnMount
-          isAnimated={false}
-          backdropProps={{ onClick: () => setShowNews(false) }}
-          className="w-10/12 h-5/6"
-        >
-          <Header>🔥 What&apos;s new </Header>
-          <Body className="p-2">
-            {/* // TODO: Add user_id to the url */}
-            <iframe
-              src="https://reficlient.web.app/"
-              className="w-full h-full"
-            />
-          </Body>
-        </Modal>
+        <EscExit onExit={() => setShowNews(false)}>
+          <Modal
+            isLarge
+            focusOnMount
+            isAnimated={false}
+            backdropProps={{ onClick: () => setShowNews(false) }}
+            className="w-10/12 h-5/6"
+          >
+            <Header>🔥 What&apos;s new </Header>
+            <Body className="p-2">
+              {/* // TODO: Add user_id to the url */}
+              <iframe
+                src="https://www.notion.so/cuthanh/Changelogs-14ce7024e52148f99779ad777dc7cc7c"
+                className="w-full h-full"
+              />
+            </Body>
+          </Modal>
+        </EscExit>
       )}
 
       {isShowFeedback && (

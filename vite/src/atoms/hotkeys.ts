@@ -31,7 +31,7 @@ export type IGlobalHotKeys = Record<
     name: string;
     group: "navigator" | "action" | "general";
     sequences: string | string[];
-    handler: () => void;
+    handler: (event: any) => void;
   }
 >;
 
@@ -190,6 +190,26 @@ export const globalHotKeys: IGlobalHotKeys = {
         navigatorCollectionPathAtom
       ).toPromise();
       actionNewDocument(collectionPath);
+    },
+  },
+  ZOOM_IN: {
+    name: "Zoom in / Increase font size",
+    group: "action",
+    sequences: mapHotKeys("command+Add"),
+    handler: () => {
+      window.api.webFrame.setZoomFactor(
+        window.api.webFrame.getZoomFactor() + 0.1
+      );
+    },
+  },
+  ZOOM_OUT: {
+    name: "Zoom out / Decrease font size",
+    group: "action",
+    sequences: mapHotKeys("command+Subtract"),
+    handler: () => {
+      window.api.webFrame.setZoomFactor(
+        window.api.webFrame.getZoomFactor() - 0.1
+      );
     },
   },
 };

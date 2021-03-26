@@ -204,6 +204,7 @@ function TableWrapper({
                   style: {
                     width,
                     overflow: "hidden",
+                    minWidth: "unset",
                   },
 
                   className: "border-t border-b border-gray-300",

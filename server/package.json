@@ -11,7 +11,7 @@
     "package": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package",
     "package-window": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform win32",
     "package-linux": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform linux",
-    "make": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make -v --platform darwin --platform linux --platform win32",
+    "make": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make -v --platform darwin",
     "build": "tsc --sourceMap false",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts ."
@@ -24,7 +24,9 @@
   "license": "MIT",
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {
+        "icon": "./assets/icon.icns"
+      },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
@@ -33,10 +35,12 @@
           }
         },
         {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin"
-          ]
+          "name": "@electron-forge/maker-dmg",
+          "config": {
+            "name": "RefiApp",
+            "overwrite": true,
+            "icon": "./"
+          }
         },
         {
           "name": "@electron-forge/maker-deb",
@@ -69,6 +73,7 @@
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.54",
     "@electron-forge/maker-deb": "^6.0.0-beta.54",
+    "@electron-forge/maker-dmg": "^6.0.0-beta.54",
     "@electron-forge/maker-rpm": "^6.0.0-beta.54",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
     "@electron-forge/maker-zip": "^6.0.0-beta.54",
@@ -86,6 +91,7 @@
   },
   "dependencies": {
     "@types/lowdb": "^1.0.9",
+    "electron-installer-dmg": "^3.0.0",
     "electron-is-dev": "^1.2.0",
     "electron-log": "^4.3.2",
     "electron-serve": "^1.1.0",

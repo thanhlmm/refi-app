@@ -47,7 +47,10 @@ interface Window {
   notification: NotificationFuncType;
   api: {
     contextMenu: IContextMenu;
-    setConfirmReload: (boolean) => void;
+    webFrame: {
+      setZoomFactor: (number) => void;
+      getZoomFactor: () => number;
+    };
   };
   projectId: string;
   os: "Darwin" | string;

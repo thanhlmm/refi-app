@@ -21,11 +21,11 @@ function isSocketTaken(name: string) {
 
 export default async function findOpenSocket() {
   let currentSocket = 1;
-  log.debug('checking', currentSocket);
+  log.verbose('checking', currentSocket);
   while (await isSocketTaken(`refiapp_${currentSocket}`)) {
     currentSocket++;
-    log.debug('checking', currentSocket);
+    log.verbose('checking', currentSocket);
   }
-  log.debug('found socket', currentSocket);
+  log.verbose('found socket', currentSocket);
   return `refiapp_${currentSocket}`;
 }
