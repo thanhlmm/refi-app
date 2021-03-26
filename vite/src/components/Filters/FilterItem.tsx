@@ -5,6 +5,7 @@ import {
 } from "@/atoms/navigator";
 import FieldFinderInput from "@/components/FieldFinderInput";
 import SelectComboBox from "@/components/SelectComboBox";
+import { isNumeric } from "@/utils/common";
 import { convertFSValue } from "@/utils/fieldConverter";
 import { operatorOptions } from "@/utils/searcher";
 import { IconButton } from "@zendeskgarden/react-buttons";
@@ -56,8 +57,11 @@ const FilterItem = ({ id }: { id: string }) => {
     );
   };
 
-  const handleChangeValue = (newValue) => {
-    console.log("change op value", newValue);
+  const handleChangeValue = (value) => {
+    const newValue =
+      typeof filter?.operator.values === "number" && isNumeric(value)
+        ? Number(value)
+        : value;
     setFilter(
       immer((curFilter) => {
         if (curFilter) {
