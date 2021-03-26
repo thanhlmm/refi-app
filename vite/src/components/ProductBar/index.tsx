@@ -94,7 +94,7 @@ const ProductBar = (): ReactElement => {
             <Body className="p-2">
               {/* // TODO: Add user_id to the url */}
               <iframe
-                src="https://www.notion.so/cuthanh/Changelogs-14ce7024e52148f99779ad777dc7cc7c"
+                src="https://docs.refiapp.workers.dev/"
                 className="w-full h-full"
               />
             </Body>
