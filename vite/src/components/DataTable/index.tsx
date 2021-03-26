@@ -143,45 +143,42 @@ function TableWrapper({
     [data]
   );
 
-  const RenderRow = useCallback(
-    ({ index, style }) => {
-      const row = rows[index];
-      prepareRow(row);
-      const rowOrigin = row.original as ClientDocumentSnapshot;
-      return (
-        <div
-          {...row.getRowProps({
-            style: {
-              ...style,
-              minWidth: "100%",
-              width: "auto",
-            },
-          })}
-          className="border-b border-gray-300 hover:bg-gray-200 group"
-          key={rowOrigin.id}
-          cm-template="rowContext"
-          cm-id="rowContext"
-          data-id={rowOrigin.id}
-          cm-payload-id={rowOrigin.id}
-          cm-payload-path={rowOrigin.ref.path}
-          onClick={(e) => onRowClick(e, rowOrigin)}
-        >
-          {row.cells.map((cell) => {
-            return (
-              // eslint-disable-next-line react/jsx-key
-              <div
-                {...cell.getCellProps()}
-                className="border-r border-gray-200 last:border-r-0 group-hover:border-gray-300"
-              >
-                {cell.render("Cell")}
-              </div>
-            );
-          })}
-        </div>
-      );
-    },
-    [prepareRow, rows]
-  );
+  const RenderRow = useCallback(({ data, index, style }) => {
+    const row = data[index];
+    prepareRow(row);
+    const rowOrigin = row.original as ClientDocumentSnapshot;
+    return (
+      <div
+        {...row.getRowProps({
+          style: {
+            ...style,
+            minWidth: "100%",
+            width: "auto",
+          },
+          key: rowOrigin.id,
+        })}
+        className="border-b border-gray-300 hover:bg-gray-200 group"
+        cm-template="rowContext"
+        cm-id="rowContext"
+        data-id={rowOrigin.id}
+        cm-payload-id={rowOrigin.id}
+        cm-payload-path={rowOrigin.ref.path}
+        onClick={(e) => onRowClick(e, rowOrigin)}
+      >
+        {row.cells.map((cell) => {
+          return (
+            // eslint-disable-next-line react/jsx-key
+            <div
+              {...cell.getCellProps()}
+              className="border-r border-gray-200 last:border-r-0 group-hover:border-gray-300"
+            >
+              {cell.render("Cell")}
+            </div>
+          );
+        })}
+      </div>
+    );
+  }, []);
 
   const handleScroll = useCallback(({ target }) => {
     const { scrollTop, scrollLeft } = target;
@@ -250,6 +247,7 @@ function TableWrapper({
                 itemCount={rows.length}
                 itemSize={36}
                 width={width}
+                itemData={rows}
                 ref={listRef}
                 style={{ overflow: false }}
               >
