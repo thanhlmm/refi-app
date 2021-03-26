@@ -73,7 +73,6 @@ const EditableCell = ({
   // Sync the external into instanceValue
   useEffect(() => {
     if (!isUndefined(value) && !isEqual(instanceValue, value)) {
-      console.log("Old", instanceValue, "new", value);
       // TODO: Check if value return is null, 0, ""
       setInstanceValue(value || "");
       toggleHight();
@@ -97,6 +96,13 @@ const EditableCell = ({
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
       setInstanceValue(value);
+    }
+
+    // How about break line case?
+    if (e.key === "Enter") {
+      if (instanceValue !== value) {
+        setValue(instanceValue);
+      }
     }
   };
 

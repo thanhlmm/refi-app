@@ -77,17 +77,10 @@ export const actionStoreDocs = (
   });
 
   removed.forEach((doc) => {
-    console.log(doc);
     batches.push({
       atom: docAtom(doc.ref.path),
       valOrUpdater: null,
     });
-  });
-
-  batches.push({
-    atom: deletedDocsAtom,
-    valOrUpdater: (docs) =>
-      uniqBy([...docs, ...removed], (doc) => doc.ref.path),
   });
 
   setRecoilBatchUpdate(batches);
@@ -308,6 +301,34 @@ export const actionReverseDocChange = async (
       );
     })
     .catch(notifyErrorPromise);
+};
+
+export const actionGetDocs = async (paths: string[]) => {
+  const { queryVersion } = await getRecoilExternalLoadable(
+    queryVersionAtom
+  ).toPromise();
+
+  return window
+    .send("fs.getDocs", {
+      docs: paths,
+    })
+    .then((response) => {
+      const data = deserializeDocumentSnapshotArray(
+        response,
+        firebase.firestore.GeoPoint,
+        firebase.firestore.Timestamp
+      );
+
+      actionStoreDocs(
+        {
+          added: ClientDocumentSnapshot.transformFromFirebase(
+            data,
+            queryVersion
+          ),
+        },
+        false
+      );
+    });
 };
 
 export const actionAddPathExpander = (paths: string[]) => {

@@ -49,9 +49,10 @@ export type WhereFilterOp =
   | "not-in"
   | "array-contains-any";
 
+type IOperatorValue = string | number | boolean;
 interface IOperator {
   type: WhereFilterOp;
-  values: any;
+  values: IOperatorValue | IOperatorValue[];
 }
 
 interface IQueryEntity {

@@ -5,12 +5,14 @@ import {
 } from "@/atoms/navigator";
 import FieldFinderInput from "@/components/FieldFinderInput";
 import SelectComboBox from "@/components/SelectComboBox";
+import { convertFSValue } from "@/utils/fieldConverter";
 import { operatorOptions } from "@/utils/searcher";
 import { IconButton } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
 import immer from "immer";
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useMemo, useRef } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import DropdownMenu from "../DropdownMenu";
 
 const FilterItem = ({ id }: { id: string }) => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
@@ -35,7 +37,6 @@ const FilterItem = ({ id }: { id: string }) => {
   };
 
   const handleSetField = (value) => {
-    console.trace("here");
     setFilter(
       immer((curFilter) => {
         if (curFilter) {
@@ -55,23 +56,51 @@ const FilterItem = ({ id }: { id: string }) => {
     );
   };
 
-  const handleChangeValue = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeValue = (newValue) => {
+    console.log("change op value", newValue);
     setFilter(
       immer((curFilter) => {
         if (curFilter) {
-          curFilter.operator.values = e.target.value;
+          curFilter.operator.values = newValue;
         }
       })
     );
   };
 
   useLayoutEffect(() => {
-    inputRef.current?.focus();
+    // Auto focus if this filter is new
+    if (!filter?.field) {
+      inputRef.current?.focus();
+    }
   }, []);
 
   if (!filter) {
     return null;
   }
+
+  const menuOptions = ["string", "number", "true", "false"].map(
+    (fieldType) => ({
+      title: fieldType,
+      hint: fieldType,
+      onClick: () => {
+        if (fieldType === "true") {
+          handleChangeValue(true);
+          return;
+        }
+
+        if (fieldType === "false") {
+          handleChangeValue(false);
+          return;
+        }
+
+        const newValue = convertFSValue(
+          filter.operator.values,
+          fieldType as RefiFS.IFieldType
+        );
+        handleChangeValue(newValue);
+      },
+    })
+  );
 
   return (
     <div
@@ -92,12 +121,25 @@ const FilterItem = ({ id }: { id: string }) => {
           handleSelectedItemChange={handleSetOperatorType}
         />
       </div>
-      <div className="w-full">
+      <div className="relative w-full">
         <Input
           isCompact
-          value={filter.operator.values}
-          onChange={handleChangeValue}
+          className="pr-6"
+          value={String(filter?.operator.values)}
+          onChange={(e) => handleChangeValue(e.target.value)}
+          disabled={typeof filter.operator.values === "boolean"}
         />
+
+        <div className="absolute z-20 top-1 right-1">
+          <DropdownMenu menu={menuOptions} isSmall>
+            <button
+              role="button"
+              className="p-1 font-mono text-xs text-red-700 hover:bg-white hover:border hover:border-gray-300"
+            >
+              {typeof filter.operator.values}
+            </button>
+          </DropdownMenu>
+        </div>
       </div>
       <IconButton
         size="small"

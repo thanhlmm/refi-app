@@ -86,7 +86,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return { id: listenerData.id };
   }
 
-  public async subscribeCollection({ path, topic, queryOptions, sortOptions }: NSFireStore.ICollectionSubscribe) {
+  public async subscribeCollection({ path, topic, queryOptions, sortOptions, queryVersion }: NSFireStore.ICollectionSubscribe) {
     log.verbose("received event fs.queryCollection.subscribe", { path, topic });
     log.verbose(sortOptions);
 
@@ -120,7 +120,7 @@ export default class FireStoreService implements NSFireStore.IService {
 
         log.verbose(`send to ${topic} with ${docChanges.length} changes`)
 
-        this.ctx.ipc.send(topic, { addedData, modifiedData, removedData, totalDocs: docChanges.length }, { firestore: true });
+        this.ctx.ipc.send(topic, { addedData, modifiedData, removedData, totalDocs: docChanges.length, queryVersion }, { firestore: true });
       }
     );
     // TODO: Handle error
@@ -131,6 +131,7 @@ export default class FireStoreService implements NSFireStore.IService {
       close,
     };
     this.listListeners.push(listenerData);
+    log.verbose(`Create listener ${listenerData.id}`);
 
     return { id: listenerData.id };
   };
@@ -189,12 +190,11 @@ export default class FireStoreService implements NSFireStore.IService {
   public async unsubscribe({ id }: NSFireStore.IListenerKey) {
     const dataSource = this.listListeners.filter((doc) => doc.id === id);
     dataSource.forEach((source) => {
-      log.verbose(source);
       source.close();
     });
 
     this.listListeners = this.listListeners.filter((doc) => doc.id !== id);
-    log.verbose("Success unsubscribe this stream");
+    log.verbose(`Success unsubscribe this stream ${id}`);
     return true;
   };
 
@@ -252,6 +252,7 @@ export default class FireStoreService implements NSFireStore.IService {
   }
 
   public async deleteCollections({ collections }: NSFireStore.IRemoveCollections): Promise<boolean> {
+    // TODO: Check this solution https://firebase.google.com/docs/firestore/solutions/delete-collections
     const fs = this.fsClient();
 
     await Promise.all(collections.map(collectionPath => {

@@ -17,8 +17,9 @@ declare namespace NSFireStore {
   interface ICollectionSubscribe {
     path: string;
     topic: string;
-    queryOptions: IQueryEntity[]
-    sortOptions: ISorterEntity[]
+    queryOptions: IQueryEntity[];
+    sortOptions: ISorterEntity[];
+    queryVersion?: number
   }
 
   interface IQueryEntity {

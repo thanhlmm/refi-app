@@ -30,7 +30,8 @@ const SelectComboBox = ({
         ? item.toLowerCase().startsWith(inputValue.toLowerCase())
         : true
     );
-  }, [items, inputValue]);
+  }, [items, inputValue, selectedItem]);
+
   const {
     isOpen,
     getToggleButtonProps,
@@ -41,13 +42,16 @@ const SelectComboBox = ({
     getItemProps,
   } = useCombobox({
     items: inputItems,
-    selectedItem,
+    // selectedItem,
     inputValue,
     onSelectedItemChange: ({ selectedItem }) => {
-      return handleSelectedItemChange(selectedItem);
+      setInputText(selectedItem || "");
     },
     onInputValueChange: ({ inputValue }) => {
       setInputText(inputValue || "");
+      if (inputValue && items.includes(inputValue)) {
+        handleSelectedItemChange(inputValue);
+      }
     },
   });
 

@@ -1,12 +1,18 @@
-import { actionRemoveDocs, actionStoreDocs } from "@/atoms/firestore.action";
+import {
+  actionGetDocs,
+  actionRemoveDocs,
+  actionStoreDocs,
+} from "@/atoms/firestore.action";
 import {
   navigatorCollectionPathAtom,
+  navigatorPathAtom,
   querierAtom,
   queryVersionAtom,
   sorterAtom,
 } from "@/atoms/navigator";
 import { actionTriggerLoadData, notifyErrorPromise } from "@/atoms/ui.action";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import { isCollection } from "@/utils/common";
 import firebase from "firebase/app";
 import { deserializeDocumentSnapshotArray } from "firestore-serializers";
 import { useEffect, useRef } from "react";
@@ -24,6 +30,7 @@ interface IDataBackgroundResponse {
 }
 
 const DataSubscriber = () => {
+  const path = useRecoilValue(navigatorPathAtom);
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
   const { queryVersion, withQuerier } = useRecoilValue(queryVersionAtom);
   const queryOptions = useRecoilValue(querierAtom(collectionPath));
@@ -109,6 +116,7 @@ const DataSubscriber = () => {
           ? queryOptions.filter((option) => option.field && option.isActive)
           : [],
         sortOptions,
+        queryVersion,
       })
       .then(({ id }) => {
         subscribeId.current = id;
@@ -119,6 +127,16 @@ const DataSubscriber = () => {
       unsubscribe();
     };
   }, [collectionPath, queryVersion, withQuerier]);
+
+  useEffect(() => {
+    // Query document by path
+    if (!isCollection(path)) {
+      // Wait a little bit before fetch doc data
+      requestAnimationFrame(() => {
+        actionGetDocs([path]);
+      });
+    }
+  }, [path]);
 
   useEffect(() => {
     const listener = window.listen(

@@ -17,6 +17,7 @@ import { DocRef } from "firestore-serializers/src/DocRef";
 import { debounce } from "lodash";
 import React, { useEffect, useState } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
+import "./monaco.css";
 
 interface IMonacoPropertyProps {
   doc: ClientDocumentSnapshot;

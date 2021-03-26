@@ -533,4 +533,4 @@ const DataTableLoader = () => {
   return null;
 };
 
-export default DataTableLoader;
+export default DataTable;
