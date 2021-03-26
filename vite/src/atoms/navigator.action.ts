@@ -45,6 +45,13 @@ export const actionAddProperty = (
   );
 };
 
+export const actionSetProperty = (
+  collectionPath: string,
+  properties: string[]
+): void => {
+  setRecoilExternalState(propertyListAtom(collectionPath), properties);
+};
+
 export const actionSubmitQuery = async (
   withQuerier = true
 ): Promise<boolean> => {

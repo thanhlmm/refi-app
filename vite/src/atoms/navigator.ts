@@ -10,6 +10,7 @@ import {
 } from "@/utils/common";
 import produce from "immer";
 import persistAtom from "./persistAtom";
+import { getRecoilExternalLoadable } from "./RecoilExternalStatePortal";
 
 export const FIELD_TYPES: RefiFS.IFieldType[] = [
   "string",
@@ -157,16 +158,15 @@ export const allColumnsRecursiveAtom = selector<string[]>({
   },
 });
 
-export const propertyListAtom = atomFamily<string[], string>({
+export const propertyListCoreAtom = atomFamily<string[] | null, string>({
   key: "fs/propertyList",
-  default: selectorFamily({
-    key: "fs/propertyList:selector",
-    get: (path) => ({ get }) => {
-      const collectionDocs = get(collectionAtom(path));
-      // TODO: Check why it run again when this atom is already existed
-
-      return getSampleColumn(collectionDocs);
-    },
-  }),
+  default: null,
   effects_UNSTABLE: [persistAtom],
+});
+
+export const propertyListAtom = selectorFamily<string[], string>({
+  key: "fs/propertyList",
+  get: (path) => ({ get }) => get(propertyListCoreAtom(path)) || [],
+  set: (path) => ({ set }, newValue) =>
+    set(propertyListCoreAtom(path), newValue),
 });

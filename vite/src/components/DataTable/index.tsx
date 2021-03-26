@@ -4,6 +4,7 @@ import {
   navigatorCollectionPathAtom,
   navigatorPathAtom,
   propertyListAtom,
+  propertyListCoreAtom,
 } from "@/atoms/navigator";
 import {
   actionAddFilter,
@@ -12,6 +13,7 @@ import {
   actionExportViewCSV,
   actionExportViewJSON,
   actionRemoveProperty,
+  actionSetProperty,
 } from "@/atoms/navigator.action";
 import { largeDataAtom } from "@/atoms/ui";
 import { actionToggleModalPickProperty } from "@/atoms/ui.action";
@@ -29,9 +31,16 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { IDReadOnlyField } from "../EditableCell";
-import { useCustomCompareEffect } from "react-use";
-import { atomObservable } from "@/atoms/RecoilExternalStatePortal";
-import { getIdFromPath, ignoreBackdropEvent } from "@/utils/common";
+import { useAsync, useCustomCompareEffect } from "react-use";
+import {
+  atomObservable,
+  getRecoilExternalLoadable,
+} from "@/atoms/RecoilExternalStatePortal";
+import {
+  getIdFromPath,
+  getSampleColumn,
+  ignoreBackdropEvent,
+} from "@/utils/common";
 import classNames from "classnames";
 
 function TableWrapper({
@@ -143,42 +152,45 @@ function TableWrapper({
     [data]
   );
 
-  const RenderRow = useCallback(({ data, index, style }) => {
-    const row = data[index];
-    prepareRow(row);
-    const rowOrigin = row.original as ClientDocumentSnapshot;
-    return (
-      <div
-        {...row.getRowProps({
-          style: {
-            ...style,
-            minWidth: "100%",
-            width: "auto",
-          },
-          key: rowOrigin.id,
-        })}
-        className="border-b border-gray-300 hover:bg-gray-200 group"
-        cm-template="rowContext"
-        cm-id="rowContext"
-        data-id={rowOrigin.id}
-        cm-payload-id={rowOrigin.id}
-        cm-payload-path={rowOrigin.ref.path}
-        onClick={(e) => onRowClick(e, rowOrigin)}
-      >
-        {row.cells.map((cell) => {
-          return (
-            // eslint-disable-next-line react/jsx-key
-            <div
-              {...cell.getCellProps()}
-              className="border-r border-gray-200 last:border-r-0 group-hover:border-gray-300"
-            >
-              {cell.render("Cell")}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }, []);
+  const RenderRow = useCallback(
+    ({ data, index, style }) => {
+      const row = data[index];
+      prepareRow(row);
+      const rowOrigin = row.original as ClientDocumentSnapshot;
+      return (
+        <div
+          {...row.getRowProps({
+            style: {
+              ...style,
+              minWidth: "100%",
+              width: "auto",
+            },
+            key: rowOrigin.id,
+          })}
+          className="border-b border-gray-300 hover:bg-gray-200 group"
+          cm-template="rowContext"
+          cm-id="rowContext"
+          data-id={rowOrigin.id}
+          cm-payload-id={rowOrigin.id}
+          cm-payload-path={rowOrigin.ref.path}
+          onClick={(e) => onRowClick(e, rowOrigin)}
+        >
+          {row.cells.map((cell) => {
+            return (
+              // eslint-disable-next-line react/jsx-key
+              <div
+                {...cell.getCellProps()}
+                className="border-r border-gray-200 last:border-r-0 group-hover:border-gray-300"
+              >
+                {cell.render("Cell")}
+              </div>
+            );
+          })}
+        </div>
+      );
+    },
+    [prepareRow]
+  );
 
   const handleScroll = useCallback(({ target }) => {
     const { scrollTop, scrollLeft } = target;
@@ -378,6 +390,16 @@ function DataTable() {
   const setPath = useSetRecoilState(navigatorPathAtom);
   const data = useRecoilValue(collectionWithQueryAtom(collectionPath));
   const properties = useRecoilValue(propertyListAtom(collectionPath));
+
+  useAsync(async () => {
+    // Auto set property if it haven't set
+    const propertiesCore = await getRecoilExternalLoadable(
+      propertyListCoreAtom(collectionPath)
+    ).toPromise();
+    if (!propertiesCore && properties.length === 0 && data.length > 0) {
+      actionSetProperty(collectionPath, getSampleColumn(data));
+    }
+  }, [collectionPath, properties, data]);
 
   const columnViewer = useMemo(() => {
     const docColumns = properties.map((key, index) => ({

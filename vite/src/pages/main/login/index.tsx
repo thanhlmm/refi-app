@@ -86,7 +86,7 @@ const LoginPage: React.FC = () => {
         <div
           key={cert.projectId}
           onDoubleClick={() => handleOpenConnection(cert.projectId)}
-          className="flex flex-row items-center justify-between p-3 border border-gray-300 rounded cursor-pointer"
+          className="flex flex-row items-center justify-between p-3 border border-gray-300 rounded cursor-pointer group"
         >
           <Title>{cert.projectId}</Title>
           {/* TODO: Last access time */}
@@ -100,7 +100,7 @@ const LoginPage: React.FC = () => {
             </Button>
             <button
               role="button"
-              className="w-6 h-6 p-1"
+              className="w-6 h-6 p-1 opacity-0 group-hover:opacity-100"
               onClick={() => setConfirm(cert.projectId)}
             >
               <svg
@@ -138,7 +138,7 @@ const LoginPage: React.FC = () => {
         appendToNode={document.querySelector("#root") || undefined}
       >
         <Header>Choose your project</Header>
-        <Body>
+        <Body className="p-4">
           <div className="space-y-3">
             {listCerts}
             <FileUpload {...getRootProps()} isDragging={isDragActive}>
@@ -168,12 +168,12 @@ const LoginPage: React.FC = () => {
           appendToNode={document.querySelector("#root") || undefined}
         >
           <Header>Remove project {showConfirm}</Header>
-          <Body>
+          <Body className="p-4">
             Remove this project will erase all its settings and credential
           </Body>
-          <Footer>
+          <Footer className="p-4">
             <FooterItem>
-              <Button onClick={() => setConfirm("")} isBasic>
+              <Button onClick={() => setConfirm("")} size="small">
                 Cancel
               </Button>
             </FooterItem>
@@ -181,6 +181,7 @@ const LoginPage: React.FC = () => {
               <Button
                 isPrimary
                 isDanger
+                size="small"
                 onClick={() => handleDeleteCert(showConfirm)}
               >
                 Remove
