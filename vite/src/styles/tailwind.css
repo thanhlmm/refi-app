@@ -29,6 +29,10 @@ body {
   .text-select-right {
     text-align-last: right;
   }
+
+  #root-body .h-focus-full-2:focus {
+    height: 200%;
+  }
 }
 
 /* Start purging... */

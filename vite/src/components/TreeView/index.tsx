@@ -59,7 +59,7 @@ const NodeComponent = ({ path, name, isCollection }: IFSDataNode) => {
 
   return (
     <span
-      className={classNames({
+      className={classNames("text-gray-800", {
         ["text-green-600"]: doc?.isNew,
         ["text-blue-600"]: doc?.isChanged(),
         ["font-mono text-xs"]: !isCollection,

@@ -10,6 +10,7 @@ import { Tooltip } from "@zendeskgarden/react-tooltips";
 import classNames from "classnames";
 import { DocRef } from "firestore-serializers/src/DocRef";
 import { isEqual, isUndefined } from "lodash";
+import { Textarea } from "@zendeskgarden/react-forms";
 import React, {
   ReactElement,
   ReactNode,
@@ -42,7 +43,7 @@ const EditableCell = ({
   const [instanceValue, setInstanceValue] = useState(value);
   const [isHighlight, toggleHighlight] = useState(false);
   const wrapperEl = useRef(null);
-  const inputEl = useRef<HTMLInputElement>(null);
+  const inputEl = useRef<HTMLTextAreaElement>(null);
 
   const fieldType = useMemo(() => {
     return getFireStoreType(instanceValue);
@@ -93,9 +94,14 @@ const EditableCell = ({
     }
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Escape") {
       setInstanceValue(value);
+    }
+
+    if (e.key === "Enter" && (e.shiftKey || e.altKey)) {
+      setInstanceValue((curValue) => curValue + "\n");
+      return;
     }
 
     // How about break line case?
@@ -103,6 +109,8 @@ const EditableCell = ({
       if (instanceValue !== value) {
         setValue(instanceValue);
       }
+      e.preventDefault();
+      return;
     }
   };
 
@@ -110,14 +118,17 @@ const EditableCell = ({
 
   const editorComponent = useMemo(() => {
     let defaultEditor: ReactElement = (
-      <input
+      <Textarea
         ref={inputEl}
         className={classNames(
-          "w-full bg-transparent truncate h-full outline-none ring-inset focus:bg-blue-100 p-1.5 focus:ring-1 focus:ring-blue-400",
+          "w-full absolute bg-transparent overflow-hidden truncate h-full min-h-full outline-none ring-inset focus:bg-blue-100 p-1.5 pt-2 focus:ring-1 focus:ring-blue-400 focus:z-50 focus:shadow-lg",
           {
             ["text-right"]: fieldType === "number",
+            ["h-focus-full-2"]: String(instanceValue).includes("\n"),
           }
         )}
+        // isResizable={String(instanceValue).includes("\n")}
+        isBare
         value={instanceValue as string}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
@@ -173,7 +184,7 @@ const EditableCell = ({
               hasArrow={false}
               size="medium"
               type="light"
-              className="max-w-2xl"
+              className="w-32"
               content={
                 <span>
                   <a
@@ -186,15 +197,16 @@ const EditableCell = ({
                 </span>
               }
             >
-              <input
+              <Textarea
                 ref={inputEl}
                 className={classNames(
-                  "focus:ring-1 p-1.5 bg-transparent outline-none focus:ring-blue-400 h-full w-full truncate underline text-blue-400",
+                  "focus:ring-1 p-1.5 pt-2 bg-transparent break-all outline-none focus:ring-blue-400 h-full w-full truncate underline text-blue-400 focus:z-50 focus:shadow-lg",
                   {
                     ["bg-red-300"]: isFieldChanged,
                     ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
                   }
                 )}
+                isBare
                 onClick={(e) => handleClickFollowLink(e as any, refValue.path)}
                 tabIndex={tabIndex}
                 value={refValue.path}
@@ -214,7 +226,7 @@ const EditableCell = ({
   return (
     <div
       ref={wrapperEl}
-      className={classNames("w-full h-full outline-none group", {
+      className={classNames("w-full h-full outline-none group relative", {
         ["bg-red-300"]: isFieldChanged,
         ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
       })}
@@ -246,7 +258,7 @@ export const IDReadOnlyField = ({
     <div className="relative w-full h-full px-px font-mono group">
       <input
         className={classNames(
-          "focus:ring-1 focus:ring-blue-400 w-full h-full bg-transparent outline-none ring-inset focus:bg-blue-100 p-1.5 font-mono text-sm",
+          "focus:ring-1 focus:ring-blue-400 w-full h-full bg-transparent outline-none ring-inset focus:bg-blue-100 p-1.5 text-gray-800 font-mono text-sm",
           {
             ["pl-0.5 border-l-4 border-blue-400"]: isActive,
             ["bg-green-400"]: isNew,

@@ -19,6 +19,7 @@ module.exports = {
       borderWidth: ["last"],
       textColor: ["disabled"],
       borderColor: ["disabled"],
+      height: ["focus"],
     },
   },
   plugins: [require("@tailwindcss/typography"), require("@tailwindcss/forms")],
