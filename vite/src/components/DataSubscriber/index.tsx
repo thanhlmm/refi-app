@@ -155,6 +155,18 @@ const DataSubscriber = () => {
 
             actionStoreDocs({ added: addedDocs });
             break;
+          case "modified":
+            const modifiedDocs = ClientDocumentSnapshot.transformFromFirebase(
+              deserializeDocumentSnapshotArray(
+                docs,
+                firebase.firestore.GeoPoint,
+                firebase.firestore.Timestamp
+              ),
+              queryVersion
+            );
+
+            actionStoreDocs({ modified: modifiedDocs });
+            break;
         }
       }
     );

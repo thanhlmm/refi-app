@@ -133,6 +133,7 @@ export const fieldAtom = selectorFamily<IFieldValue | undefined, string>({
     return undefined;
   },
   set: (url) => ({ set, get }, newValue) => {
+    console.log("set ", url, newValue);
     if (isUndefined(newValue)) {
       return;
     }

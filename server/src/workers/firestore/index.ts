@@ -170,13 +170,14 @@ export default class FireStoreService implements NSFireStore.IService {
     const docsSnapshot = deserializeDocumentSnapshotArray(docs, admin.firestore.GeoPoint, admin.firestore.Timestamp, path => fs.doc(path))
     try {
       const docsTrunk = chunk(docsSnapshot, 500); // Split by 500 each chunk
-      // TODO: Make it parallel
+      // TODO: Make it parallel. I think can not since FireStore only allow about 1k write ops /sec
       docsTrunk.forEach(async (chunk) => {
-        await fs.runTransaction(async (tx) => {
-          chunk.forEach(docSnapshot => {
-            tx.set(fs.doc(docSnapshot.ref.path), docSnapshot.data())
-          })
-        });
+        const batch = fs.batch();
+        chunk.forEach(docSnapshot => {
+          batch.set(fs.doc(docSnapshot.ref.path), docSnapshot.data())
+        })
+
+        await batch.commit();
       })
 
       log.verbose('Transaction success!');
@@ -184,6 +185,18 @@ export default class FireStoreService implements NSFireStore.IService {
       log.error('Transaction failure:', e);
       throw e;
     }
+
+    // Send new docs to background
+    // TODO: Move data_background to another function
+    docsSnapshot.map(doc => {
+      return fs.doc(doc.ref.path).get()
+    });
+
+    const addedData = serializeQuerySnapshot({
+      docs: await Promise.all(docsSnapshot.map(doc => fs.doc(doc.ref.path).get()))
+    })
+
+    this.ctx.ipc.send('data_background', { docs: addedData, type: 'modified' }, { firestore: true });
     return true;
   };
 

@@ -136,6 +136,8 @@ const EditableCell = ({
       />
     );
 
+    // console.log({ fieldPath, fieldType });
+
     if (!isUndefined(instanceValue)) {
       switch (fieldType) {
         case "array":
@@ -167,7 +169,7 @@ const EditableCell = ({
               <Field>
                 <Checkbox
                   checked={value as boolean}
-                  onChange={() => setValue(!value)}
+                  onChange={() => setValue(Boolean(!value))}
                 >
                   <Label hidden>{value ? "true" : "false"}</Label>
                 </Checkbox>
