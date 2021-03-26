@@ -341,7 +341,7 @@ export default class FireStoreService implements NSFireStore.IService {
     const fs = this.fsClient();
     const docsSnapshot = await Promise.all(docs.map(doc => fs.doc(doc).get()))
     return serializeQuerySnapshot({
-      docs: docsSnapshot
+      docs: docsSnapshot.filter(doc => doc.exists)
     });
   };
 
