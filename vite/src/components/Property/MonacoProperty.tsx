@@ -81,7 +81,13 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
   }, [monaco]);
 
   useEffect(() => {
-    setDefaultValue(serializeData(doc));
+    // If user is editing on monaco editor. Do not sync outside value to it
+    // TODO: Check if new version of monaco change this div className
+    if (
+      !document.activeElement?.classList.contains("monaco-mouse-cursor-text")
+    ) {
+      setDefaultValue(serializeData(doc));
+    }
   }, [doc]);
 
   const handleEditorValidation: OnValidate = (markers) => {
