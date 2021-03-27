@@ -245,7 +245,9 @@ export const actionAddFilter = (
       field,
       operator: {
         type: type,
-        values: "",
+        values: ["in", "not-in", "array-contains-any"].includes(type)
+          ? [""]
+          : ("" as any),
       },
       isActive: true,
     },
