@@ -47,13 +47,12 @@ const Filters = () => {
         <FilterItem key={filter.id} id={filter.id}></FilterItem>
       ))}
       <div className="flex justify-between">
-        <div>
-          <Button size="small" isBasic onClick={handleAddFilter}>
+        <div className="space-x-2">
+          <Button size="small" onClick={handleAddFilter}>
             Add Filters
           </Button>
           <Button
             size="small"
-            isBasic
             ref={propertyBtnRef}
             onClick={() => {
               setShowPropertyList(true);

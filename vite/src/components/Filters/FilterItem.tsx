@@ -9,7 +9,7 @@ import SelectComboBox from "@/components/SelectComboBox";
 import { isNumeric, isArrayOp } from "@/utils/common";
 import { convertFSValue } from "@/utils/fieldConverter";
 import { operatorOptions } from "@/utils/searcher";
-import { IconButton } from "@zendeskgarden/react-buttons";
+import { Button, IconButton } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
 import immer from "immer";
 import React, { useLayoutEffect, useMemo, useRef } from "react";
@@ -166,7 +166,7 @@ const FilterItem = ({ id }: { id: string }) => {
       };
 
       return (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid items-start grid-cols-3 gap-2">
           {filter.operator.values.map((value, index) => (
             <div className="relative group" key={index}>
               <div className="absolute z-20 top-1 left-1">
@@ -212,10 +212,10 @@ const FilterItem = ({ id }: { id: string }) => {
               </button>
             </div>
           ))}
-          <IconButton
+          <Button
             size="small"
+            className="w-24"
             title="Add item"
-            isPill
             onClick={handleAddItem}
           >
             <div className="w-5">
@@ -238,7 +238,8 @@ const FilterItem = ({ id }: { id: string }) => {
                 />
               </svg>
             </div>
-          </IconButton>
+            Add item
+          </Button>
         </div>
       );
     }
