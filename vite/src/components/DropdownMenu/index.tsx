@@ -1,15 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useSelect } from "downshift";
+import { GARDEN_PLACEMENT, TooltipModal } from "@zendeskgarden/react-modals";
 import classNames from "classnames";
+import { useSelect } from "downshift";
+import React, { useRef, useState } from "react";
+import ReactDOM from "react-dom";
+import ShortcutKey from "../ShortcutKey";
 
 interface IDropdownMenuProps {
   children: React.ReactElement;
   className?: string;
-  placement?: "left" | "right";
+  containerClassName?: string;
+  placement?: string;
   isSmall?: boolean;
   disabled?: boolean;
   menu: {
     title: string;
+    hotkey?: string | string[];
     hint?: string;
     onClick: () => void;
   }[];
@@ -17,10 +22,10 @@ interface IDropdownMenuProps {
 
 function DropdownMenu({
   children,
-  placement = "right",
+  placement = "bottom-start",
   className,
+  containerClassName,
   menu,
-  isSmall = false,
   disabled = false,
 }: IDropdownMenuProps) {
   const {
@@ -29,59 +34,56 @@ function DropdownMenu({
     getMenuProps,
     highlightedIndex,
     getItemProps,
+    toggleMenu,
   } = useSelect({
     items: menu,
     onSelectedItemChange: ({ selectedItem }) => selectedItem?.onClick(),
   });
-  const [shouldBottom, setBottom] = useState(true);
-
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (menuRef.current) {
-      const elementPosition = menuRef.current?.getBoundingClientRect();
-      if (window.innerHeight - elementPosition.top < 400) {
-        setBottom(false);
-      }
-    }
-  }, []);
+  const childRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <div className={classNames(className, "relative")} ref={menuRef}>
-      {React.cloneElement(children, getToggleButtonProps({ disabled }))}
-      <ul
-        {...getMenuProps()}
-        className={classNames(
-          "absolute w-32 z-30 opacity-0 pointer-events-none outline-none max-w-4xl p-0 bg-white shadow-lg border border-gray-300 rounded",
-          {
-            "left-0": placement === "left",
-            "right-0": placement === "right",
-            "opacity-100 pointer-events-auto": isOpen,
-            "top-7": isSmall && shouldBottom,
-            "top-9": isSmall && shouldBottom,
-            "-bottom-7": isSmall && !shouldBottom,
-            "-bottom-9": isSmall && !shouldBottom,
-          }
-        )}
-      >
-        {isOpen &&
-          menu.map((item, index) => (
-            <li
-              key={`${item.title}${index}`}
-              {...getItemProps({ item, index })}
-              className={classNames(
-                "cursor-pointer block px-3 py-1 text-sm text-gray-700",
-                {
-                  ["bg-blue-200"]: highlightedIndex === index,
-                }
-              )}
-            >
-              {item.title}
-            </li>
-          ))}
-      </ul>
-      {/* if you Tab from menu, focus goes on button, and it shouldn't. only happens here. */}
-      {/* <div tabIndex={0} /> */}
+    <div className={className}>
+      {React.cloneElement(
+        children,
+        getToggleButtonProps({ disabled, ref: childRef })
+      )}
+      {ReactDOM.createPortal(
+        <TooltipModal
+          referenceElement={isOpen ? childRef.current : null}
+          onClose={() => toggleMenu()}
+          placement={placement as GARDEN_PLACEMENT}
+          className={classNames(
+            "w-20 px-0 py-2 leading-normal shadow-lg",
+            containerClassName
+          )}
+          restoreFocus={false}
+          focusOnMount={false}
+          hasArrow={false}
+          isAnimated={false}
+        >
+          <ul {...getMenuProps()} className="outline-none">
+            {menu.map((item, index) => (
+              <li
+                key={`${item.title}${index}`}
+                {...getItemProps({ item, index })}
+                className={classNames(
+                  "cursor-pointer px-3 py-1 text-sm text-gray-700 flex flex-row justify-between items-center",
+                  {
+                    ["bg-gray-200"]: highlightedIndex === index,
+                  }
+                )}
+              >
+                <span>{item.title}</span>
+                {/* <ShortcutKey hotkey={"Command+X"} /> */}
+                {item.hotkey && (
+                  <ShortcutKey hotkey={item.hotkey} size="small" />
+                )}
+              </li>
+            ))}
+          </ul>
+        </TooltipModal>,
+        document.getElementById("root-body") || document.body
+      )}
     </div>
   );
 }

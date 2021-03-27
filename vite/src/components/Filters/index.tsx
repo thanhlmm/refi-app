@@ -33,6 +33,7 @@ const Filters = () => {
     return [
       {
         title: "Without filter",
+        hotkey: globalHotKeys.SEND_QUERY_WITHOUT_FILTER.sequences,
         onClick: () => {
           actionSubmitQuery(false);
         },
@@ -57,6 +58,7 @@ const Filters = () => {
             onClick={() => {
               setShowPropertyList(true);
             }}
+            className={isShowPropertyList ? "bg-blue-100" : ""}
           >
             Properties
           </Button>
@@ -66,8 +68,10 @@ const Filters = () => {
               isShowPropertyList ? propertyBtnRef.current : null
             }
             onClose={() => setShowPropertyList(false)}
-            placement={"bottom-start"}
+            placement="bottom-start"
             className="p-2 leading-normal"
+            hasArrow={false}
+            isAnimated={false}
           >
             <PropertyList />
           </TooltipModal>
@@ -86,7 +90,7 @@ const Filters = () => {
           <TooltipModal
             referenceElement={isShowSorterList ? sorterBtnRef.current : null}
             onClose={() => setShowSorterList(false)}
-            placement={"bottom-start"}
+            placement="bottom-start"
             className="p-3 leading-normal"
           >
             <SorterList />
@@ -141,7 +145,12 @@ const Filters = () => {
                 Query
               </Button>
             </Tooltip>
-            <DropdownMenu menu={queryMenu} placement="right" className="ml-px">
+            <DropdownMenu
+              menu={queryMenu}
+              placement="bottom-end"
+              className="ml-px"
+              containerClassName="w-60"
+            >
               <Button size="small" isPrimary className="px-0.5">
                 <svg
                   className="w-4"

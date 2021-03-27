@@ -20,6 +20,7 @@ module.exports = {
       textColor: ["disabled"],
       borderColor: ["disabled"],
       height: ["focus"],
+      backgroundColor: ["active"],
     },
   },
   plugins: [require("@tailwindcss/typography"), require("@tailwindcss/forms")],

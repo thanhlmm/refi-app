@@ -100,7 +100,7 @@ const LoginPage: React.FC = () => {
             </Button>
             <button
               role="button"
-              className="w-6 h-6 p-1 opacity-0 group-hover:opacity-100"
+              className="w-6 h-6 p-1"
               onClick={() => setConfirm(cert.projectId)}
             >
               <svg

@@ -51,15 +51,20 @@ export type WhereFilterOp =
   | "array-contains-any";
 
 type IOperatorValue = string | number | boolean;
-interface IOperator {
-  type: WhereFilterOp;
-  values: IOperatorValue | IOperatorValue[];
+export interface INormalOperator {
+  type: "<" | "<=" | "==" | "!=" | ">=" | ">" | "array-contains";
+  values: IOperatorValue;
+}
+
+export interface IArrayOperator {
+  type: "in" | "not-in" | "array-contains-any";
+  values: IOperatorValue[];
 }
 
 interface IQueryEntity {
   id: string;
   field: string;
-  operator: IOperator;
+  operator: INormalOperator | IArrayOperator;
   isActive: boolean;
 }
 

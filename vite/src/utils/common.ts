@@ -2,6 +2,7 @@ import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { chunk, flatten, intersection, uniq } from "lodash";
 import { isObject, simplify } from "./simplifr";
 import firebase from "firebase/app";
+import { IArrayOperator, INormalOperator } from "@/atoms/navigator";
 
 export const isCollection = (path = ""): boolean => {
   if (path === "/") {
@@ -267,4 +268,10 @@ export function mapHotKeys(sequences: string | string[]): string | string[] {
   }
 
   return replacer(sequences);
+}
+
+export function isArrayOp(
+  op: INormalOperator | IArrayOperator
+): op is IArrayOperator {
+  return Array.isArray(op.values);
 }
