@@ -86,7 +86,7 @@ const LoginPage: React.FC = () => {
         <div
           key={cert.projectId}
           onDoubleClick={() => handleOpenConnection(cert.projectId)}
-          className="flex flex-row items-center justify-between p-3 border border-gray-300 rounded cursor-pointer group"
+          className="flex flex-row items-center justify-between p-3 border border-gray-300 cursor-pointer group"
         >
           <Title>{cert.projectId}</Title>
           {/* TODO: Last access time */}
