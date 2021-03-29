@@ -1,7 +1,7 @@
 {
   "name": "refi-client",
-  "productName": "Refi client",
-  "version": "1.0.0",
+  "productName": "RefiApp",
+  "version": "0.0.1",
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
   "main": "dist/index.js",
   "scripts": {
@@ -12,6 +12,7 @@
     "package-window": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform win32",
     "package-linux": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform linux",
     "make": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make -v --platform darwin",
+    "make-mac": "cd out/RefiApp-darwin-x64 && electron-installer-dmg RefiApp.app RefiApp --icon ../../assets/icon.icns --debug",
     "build": "tsc --sourceMap false",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts ."
