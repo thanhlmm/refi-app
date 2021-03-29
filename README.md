@@ -21,8 +21,8 @@ Press `Cmd + Shift + P` or `Cmd + /` to open **Command list**
 ### Privacy - Your privacy is our first priority. We do not keep any of your data
 We never ever send any of your data. Your data is your and always your
 
-### 🚧 Preview changes - Confidence edit data without making Production crash!
-[preview](https://user-images.githubusercontent.com/9281080/112776856-f23dc680-906a-11eb-858b-4d74d63dff49.png)
+### 🚧 Preview changes - Confidence edit data without making Production crash
+![preview](https://user-images.githubusercontent.com/9281080/112776856-f23dc680-906a-11eb-858b-4d74d63dff49.png)
 
 ## Download
 https://github.com/thanhlmm/refi-app/releases
