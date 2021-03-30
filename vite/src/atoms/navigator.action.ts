@@ -84,7 +84,7 @@ export const actionRemoveSorter = (
 
 export const actionAddSorter = (
   collectionPath: string,
-  value: { field: string; sort: "ASC" | "DESC" }
+  value: { field: string; sort: "asc" | "desc" }
 ): void => {
   const newSorter = {
     ...value,
