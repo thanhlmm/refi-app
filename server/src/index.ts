@@ -41,7 +41,7 @@ const createWindow = async () => {
     minWidth: 1500,
     minHeight: 900,
     backgroundColor: "#fff",
-    icon: __dirname + '/assets/icon.icns',
+    icon: path.join(__dirname, '../assets/icon.icns'),
     webPreferences: {
       // devTools: isDev,
       enableRemoteModule: false,
