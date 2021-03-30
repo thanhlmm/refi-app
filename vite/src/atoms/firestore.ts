@@ -87,6 +87,11 @@ export const collectionAtom = selectorFamily<
   },
 });
 
+export const queryDocOrder = atomFamily<string[], number>({
+  key: "FireStore_queryDocOrder",
+  default: () => [],
+});
+
 // NOTICE: This atom is impact your performance
 export const collectionWithQueryAtom = selectorFamily<
   ClientDocumentSnapshot[],
@@ -94,16 +99,15 @@ export const collectionWithQueryAtom = selectorFamily<
 >({
   key: "FireStore_collection",
   get: (path) => ({ get }) => {
-    const docsLibrary = get(docsLibraryAtom);
     const { queryVersion } = get(queryVersionAtom);
+    const docsLibrary = get(queryDocOrder(queryVersion));
     return docsLibrary
       .filter((docPath) => getParentPath(docPath) === path)
       .map((docPath) => get(docAtom(docPath)))
       .filter(
         (docValue): docValue is ClientDocumentSnapshot => docValue !== null
       )
-      .filter((docValue) => docValue.queryVersion === queryVersion)
-      .sort((a, b) => a.id.localeCompare(b.id));
+      .filter((docValue) => docValue.queryVersion === queryVersion);
   },
 });
 

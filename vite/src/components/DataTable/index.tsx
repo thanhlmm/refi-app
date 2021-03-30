@@ -5,6 +5,7 @@ import {
   navigatorPathAtom,
   propertyListAtom,
   propertyListCoreAtom,
+  sorterAtom,
 } from "@/atoms/navigator";
 import {
   actionAddFilter,
@@ -14,6 +15,7 @@ import {
   actionExportViewJSON,
   actionRemoveProperty,
   actionSetProperty,
+  actionSubmitQuery,
 } from "@/atoms/navigator.action";
 import { largeDataAtom } from "@/atoms/ui";
 import { actionToggleModalPickProperty } from "@/atoms/ui.action";
@@ -35,6 +37,7 @@ import { useAsync, useCustomCompareEffect } from "react-use";
 import {
   atomObservable,
   getRecoilExternalLoadable,
+  setRecoilExternalState,
 } from "@/atoms/RecoilExternalStatePortal";
 import {
   getIdFromPath,
@@ -42,17 +45,25 @@ import {
   ignoreBackdropEvent,
 } from "@/utils/common";
 import classNames from "classnames";
+import { get, uniqueId } from "lodash";
 
 function TableWrapper({
   columns,
   data,
   onRowClick,
+  onSortColumn,
 }: {
   columns: any[];
   data: ClientDocumentSnapshot[];
   onRowClick: (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>,
     doc: ClientDocumentSnapshot
+  ) => void;
+  onSortColumn: (
+    sorter: {
+      id: string;
+      desc: boolean;
+    }[]
   ) => void;
 }) {
   const defaultColumn = React.useMemo(
@@ -70,13 +81,14 @@ function TableWrapper({
     headerGroups,
     rows,
     prepareRow,
-    totalColumnsWidth,
+    state: { sortBy },
   } = useTable(
     {
       columns,
       data,
       defaultColumn,
       disableMultiSort: false,
+      manualSortBy: true,
     } as any,
     useSortBy,
     useResizeColumns,
@@ -88,6 +100,10 @@ function TableWrapper({
   const headerRef = useRef<HTMLDivElement>(null);
   const newestDocRef = useRef<undefined | ClientDocumentSnapshot>(undefined);
   const scrollerRef = useRef(null);
+
+  useEffect(() => {
+    onSortColumn(sortBy);
+  }, [sortBy]);
 
   useEffect(() => {
     const pathObserver = atomObservable(navigatorPathAtom).subscribe({
@@ -260,6 +276,7 @@ function TableWrapper({
                 itemSize={36}
                 width={width}
                 itemData={rows}
+                itemKey={(id, data) => data[id].original.id}
                 ref={listRef}
                 style={{ overflow: false }}
               >
@@ -400,7 +417,6 @@ function DataTable() {
       actionSetProperty(collectionPath, getSampleColumn(data));
     }
   }, [collectionPath, properties, data]);
-
   const columnViewer = useMemo(() => {
     const docColumns = properties.map((key, index) => ({
       Header: (props) => (
@@ -410,7 +426,8 @@ function DataTable() {
           collectionPath={collectionPath}
         />
       ),
-      accessor: key,
+      accessor: (originalRow, rowIndex) => get(originalRow, key),
+      id: key,
       Cell: ({ row, column, value }: { row: any; column: any; value: any }) => {
         return (
           <EditableCell
@@ -532,12 +549,29 @@ function DataTable() {
     "rowContext"
   );
 
+  const handleSortColumn = useCallback(
+    (sortBy) => {
+      setRecoilExternalState(
+        sorterAtom(collectionPath),
+        sortBy.map((sorter) => ({
+          id: uniqueId("sorter_"),
+          field: sorter.id,
+          sort: sorter.desc ? "desc" : "asc",
+        }))
+      );
+
+      actionSubmitQuery();
+    },
+    [collectionPath]
+  );
+
   return (
     <div className="w-full h-full mt-2 border-l border-r border-gray-300">
       <TableWrapper
         columns={columnViewer}
         data={data}
         onRowClick={handleRowClick}
+        onSortColumn={handleSortColumn}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import { queryDocOrder } from "@/atoms/firestore";
 import {
   actionGetDocs,
   actionRemoveDocs,
@@ -10,6 +11,7 @@ import {
   queryVersionAtom,
   sorterAtom,
 } from "@/atoms/navigator";
+import { setRecoilExternalState } from "@/atoms/RecoilExternalStatePortal";
 import { actionTriggerLoadData, notifyErrorPromise } from "@/atoms/ui.action";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { isCollection } from "@/utils/common";
@@ -22,6 +24,7 @@ interface ISubscribeResponse {
   modifiedData: string;
   removedData: string;
   totalDocs: number;
+  isInitResult: boolean;
 }
 
 interface IDataBackgroundResponse {
@@ -65,40 +68,47 @@ const DataSubscriber = () => {
         modifiedData,
         removedData,
         totalDocs,
+        isInitResult,
       }: ISubscribeResponse) => {
         // if (totalDocs > 50) {
         //   actionTriggerLoadData(totalDocs);
         // }
 
+        const addedDocs = ClientDocumentSnapshot.transformFromFirebase(
+          deserializeDocumentSnapshotArray(
+            addedData,
+            firebase.firestore.GeoPoint,
+            firebase.firestore.Timestamp
+          ),
+          queryVersion
+        );
+
+        const modifiedDocs = ClientDocumentSnapshot.transformFromFirebase(
+          deserializeDocumentSnapshotArray(
+            modifiedData,
+            firebase.firestore.GeoPoint,
+            firebase.firestore.Timestamp
+          ),
+          queryVersion
+        );
+
+        const removedDocs = ClientDocumentSnapshot.transformFromFirebase(
+          deserializeDocumentSnapshotArray(
+            removedData,
+            firebase.firestore.GeoPoint,
+            firebase.firestore.Timestamp
+          ),
+          queryVersion
+        );
+
+        // Save list of collection to respect the order
+        setRecoilExternalState(
+          queryDocOrder(queryVersion),
+          addedDocs.map((doc) => doc.ref.path)
+        );
+
         // Take a little bit delay wait for the component transform in to Loading state
         setTimeout(() => {
-          const addedDocs = ClientDocumentSnapshot.transformFromFirebase(
-            deserializeDocumentSnapshotArray(
-              addedData,
-              firebase.firestore.GeoPoint,
-              firebase.firestore.Timestamp
-            ),
-            queryVersion
-          );
-
-          const modifiedDocs = ClientDocumentSnapshot.transformFromFirebase(
-            deserializeDocumentSnapshotArray(
-              modifiedData,
-              firebase.firestore.GeoPoint,
-              firebase.firestore.Timestamp
-            ),
-            queryVersion
-          );
-
-          const removedDocs = ClientDocumentSnapshot.transformFromFirebase(
-            deserializeDocumentSnapshotArray(
-              removedData,
-              firebase.firestore.GeoPoint,
-              firebase.firestore.Timestamp
-            ),
-            queryVersion
-          );
-
           actionStoreDocs({
             added: addedDocs,
             modified: modifiedDocs,

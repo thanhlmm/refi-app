@@ -100,7 +100,7 @@ export const querierOptionAtom = selectorFamily<
 export interface ISorterEntity {
   id: string;
   field: string;
-  sort: "ASC" | "DESC";
+  sort: "asc" | "desc";
 }
 
 export const sorterAtom = atomFamily<ISorterEntity[], string>({

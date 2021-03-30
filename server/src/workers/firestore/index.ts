@@ -105,7 +105,9 @@ export default class FireStoreService implements NSFireStore.IService {
 
     const close = querier.onSnapshot(
       async (querySnapshot) => {
+        log.verbose('Read time', querySnapshot.readTime);
         const docChanges = querySnapshot.docChanges();
+
         const addedData = serializeQuerySnapshot({
           docs: docChanges.filter(changes => changes.type === 'added').map(changes => changes.doc)
         })
@@ -120,10 +122,18 @@ export default class FireStoreService implements NSFireStore.IService {
 
         log.verbose(`send to ${topic} with ${docChanges.length} changes`)
 
-        this.ctx.ipc.send(topic, { addedData, modifiedData, removedData, totalDocs: docChanges.length, queryVersion }, { firestore: true });
+        this.ctx.ipc.send(topic, {
+          addedData,
+          modifiedData,
+          removedData,
+          totalDocs: docChanges.length,
+          queryVersion,
+          isInitResult: querySnapshot.size === docChanges.filter(changes => changes.type === 'added').length
+        }, { firestore: true });
       }
     );
     // TODO: Handle error
+
 
     const listenerData = {
       id: uuidv4(),
