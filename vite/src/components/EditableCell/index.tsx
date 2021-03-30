@@ -50,7 +50,10 @@ const EditableCell = ({
   }, [instanceValue]);
 
   const onChange = (newInstanceValue) => {
-    if (fieldType === "number" && isNumeric(newInstanceValue)) {
+    if (
+      (fieldType === "number" && isNumeric(newInstanceValue)) ||
+      newInstanceValue === ""
+    ) {
       // Respect current type
       setInstanceValue(Number(newInstanceValue));
     } else {

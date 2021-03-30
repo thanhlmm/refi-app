@@ -74,7 +74,8 @@ const FilterItem = ({ id }: { id: string }) => {
 
   const handleChangeValue = (value) => {
     const newValue =
-      typeof filter?.operator.values === "number" && isNumeric(value)
+      (typeof filter?.operator.values === "number" && isNumeric(value)) ||
+      value === ""
         ? Number(value)
         : value;
     setFilter(
@@ -126,7 +127,9 @@ const FilterItem = ({ id }: { id: string }) => {
       const handleChangeArrayItemValue = (value, index: number) => {
         const newValueArray = [...(filter.operator.values as any[])];
         const newValue =
-          typeof value === "number" && isNumeric(value) ? Number(value) : value;
+          (typeof value === "number" && isNumeric(value)) || value === ""
+            ? Number(value)
+            : value;
         newValueArray[index] = newValue;
 
         handleChangeValue(newValueArray);
