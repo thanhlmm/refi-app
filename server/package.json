@@ -1,6 +1,7 @@
 {
-  "name": "refi-client",
+  "name": "refi-app",
   "productName": "RefiApp",
+  "authors": "mihthanh27@gmail.com",
   "version": "0.0.1",
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
   "main": "dist/index.js",
@@ -13,6 +14,8 @@
     "package-linux": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform linux",
     "make": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make -v --platform darwin",
     "make-mac": "cd out/RefiApp-darwin-x64 && electron-installer-dmg RefiApp.app RefiApp --icon ../../assets/icon.icns --debug",
+    "make-linux": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make -v --platform linux",
+    "make-window": "rm -rf build && cp -r ../vite/dist ./build && electron-forge make -v --platform win32",
     "build": "tsc --sourceMap false",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts ."
@@ -26,21 +29,22 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "icon": "./assets/icon.icns"
+        "icon": "./assets/icon.icns",
+        "executableName": "refi-app"
       },
       "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "RefiApp"
-          }
-        },
         {
           "name": "@electron-forge/maker-dmg",
           "config": {
             "name": "RefiApp",
             "overwrite": true,
             "icon": "./"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "config": {
+            "platforms": "win32"
           }
         },
         {
@@ -84,6 +88,8 @@
     "@typescript-eslint/parser": "^2.18.0",
     "electron": "12",
     "electron-devtools-installer": "^3.1.1",
+    "electron-installer-debian": "^3.1.0",
+    "electron-winstaller": "^5.0.0",
     "eslint": "^7.6.0",
     "eslint-plugin-import": "^2.20.0",
     "npm-run-all": "^4.1.5",
