@@ -81,7 +81,7 @@ function TableWrapper({
     headerGroups,
     rows,
     prepareRow,
-    state: { sortBy },
+    state,
   } = useTable(
     {
       columns,
@@ -96,14 +96,16 @@ function TableWrapper({
     // useBlockLayout
   );
 
+  const tableState = state as any;
+
   const listRef = useRef();
   const headerRef = useRef<HTMLDivElement>(null);
   const newestDocRef = useRef<undefined | ClientDocumentSnapshot>(undefined);
   const scrollerRef = useRef(null);
 
   useEffect(() => {
-    onSortColumn(sortBy);
-  }, [sortBy]);
+    onSortColumn(tableState.sortBy);
+  }, [tableState.sortBy]);
 
   useEffect(() => {
     const pathObserver = atomObservable(navigatorPathAtom).subscribe({
