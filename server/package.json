@@ -21,7 +21,10 @@
     "make-all": "npm run make-mac && npm run make-linux && npm run make-window",
     "build": "tsc --sourceMap false && node minify.js",
     "release": "npm run build && npm run copy-client && npm run package-all && npm run make-all",
-    "publish": "electron-forge publish",
+    "publish-mac": "electron-forge publish --platform darwin",
+    "publish-window": "electron-forge publish --platform win32",
+    "publish-linux": "electron-forge publish --platform linux",
+    "publish-all": "npm run publish-mac && npm run publish-window && npm run publish-linux",
     "lint": "eslint --ext .ts ."
   },
   "keywords": [],
@@ -36,6 +39,17 @@
         "executableName": "refi-app",
         "icon": "./assets/icon",
         "appCategoryType": "public.app-category.developer-tools",
+        "appBundleId": "com.cuthanh.refiapp",
+        "osxSign": {
+          "hardened-runtime": true,
+          "entitlements": "entitlements.plist",
+          "entitlements-inherit": "entitlements.plist",
+          "signature-flags": "library"
+        },
+        "osxNotarize": {
+          "appleId": "felix@felix.fun",
+          "appleIdPassword": "my-apple-id-password"
+        },
         "ignore": [
           "src/"
         ]
@@ -75,10 +89,12 @@
             "window"
           ],
           "config": {
+            "authToken": "e3147cb88d692b549430545446ec7f8e5e2f9693",
             "repository": {
               "owner": "thanhlmm",
               "name": "refi-app"
             },
+            "draft": true,
             "prerelease": true
           }
         }
@@ -92,6 +108,7 @@
     "@electron-forge/maker-rpm": "^6.0.0-beta.54",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
     "@electron-forge/maker-zip": "^6.0.0-beta.54",
+    "@electron-forge/publisher-github": "^6.0.0-beta.54",
     "@types/electron-devtools-installer": "^2.2.0",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
