@@ -6,18 +6,21 @@
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
   "main": "dist/index.js",
   "scripts": {
+    "clean": "rm -fr dist",
     "watch": "tsc -w",
     "dev": "run-p watch start",
     "start": "electron-forge start",
-    "package": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform darwin",
-    "package-window": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform win32",
-    "package-linux": "rm -rf build && cp -r ../vite/dist ./build && electron-forge package --platform linux",
+    "copy-client": "rm -rf build && cp -r ../vite/dist ./build",
+    "package": "electron-forge package --platform darwin",
+    "package-window": "electron-forge package --platform win32",
+    "package-linux": "electron-forge package --platform linux",
     "package-all": "npm run package && npm run package-window && npm run package-linux",
     "make-mac": "electron-forge make -v --platform darwin --skip-package",
     "make-linux": "electron-forge make -v --platform linux --skip-package",
     "make-window": "electron-forge make -v --platform win32 --skip-package",
     "make-all": "npm run make-mac && npm run make-linux && npm run make-window",
-    "build": "tsc --sourceMap false",
+    "build": "tsc --sourceMap false && node minify.js",
+    "release": "npm run build && npm run copy-client && npm run package-all && npm run make-all",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts ."
   },
@@ -31,7 +34,11 @@
     "forge": {
       "packagerConfig": {
         "executableName": "refi-app",
-        "icon": "./assets/icon"
+        "icon": "./assets/icon",
+        "appCategoryType": "public.app-category.developer-tools",
+        "ignore": [
+          "src/"
+        ]
       },
       "makers": [
         {
@@ -45,7 +52,9 @@
         {
           "name": "@electron-forge/maker-zip",
           "config": {
-            "platforms": "win32"
+            "platforms": [
+              "win32"
+            ]
           }
         },
         {
@@ -90,11 +99,13 @@
     "electron": "12",
     "electron-devtools-installer": "^3.1.1",
     "electron-installer-debian": "^3.1.0",
+    "electron-notarize": "^1.0.0",
     "electron-winstaller": "^5.0.0",
     "eslint": "^7.6.0",
     "eslint-plugin-import": "^2.20.0",
     "npm-run-all": "^4.1.5",
     "source-map-support": "^0.5.19",
+    "terser": "^5.6.1",
     "typescript": "^4.0.2"
   },
   "dependencies": {
