@@ -14,9 +14,10 @@ import {
 import { setRecoilExternalState } from "@/atoms/RecoilExternalStatePortal";
 import { actionTriggerLoadData, notifyErrorPromise } from "@/atoms/ui.action";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
-import { isCollection } from "@/utils/common";
+import { getCollectionPath, isCollection } from "@/utils/common";
 import firebase from "firebase/app";
 import { deserializeDocumentSnapshotArray } from "firestore-serializers";
+import { uniq } from "lodash";
 import { useEffect, useRef } from "react";
 import { useRecoilValue } from "recoil";
 interface ISubscribeResponse {
@@ -102,10 +103,16 @@ const DataSubscriber = () => {
         );
 
         // Save list of collection to respect the order
-        setRecoilExternalState(
-          queryDocOrder(queryVersion),
-          addedDocs.map((doc) => doc.ref.path)
-        );
+        if (isInitResult) {
+          setRecoilExternalState(
+            queryDocOrder(queryVersion),
+            addedDocs.map((doc) => doc.ref.path)
+          );
+        } else {
+          setRecoilExternalState(queryDocOrder(queryVersion), (paths) =>
+            uniq([...paths, ...addedDocs.map((doc) => doc.ref.path)])
+          );
+        }
 
         // Take a little bit delay wait for the component transform in to Loading state
         setTimeout(() => {
@@ -161,6 +168,8 @@ const DataSubscriber = () => {
                 firebase.firestore.Timestamp
               ),
               queryVersion
+            ).filter(
+              (doc) => getCollectionPath(doc.ref.path) !== collectionPath
             );
 
             actionStoreDocs({ added: addedDocs });
@@ -173,6 +182,8 @@ const DataSubscriber = () => {
                 firebase.firestore.Timestamp
               ),
               queryVersion
+            ).filter(
+              (doc) => getCollectionPath(doc.ref.path) !== collectionPath
             );
 
             actionStoreDocs({ modified: modifiedDocs });

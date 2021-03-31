@@ -25,7 +25,12 @@ function objectifyDocumentProperty(
 
         if (item.startsWith('__Timestamp__')) {
             const dateString = item.split('__Timestamp__')[1];
-            modifiedItem = timestamp.fromDate(new Date(dateString));
+
+            if (isNaN(new Date(dateString).getTime())) {
+                modifiedItem = String(item);
+            } else {
+                modifiedItem = timestamp.fromDate(new Date(dateString));
+            }
         }
 
         if (item.startsWith('__GeoPoint__')) {

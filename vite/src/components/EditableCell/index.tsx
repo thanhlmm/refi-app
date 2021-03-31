@@ -46,8 +46,8 @@ const EditableCell = ({
   const inputEl = useRef<HTMLTextAreaElement>(null);
 
   const fieldType = useMemo(() => {
-    return getFireStoreType(instanceValue);
-  }, [instanceValue]);
+    return getFireStoreType(value);
+  }, [value]);
 
   const onChange = (newInstanceValue) => {
     if (
