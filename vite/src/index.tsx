@@ -9,7 +9,6 @@ import { ThemeProvider } from "@zendeskgarden/react-theming";
 import { theme } from "./styles/theme";
 import { RecoilExternalStatePortal } from "./atoms/RecoilExternalStatePortal";
 import Notifier from "./components/Notifier";
-// import DebugObserver from "./DebugObserver";
 import "./config";
 import "./firebase";
 
@@ -17,8 +16,6 @@ ReactDOM.render(
   <BrowserRouter>
     <ThemeProvider theme={theme} focusVisibleRef={null}>
       <RecoilRoot>
-        {/* <RecoilizeDebugger root={document.getElementById("root")} /> */}
-        {/* <DebugObserver /> */}
         <RecoilExternalStatePortal />
         <Notifier />
         <App />

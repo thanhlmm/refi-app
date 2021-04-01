@@ -6,10 +6,11 @@ import DataSubscriber from "@/components/DataSubscriber";
 import NavBar from "@/components/NavBar";
 import ProductBar from "@/components/ProductBar";
 import Property from "@/components/Property";
+import QuoteLoading from "@/components/QuoteLoading";
 import TreeView from "@/components/TreeView";
 import URLSynchronizer from "@/components/URLSynchronizer";
 import { HeaderIcon } from "@zendeskgarden/react-dropdowns";
-import React, { ReactElement, useEffect, useMemo } from "react";
+import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 import { useParams } from "react-router-dom";
 import { withSize } from "react-sizeme";
@@ -31,6 +32,7 @@ const BASE_SPACE = 16;
 
 function MainLayout({ size }: IMainLayoutProps): ReactElement {
   const { projectId } = useParams() as any;
+  const [showLoading, setShowLoading] = useState(true);
   const layout = useMemo(() => {
     // remainHeight = Screen height - Nav height - Footer height
     const remainHeight = size.height - (BASE_HEIGHT + BASE_SPACE * 2) - 16;
@@ -74,6 +76,10 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
       })
       .catch(notifyErrorPromise);
   }, []);
+
+  if (showLoading) {
+    return <QuoteLoading onDone={() => setShowLoading(false)} />;
+  }
 
   return (
     <div className="flex flex-col justify-between w-screen h-screen">
