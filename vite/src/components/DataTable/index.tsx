@@ -225,7 +225,6 @@ function TableWrapper({
 
   const scrollWindowDebounce = useCallback(
     throttle(({ scrollTop, scrollLeft }) => {
-      console.log("Scroll window");
       (listRef.current as any)?.scrollTo(scrollTop);
       headerRef.current?.scrollTo(scrollLeft, 0);
     }, 200),
