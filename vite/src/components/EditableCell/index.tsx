@@ -50,6 +50,10 @@ const EditableCell = ({
   }, [value]);
 
   const onChange = (newInstanceValue) => {
+    if (isUndefined(value)) {
+      setValue(newInstanceValue);
+      return;
+    }
     if (
       (fieldType === "number" && isNumeric(newInstanceValue)) ||
       newInstanceValue === ""
@@ -138,8 +142,6 @@ const EditableCell = ({
         onKeyDown={onKeyDown}
       />
     );
-
-    // console.log({ fieldPath, fieldType });
 
     if (!isUndefined(instanceValue)) {
       switch (fieldType) {
