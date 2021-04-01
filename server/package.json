@@ -39,16 +39,16 @@
         "executableName": "refi-app",
         "icon": "./assets/icon",
         "appCategoryType": "public.app-category.developer-tools",
-        "appBundleId": "com.cuthanh.refiapp",
+        "appBundleId": "iOS.RefiApp.desktop",
         "osxSign": {
+          "identity": "Developer ID Application: Cary Beam (ADZ55WQV6H)",
           "hardened-runtime": true,
           "entitlements": "entitlements.plist",
-          "entitlements-inherit": "entitlements.plist",
-          "signature-flags": "library"
+          "entitlements-inherit": "entitlements.plist"
         },
         "osxNotarize": {
-          "appleId": "felix@felix.fun",
-          "appleIdPassword": "my-apple-id-password"
+          "appleId": "nlug27@icloud.com",
+          "appleIdPassword": "vstf-tcos-enfk-jruz"
         },
         "ignore": [
           "src/"
