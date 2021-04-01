@@ -9,7 +9,6 @@ import Property from "@/components/Property";
 import QuoteLoading from "@/components/QuoteLoading";
 import TreeView from "@/components/TreeView";
 import URLSynchronizer from "@/components/URLSynchronizer";
-import { HeaderIcon } from "@zendeskgarden/react-dropdowns";
 import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 import { useParams } from "react-router-dom";
