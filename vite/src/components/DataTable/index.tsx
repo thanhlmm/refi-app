@@ -45,7 +45,7 @@ import {
   ignoreBackdropEvent,
 } from "@/utils/common";
 import classNames from "classnames";
-import { get, uniqueId } from "lodash";
+import { debounce, get, throttle, uniqueId } from "lodash";
 
 function TableWrapper({
   columns,
@@ -210,11 +210,27 @@ function TableWrapper({
     [prepareRow]
   );
 
-  const handleScroll = useCallback(({ target }) => {
-    const { scrollTop, scrollLeft } = target;
+  const handleScroll = useCallback((target) => {
+    scrollWindowDebounce(target);
+    // (listRef.current as any)?.scrollTo(scrollTop);
+    // headerRef.current?.scrollTo(scrollLeft, 0);
+  }, []);
+
+  const handleScrollStop = useCallback(() => {
+    const scrollTop = (scrollerRef.current as any)?.getScrollTop() || 0;
+    const scrollLeft = (scrollerRef.current as any)?.getScrollLeft() || 0;
     (listRef.current as any)?.scrollTo(scrollTop);
     headerRef.current?.scrollTo(scrollLeft, 0);
-  }, []);
+  }, [scrollerRef.current]);
+
+  const scrollWindowDebounce = useCallback(
+    throttle(({ scrollTop, scrollLeft }) => {
+      console.log("Scroll window");
+      (listRef.current as any)?.scrollTo(scrollTop);
+      headerRef.current?.scrollTo(scrollLeft, 0);
+    }, 200),
+    []
+  );
 
   return (
     <AutoSizer>
@@ -268,7 +284,8 @@ function TableWrapper({
             <Scrollbars
               style={{ height: height - 36, width }}
               autoHide
-              onScroll={handleScroll}
+              onScrollFrame={handleScroll}
+              // onScrollStop={handleScrollStop}
               hideTracksWhenNotNeeded
               ref={scrollerRef}
             >
