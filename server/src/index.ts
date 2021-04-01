@@ -32,34 +32,36 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
   app.quit();
 }
 
-const server = "refi-updater.vercel.app";
-const feed = `${server}/update/${process.platform}/${app.getVersion()}`
+if (!isDev) {
+  const server = "refi-updater.vercel.app";
+  const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
-autoUpdater.setFeedURL({ url: feed })
+  autoUpdater.setFeedURL({ url: feed })
 
-setInterval(() => {
-  autoUpdater.checkForUpdates()
-}, 60000);
+  setInterval(() => {
+    autoUpdater.checkForUpdates()
+  }, 60000);
 
-autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  log.debug('Downloaded new update');
-  const dialogOpts = {
-    type: 'info',
-    buttons: ['Restart', 'Later'],
-    title: 'Application Update',
-    message: process.platform === 'win32' ? releaseNotes : releaseName,
-    detail: 'A new version has been downloaded. Restart the application to apply the updates.'
-  }
+  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+    log.debug('Downloaded new update');
+    const dialogOpts = {
+      type: 'info',
+      buttons: ['Restart', 'Later'],
+      title: 'Application Update',
+      message: process.platform === 'win32' ? releaseNotes : releaseName,
+      detail: 'A new version has been downloaded. Restart the application to apply the updates.'
+    }
 
-  dialog.showMessageBox(dialogOpts).then((returnValue) => {
-    if (returnValue.response === 0) autoUpdater.quitAndInstall()
+    dialog.showMessageBox(dialogOpts).then((returnValue) => {
+      if (returnValue.response === 0) autoUpdater.quitAndInstall()
+    })
   })
-})
 
-autoUpdater.on('error', message => {
-  log.error('There was a problem updating the application')
-  log.error(message)
-})
+  autoUpdater.on('error', message => {
+    log.error('There was a problem updating the application')
+    log.error(message)
+  })
+}
 
 const createWindow = async () => {
   // Create the browser window.

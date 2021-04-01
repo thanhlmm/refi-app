@@ -51,7 +51,8 @@
           "appleIdPassword": "vstf-tcos-enfk-jruz"
         },
         "ignore": [
-          "src/"
+          "^/src/",
+          "^/key"
         ]
       },
       "makers": [
