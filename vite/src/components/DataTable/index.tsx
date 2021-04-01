@@ -45,7 +45,9 @@ import {
   ignoreBackdropEvent,
 } from "@/utils/common";
 import classNames from "classnames";
-import { debounce, get, throttle, uniqueId } from "lodash";
+import { get, throttle, uniqueId } from "lodash";
+
+const EASY_SCROLL_COLUMN_COUNT = 5;
 
 function TableWrapper({
   columns,
@@ -210,18 +212,23 @@ function TableWrapper({
     [prepareRow]
   );
 
-  const handleScroll = useCallback((target) => {
-    scrollWindowDebounce(target);
-    // (listRef.current as any)?.scrollTo(scrollTop);
-    // headerRef.current?.scrollTo(scrollLeft, 0);
-  }, []);
+  const handleScroll = useCallback(
+    ({ target }) => {
+      if (columns.length < EASY_SCROLL_COLUMN_COUNT) {
+        scrollWindowDebounce(target);
+      }
+    },
+    [columns.length]
+  );
 
   const handleScrollStop = useCallback(() => {
-    const scrollTop = (scrollerRef.current as any)?.getScrollTop() || 0;
-    const scrollLeft = (scrollerRef.current as any)?.getScrollLeft() || 0;
-    (listRef.current as any)?.scrollTo(scrollTop);
-    headerRef.current?.scrollTo(scrollLeft, 0);
-  }, [scrollerRef.current]);
+    if (columns.length >= EASY_SCROLL_COLUMN_COUNT) {
+      const scrollTop = (scrollerRef.current as any)?.getScrollTop() || 0;
+      const scrollLeft = (scrollerRef.current as any)?.getScrollLeft() || 0;
+      (listRef.current as any)?.scrollTo(scrollTop);
+      headerRef.current?.scrollTo(scrollLeft, 0);
+    }
+  }, [scrollerRef.current, columns.length]);
 
   const scrollWindowDebounce = useCallback(
     throttle(({ scrollTop, scrollLeft }) => {
@@ -283,8 +290,8 @@ function TableWrapper({
             <Scrollbars
               style={{ height: height - 36, width }}
               autoHide
-              onScrollFrame={handleScroll}
-              // onScrollStop={handleScrollStop}
+              onScroll={handleScroll}
+              onScrollStop={handleScrollStop}
               hideTracksWhenNotNeeded
               ref={scrollerRef}
             >
