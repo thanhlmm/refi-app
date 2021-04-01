@@ -43,7 +43,6 @@ const monacoOption = {
 };
 
 const serializeData = (doc: ClientDocumentSnapshot) => {
-  console.log(doc);
   return removeFirebaseSerializeMetaData(
     JSON.stringify(JSON.parse(serializeDocumentSnapshot(doc)))
   );
@@ -71,7 +70,6 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
   const [defaultValue, setDefaultValue] = useState<string | undefined>(
     serializeData(doc)
   );
-  console.log({ doc });
   const setError = useSetRecoilState(monacoDataErrorAtom(doc.ref.path));
 
   const monaco = useMonaco();
@@ -112,7 +110,6 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
 
     try {
       const newDoc = deserializeData(doc, docStr);
-      console.log({ docStr, newDoc });
       const changes = diff(doc.data(), newDoc.data()) || [];
       if (changes.length > 0) {
         const fieldChanges = changes
