@@ -33,10 +33,10 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 }
 
 if (!isDev) {
-  const server = "refi-updater.vercel.app";
+  const server = "https://refi-updater.vercel.app";
   const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
-  autoUpdater.setFeedURL({ url: feed })
+  autoUpdater.setFeedURL({ url: feed, serverType: "json" })
 
   setInterval(() => {
     autoUpdater.checkForUpdates()
