@@ -100,14 +100,22 @@ export const collectionWithQueryAtom = selectorFamily<
   key: "FireStore_collection",
   get: (path) => ({ get }) => {
     const { queryVersion } = get(queryVersionAtom);
-    const docsLibrary = get(queryDocOrder(queryVersion));
+    const docsOrder = get(queryDocOrder(queryVersion));
+
+    const docsLibrary = get(docsLibraryAtom);
     return docsLibrary
       .filter((docPath) => getParentPath(docPath) === path)
       .map((docPath) => get(docAtom(docPath)))
       .filter(
         (docValue): docValue is ClientDocumentSnapshot => docValue !== null
       )
-      .filter((docValue) => docValue.queryVersion === queryVersion);
+      .filter((docValue) => docValue.queryVersion === queryVersion)
+      .sort((a, b) => {
+        return (
+          docsOrder.findIndex((orderPath) => orderPath === a.ref.path) -
+          docsOrder.findIndex((orderPath) => orderPath === b.ref.path)
+        );
+      });
   },
 });
 
