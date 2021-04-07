@@ -6,13 +6,16 @@ import {
   serializeQuerySnapshot,
 } from "firestore-serializers";
 import { uniq, uniqueId } from "lodash";
-import { collectionWithQueryAtom, docAtom } from "./firestore";
+import { collectionWithQueryAtom, docAtom, queryDocOrder } from "./firestore";
 import { actionAddPathExpander } from "./firestore.action";
 import {
+  IQueryResult,
   navigatorCollectionPathAtom,
   navigatorPathAtom,
   propertyListAtom,
   querierAtom,
+  queryHistory,
+  queryResultAtom,
   queryVersionAtom,
   sorterAtom,
   WhereFilterOp,
@@ -53,12 +56,24 @@ export const actionSetProperty = (
 };
 
 export const actionSubmitQuery = async (
-  withQuerier = true
+  withQuerier = true,
+  option?: {
+    startAfter?: string;
+    endBefore?: string;
+    startAt?: string;
+    endAt?: string;
+    collectionPath?: string;
+  }
 ): Promise<boolean> => {
-  setRecoilExternalState(queryVersionAtom, ({ queryVersion }) => ({
-    queryVersion: queryVersion + 1,
-    withQuerier,
-  }));
+  setRecoilExternalState(
+    queryVersionAtom,
+    ({ queryVersion, collectionPath }) => ({
+      collectionPath,
+      ...option,
+      queryVersion: queryVersion + 1,
+      withQuerier,
+    })
+  );
 
   if (!withQuerier) {
     const collectionPath = await getRecoilExternalLoadable(
@@ -71,6 +86,43 @@ export const actionSubmitQuery = async (
   }
 
   return true;
+};
+
+export const actionQueryPage = async (isNext = true): Promise<boolean> => {
+  const collectionPath = await getRecoilExternalLoadable(
+    navigatorCollectionPathAtom
+  ).toPromise();
+  const lastQuery = queryHistory[queryHistory.length - 2];
+  const currentQuery = queryHistory[queryHistory.length - 1];
+
+  const docs = await getRecoilExternalLoadable(
+    queryDocOrder(currentQuery.queryVersion)
+  ).toPromise();
+
+  if (
+    docs.length === 0 &&
+    lastQuery &&
+    collectionPath === lastQuery.collectionPath
+  ) {
+    actionSubmitQuery(true, lastQuery);
+    return true;
+  }
+
+  if (docs.length > 0) {
+    if (isNext) {
+      actionSubmitQuery(true, {
+        startAfter: docs[docs.length - 1],
+      });
+      return true;
+    } else {
+      actionSubmitQuery(true, {
+        endBefore: docs[0],
+      });
+      return true;
+    }
+  }
+
+  return false;
 };
 
 export const actionRemoveSorter = (
@@ -261,4 +313,11 @@ export const actionPathExpand = (path: string) => {
       actionAddPathExpander(response);
     })
     .catch(notifyErrorPromise);
+};
+
+export const actionSaveQueryResult = (
+  queryVersion: number,
+  result: IQueryResult
+): void => {
+  setRecoilExternalState(queryResultAtom(queryVersion), result);
 };

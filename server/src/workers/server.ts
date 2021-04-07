@@ -2,7 +2,10 @@ import log from 'electron-log';
 // TODO: Check is dev to enable source-map-support
 // require('source-map-support').install();
 log.verbose(process.env);
-process.on('unhandledRejection', log.error);
+process.on('unhandledRejection', (error) => {
+  log.error('unhandledRejection');
+  log.error(error)
+});
 
 import serverHandlers from './server-handlers';
 import ipc from './server-ipc';

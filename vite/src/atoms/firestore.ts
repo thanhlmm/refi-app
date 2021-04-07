@@ -120,6 +120,15 @@ export const collectionWithQueryAtom = selectorFamily<
 });
 
 // NOTICE: This atom is impact your performance
+export const totalDocsWithQueryAtom = selectorFamily<number, IFireStorePath>({
+  key: "FireStore_collection",
+  get: (path) => ({ get }) => {
+    const docs = get(collectionWithQueryAtom(path));
+    return docs.length;
+  },
+});
+
+// NOTICE: This atom is impact your performance
 export const allDocsAtom = selector<ClientDocumentSnapshot[]>({
   key: "FireStore_all_docs",
   get: ({ get }) => {

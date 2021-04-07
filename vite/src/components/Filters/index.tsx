@@ -1,18 +1,119 @@
+import {
+  collectionWithQueryAtom,
+  totalDocsWithQueryAtom,
+} from "@/atoms/firestore";
 import { actionNewDocument } from "@/atoms/firestore.action";
-import { navigatorCollectionPathAtom, querierAtom } from "@/atoms/navigator";
-import { actionAddFilter, actionSubmitQuery } from "@/atoms/navigator.action";
+import { globalHotKeys } from "@/atoms/hotkeys";
+import {
+  navigatorCollectionPathAtom,
+  querierAtom,
+  queryVersionAtom,
+} from "@/atoms/navigator";
+import {
+  actionAddFilter,
+  actionQueryPage,
+  actionSubmitQuery,
+} from "@/atoms/navigator.action";
 import { isModalPickProperty, isModalSorter } from "@/atoms/ui";
-import PropertyList from "@/components/PropertyList";
-import { Button, SplitButton } from "@zendeskgarden/react-buttons";
-import { TooltipModal } from "@zendeskgarden/react-modals";
-import React, { useMemo, useRef } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import DropdownMenu from "@/components/DropdownMenu";
+import PropertyList from "@/components/PropertyList";
+import { Button } from "@zendeskgarden/react-buttons";
+import { TooltipModal } from "@zendeskgarden/react-modals";
+import { Tooltip } from "@zendeskgarden/react-tooltips";
+import classNames from "classnames";
+import React, { useCallback, useMemo, useRef } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
+import ShortcutKey from "../ShortcutKey";
 import SorterList from "../SorterList";
 import FilterItem from "./FilterItem";
-import { Tooltip } from "@zendeskgarden/react-tooltips";
-import ShortcutKey from "../ShortcutKey";
-import { globalHotKeys } from "@/atoms/hotkeys";
+
+const NextButton = () => {
+  const queryVersionData = useRecoilValue(queryVersionAtom);
+  const docs = useRecoilValue(
+    collectionWithQueryAtom(queryVersionData.collectionPath)
+  );
+  const handleClickNext = useCallback(() => {
+    actionQueryPage(true);
+  }, []);
+
+  const isDisabled = useMemo(() => {
+    if (docs.length === 0 && queryVersionData.startAfter) {
+      return true;
+    }
+
+    return false;
+  }, [docs.length, queryVersionData.startAfter]);
+
+  return (
+    <Button
+      size="small"
+      isBasic
+      className={classNames("px-1", {
+        ["pointer-events-none text-gray-300"]: isDisabled,
+      })}
+      onClick={handleClickNext}
+    >
+      Next
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M10.072 8.024L5.715 3.667l.618-.62L11 7.716v.618L6.333 13l-.618-.619 4.357-4.357z"
+        />
+      </svg>
+    </Button>
+  );
+};
+
+const PreviousButton = () => {
+  const queryVersionData = useRecoilValue(queryVersionAtom);
+  const docs = useRecoilValue(
+    collectionWithQueryAtom(queryVersionData.collectionPath)
+  );
+  const handleClickPrevious = useCallback(() => {
+    actionQueryPage(false);
+  }, []);
+
+  const isDisabled = useMemo(() => {
+    if (docs.length === 0 && queryVersionData.endBefore) {
+      return true;
+    }
+
+    return false;
+  }, [docs.length, queryVersionData.endBefore]);
+
+  return (
+    <Button
+      size="small"
+      isBasic
+      className={classNames("px-1", {
+        ["pointer-events-none text-gray-300"]: isDisabled,
+      })}
+      onClick={handleClickPrevious}
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M5.928 7.976l4.357 4.357-.618.62L5 8.284v-.618L9.667 3l.618.619-4.357 4.357z"
+        />
+      </svg>
+      Previous
+    </Button>
+  );
+};
 
 const Filters = () => {
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
@@ -20,6 +121,8 @@ const Filters = () => {
   const [isShowPropertyList, setShowPropertyList] = useRecoilState(
     isModalPickProperty
   );
+
+  const totalDocs = useRecoilValue(totalDocsWithQueryAtom(collectionPath));
 
   const [isShowSorterList, setShowSorterList] = useRecoilState(isModalSorter);
   const propertyBtnRef = useRef<HTMLButtonElement>(null);
@@ -95,7 +198,16 @@ const Filters = () => {
             <SorterList />
           </TooltipModal>
         </div>
-        <div className="flex flex-row space-x-2">
+        <div className="flex flex-row items-center space-x-2">
+          <div className="flex flex-row items-center">
+            <div className="space-x-1 text-sm">
+              <strong>{totalDocs}</strong> document(s)
+            </div>
+            <div className="flex flex-row items-center space-x-1">
+              <PreviousButton />
+              <NextButton />
+            </div>
+          </div>
           <Tooltip
             placement="bottom"
             appendToNode={document.body}

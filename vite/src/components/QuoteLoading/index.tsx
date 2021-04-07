@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import firebase from "firebase/app";
+import { useLocalStorage } from "react-use";
 
 interface IQuote {
   detail: string;
@@ -14,18 +15,23 @@ interface IQuoteLoadingProps {
 }
 
 const QuoteLoading = ({ onDone }: IQuoteLoadingProps) => {
-  const [quote, setQuote] = useState<IQuote>();
+  const [quotes, setQuotes] = useLocalStorage<IQuote[]>("quotes", []);
   useEffect(() => {
     firebase
       .firestore()
       .collection("quotes")
       .get()
       .then((response) => {
-        const randomQuote =
-          response.docs[Math.floor(Math.random() * response.docs.length)];
-        setQuote(randomQuote.data() as IQuote);
+        setQuotes(response.docs.map((doc) => doc.data() as IQuote));
       });
   }, []);
+
+  const quote = useMemo(() => {
+    if (!quotes) {
+      return undefined;
+    }
+    return quotes[Math.floor(Math.random() * quotes.length)];
+  }, [quotes]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -38,7 +44,7 @@ const QuoteLoading = ({ onDone }: IQuoteLoadingProps) => {
   }, [quote]);
 
   return (
-    <div className="flex flex-col items-center justify-center w-screen h-screen text-center">
+    <div className="flex flex-col items-center justify-center w-screen h-screen text-center quote">
       <div className="animate-spin">
         <svg
           width="36"
@@ -68,12 +74,12 @@ const QuoteLoading = ({ onDone }: IQuoteLoadingProps) => {
               </a>
             </p>
           )}
-          <div className="flex flex-row items-center mt-6 -ml-6">
-            <img
-              className="w-12 h-12 rounded-lg"
-              src={quote.logo}
-              alt="author"
-            />
+          <img
+            className="w-12 h-12 mt-6 rounded-lg"
+            src={quote.logo}
+            alt="author"
+          />
+          <div className="flex flex-row items-center">
             <div className="text-2xl">{quote.author}</div>
           </div>
         </>

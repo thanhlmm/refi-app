@@ -1,9 +1,5 @@
 import { queryDocOrder } from "@/atoms/firestore";
-import {
-  actionGetDocs,
-  actionRemoveDocs,
-  actionStoreDocs,
-} from "@/atoms/firestore.action";
+import { actionGetDocs, actionStoreDocs } from "@/atoms/firestore.action";
 import {
   navigatorCollectionPathAtom,
   navigatorPathAtom,
@@ -11,8 +7,9 @@ import {
   queryVersionAtom,
   sorterAtom,
 } from "@/atoms/navigator";
+import { actionSubmitQuery } from "@/atoms/navigator.action";
 import { setRecoilExternalState } from "@/atoms/RecoilExternalStatePortal";
-import { actionTriggerLoadData, notifyErrorPromise } from "@/atoms/ui.action";
+import { notifyErrorPromise } from "@/atoms/ui.action";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import { getCollectionPath, isCollection } from "@/utils/common";
 import firebase from "firebase/app";
@@ -36,7 +33,13 @@ interface IDataBackgroundResponse {
 const DataSubscriber = () => {
   const path = useRecoilValue(navigatorPathAtom);
   const collectionPath = useRecoilValue(navigatorCollectionPathAtom);
-  const { queryVersion, withQuerier } = useRecoilValue(queryVersionAtom);
+  const {
+    queryVersion,
+    withQuerier,
+    startAfter,
+    endBefore,
+    collectionPath: queryCollectionPath,
+  } = useRecoilValue(queryVersionAtom);
   const queryOptions = useRecoilValue(querierAtom(collectionPath));
   const sortOptions = useRecoilValue(sorterAtom(collectionPath));
   const listener = useRef<Function>();
@@ -55,13 +58,13 @@ const DataSubscriber = () => {
   };
 
   useEffect(() => {
-    if (collectionPath === "/") {
+    if (queryCollectionPath === "/") {
       // TODO: Show empty state for choosing collection on the left side
       return;
     }
 
     unsubscribe();
-    const topicKey = `${collectionPath}.table`;
+    const topicKey = `${queryCollectionPath}.table`;
     listener.current = window.listen(
       topicKey,
       ({
@@ -128,14 +131,16 @@ const DataSubscriber = () => {
     window
       .send("fs.queryCollection.subscribe", {
         topic: topicKey,
-        path: collectionPath,
+        path: queryCollectionPath,
         queryOptions: withQuerier
           ? queryOptions.filter((option) => option.field && option.isActive)
           : [],
         sortOptions,
         queryVersion,
+        startAfter,
+        endBefore,
       })
-      .then(({ id }) => {
+      .then(({ id, queryResult }) => {
         subscribeId.current = id;
       })
       .catch(notifyErrorPromise);
@@ -143,7 +148,7 @@ const DataSubscriber = () => {
     return () => {
       unsubscribe();
     };
-  }, [collectionPath, queryVersion, withQuerier]);
+  }, [queryVersion, withQuerier]);
 
   useEffect(() => {
     // Query document by path
@@ -154,6 +159,12 @@ const DataSubscriber = () => {
       });
     }
   }, [path]);
+
+  useEffect(() => {
+    actionSubmitQuery(true, {
+      collectionPath,
+    });
+  }, [collectionPath]);
 
   useEffect(() => {
     const listener = window.listen(

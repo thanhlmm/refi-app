@@ -80,9 +80,8 @@ const EditableCell = ({
 
   // Sync the external into instanceValue
   useEffect(() => {
-    if (!isUndefined(value) && !isEqual(instanceValue, value)) {
-      // TODO: Check if value return is null, 0, ""
-      setInstanceValue(value || "");
+    if (!isEqual(instanceValue, value)) {
+      setInstanceValue(value);
       toggleHight();
     }
   }, [value]);

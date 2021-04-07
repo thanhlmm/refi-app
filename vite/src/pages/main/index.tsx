@@ -76,44 +76,46 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
       .catch(notifyErrorPromise);
   }, []);
 
-  if (showLoading) {
-    return <QuoteLoading onDone={() => setShowLoading(false)} />;
-  }
-
   return (
     <div className="flex flex-col justify-between w-screen h-screen">
-      <div>
-        <UniversalHotKey />
-        <DataSubscriber />
-        <URLSynchronizer />
-        <ReactGridLayout
-          className="transition-none layout"
-          layout={layout}
-          cols={12}
-          rowHeight={BASE_HEIGHT}
-          autoSize={true}
-          margin={[BASE_SPACE, BASE_SPACE]}
-          isDraggable={false}
-          isResizable={false}
-        >
-          <div key="nav-bar" className="z-30">
-            <NavBar />
+      {showLoading ? (
+        <QuoteLoading onDone={() => setShowLoading(false)} />
+      ) : (
+        <>
+          <div>
+            <UniversalHotKey />
+            <DataSubscriber />
+            <URLSynchronizer />
+            <ReactGridLayout
+              className="transition-none layout"
+              layout={layout}
+              cols={12}
+              rowHeight={BASE_HEIGHT}
+              autoSize={true}
+              margin={[BASE_SPACE, BASE_SPACE]}
+              isDraggable={false}
+              isResizable={false}
+            >
+              <div key="nav-bar" className="z-30">
+                <NavBar />
+              </div>
+              <div key="sidebar">
+                <TreeView />
+              </div>
+              <div key="main">
+                <Main />
+              </div>
+              <div key="property">
+                <Property />
+              </div>
+            </ReactGridLayout>
+            <Background />
           </div>
-          <div key="sidebar">
-            <TreeView />
+          <div className="flex flex-row justify-end pr-3 text-white transform translate-y-1 bg-gray-400">
+            <ProductBar />
           </div>
-          <div key="main">
-            <Main />
-          </div>
-          <div key="property">
-            <Property />
-          </div>
-        </ReactGridLayout>
-        <Background />
-      </div>
-      <div className="flex flex-row justify-end pr-3 text-white transform translate-y-1 bg-gray-400">
-        <ProductBar />
-      </div>
+        </>
+      )}
     </div>
   );
 }

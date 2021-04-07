@@ -3,7 +3,7 @@ import {
   actionImportDocs,
 } from "@/atoms/firestore.action";
 import { navigatorCollectionPathAtom } from "@/atoms/navigator";
-import { actionPathExpand } from "@/atoms/navigator.action";
+import { actionPathExpand, actionSubmitQuery } from "@/atoms/navigator.action";
 import {
   importCollectionPathAtom,
   importFileAtom,
@@ -81,6 +81,10 @@ const ImportModal = () => {
         setFile(undefined);
         setShowImportModal(false);
         actionAddPathExpander([value.path]); // Assume that imported success we will also have new path
+        if (value.path === collectionPath) {
+          // Auto query again if current view same as imported path
+          actionSubmitQuery();
+        }
       })
       .catch(notifyErrorPromise);
   };

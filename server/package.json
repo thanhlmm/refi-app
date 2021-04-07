@@ -2,7 +2,7 @@
   "name": "refi-app",
   "productName": "RefiApp",
   "authors": "mihthanh27@gmail.com",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
   "main": "dist/index.js",
   "scripts": {
@@ -24,6 +24,7 @@
     "publish-mac": "electron-forge publish --platform darwin",
     "publish-window": "electron-forge publish --platform win32",
     "publish-linux": "electron-forge publish --platform linux",
+    "prepare": "npm run copy-client && npm run build",
     "publish-all": "npm run publish-mac && npm run publish-window && npm run publish-linux",
     "lint": "eslint --ext .ts ."
   },

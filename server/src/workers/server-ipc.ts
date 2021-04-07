@@ -22,6 +22,7 @@ export function init(socketName: string, handlers: Record<string, Function>, buf
             )
           },
           (error: Error) => {
+            log.verbose('this is error throw to client');
             log.error(error);
             ipc.server.emit(
               socket,

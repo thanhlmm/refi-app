@@ -33,6 +33,10 @@ body {
   #root-body .h-focus-full-2:focus {
     height: 200%;
   }
+  
+  #root-body .quote code {
+    @apply text-red-600 bg-gray-200 rounded;
+  }
 }
 
 /* Start purging... */

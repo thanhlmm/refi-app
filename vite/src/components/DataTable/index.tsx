@@ -322,6 +322,7 @@ interface IColumnHeaderProps {
   isSortedDesc: boolean;
   hidable: boolean;
   toggleSortBy: (descending: boolean, isMulti: boolean) => void;
+  isIdColumn?: boolean;
 }
 
 function ColumnHeader({
@@ -331,6 +332,7 @@ function ColumnHeader({
   isSortedDesc,
   toggleSortBy,
   hidable = true,
+  isIdColumn = false,
 }: IColumnHeaderProps) {
   // TODO: Move listener to outside component
   useContextMenu(
@@ -378,7 +380,7 @@ function ColumnHeader({
   return (
     <div
       className="flex flex-row items-center justify-between p-1.5"
-      cm-template="columnHeaderContext"
+      cm-template={isIdColumn ? undefined : "columnHeaderContext"}
       cm-payload-column={fieldPath}
       cm-id={fieldPath}
     >
@@ -474,10 +476,12 @@ function DataTable() {
             fieldPath="_id"
             hidable={false}
             collectionPath={collectionPath}
+            isIdColumn
           />
         ),
         id: "__id",
         accessor: "id",
+        disableSortBy: true,
         Cell: ({
           value,
           row,

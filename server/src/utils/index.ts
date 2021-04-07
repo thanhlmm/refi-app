@@ -23,3 +23,7 @@ export const getParentPath = (url: string) => {
 
   return prettifyPath(entities.join("/"));
 };
+
+export const isRangeFilter = (operator: string) => {
+  return ["<", "<=", ">", ">="].includes(operator)
+}

@@ -10,6 +10,7 @@ import {
   actionExportDocJSON,
   actionExportViewCSV,
   actionExportViewJSON,
+  actionQueryPage,
   actionSubmitQuery,
 } from "./navigator.action";
 import {
@@ -97,6 +98,22 @@ export const globalHotKeys: IGlobalHotKeys = {
       actionSubmitQuery(true);
     },
   },
+  SEND_QUERY_NEXT: {
+    name: "Query next page",
+    group: "action",
+    sequences: mapHotKeys("command+]"),
+    handler: () => {
+      actionQueryPage(true);
+    },
+  },
+  SEND_QUERY_PREVIOUS: {
+    name: "Query previous page",
+    group: "action",
+    sequences: mapHotKeys("command+["),
+    handler: () => {
+      actionQueryPage(false);
+    },
+  },
   SEND_QUERY_WITHOUT_FILTER: {
     name: "Query without filter",
     group: "action",
@@ -154,7 +171,7 @@ export const globalHotKeys: IGlobalHotKeys = {
     },
   },
   DUPLICATE_DOC: {
-    name: "Duplicate current doc",
+    name: "Duplicate current document",
     group: "action",
     sequences: mapHotKeys("command+d"),
     handler: async () => {

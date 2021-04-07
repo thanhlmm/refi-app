@@ -3,6 +3,8 @@ import { Title, Notification, Close } from "@zendeskgarden/react-notifications";
 import ReactDOM from "react-dom";
 import { useRecoilState } from "recoil";
 import { notifierAtom } from "@/atoms/ui";
+import { actionSendNotification } from "@/atoms/ui.action";
+import Linkify from "react-linkify";
 
 const Notifier = () => {
   const [notifications, setNotification] = useRecoilState(notifierAtom);
@@ -11,10 +13,20 @@ const Notifier = () => {
     setNotification((list) => list.filter((notif) => notif.id !== id));
   };
 
+  useEffect(() => {
+    const listener = window.listen("error", ({ error }) => {
+      actionSendNotification("error", error);
+    });
+
+    return () => {
+      listener();
+    };
+  });
+
   const notificationList = notifications.map((notif) => (
     <Notification key={notif.id} type={notif.type} className="mt-4 w-96">
       <Title className="capitalize">{notif.type}</Title>
-      {notif.message}
+      <Linkify>{notif.message}</Linkify>
       <Close
         aria-label="Close Alert"
         onClick={() => handleCloseNotification(notif.id)}

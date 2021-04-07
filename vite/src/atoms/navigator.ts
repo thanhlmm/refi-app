@@ -10,7 +10,10 @@ import {
 } from "@/utils/common";
 import produce from "immer";
 import persistAtom from "./persistAtom";
-import { getRecoilExternalLoadable } from "./RecoilExternalStatePortal";
+import {
+  getRecoilExternalLoadable,
+  setRecoilExternalState,
+} from "./RecoilExternalStatePortal";
 
 export const FIELD_TYPES: RefiFS.IFieldType[] = [
   "string",
@@ -106,7 +109,7 @@ export interface ISorterEntity {
 export const sorterAtom = atomFamily<ISorterEntity[], string>({
   key: "fs.sorter",
   default: () => [],
-  effects_UNSTABLE: [persistAtom],
+  // effects_UNSTABLE: [persistAtom],
 });
 
 export const sorterItemAtom = selectorFamily<
@@ -132,15 +135,48 @@ export const sorterItemAtom = selectorFamily<
   },
 });
 
-export const queryVersionAtom = atom<{
+export interface IQueryVersion {
   queryVersion: number;
   withQuerier: boolean;
-}>({
+  startAfter?: string;
+  endBefore?: string;
+  startAt?: string;
+  endAt?: string;
+  collectionPath: string;
+}
+
+export const queryHistory: IQueryVersion[] = [];
+
+export const queryVersionAtom = atom<IQueryVersion>({
   key: "navigator.queryVersion",
   default: {
+    collectionPath: "/",
     queryVersion: 0,
     withQuerier: true,
   },
+  effects_UNSTABLE: [
+    ({ onSet }) => {
+      onSet((newDoc) => {
+        queryHistory.push(newDoc as any);
+      });
+    },
+  ],
+});
+
+export interface IQueryResult {
+  start?: string;
+  end?: string;
+  collectionPath: string;
+}
+
+export const queryResultAtom = atomFamily<IQueryResult, number>({
+  key: "navigator.queryResultNavigator",
+  default: selectorFamily({
+    key: "navigator.queryResultNavigatorSelector",
+    get: () => ({ get }) => ({
+      collectionPath: get(navigatorCollectionPathAtom),
+    }),
+  }),
 });
 
 export const allColumnsAtom = selector<string[]>({

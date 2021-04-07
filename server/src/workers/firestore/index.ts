@@ -6,6 +6,9 @@ import { deserializeDocumentSnapshotArray, DocumentSnapshot, serializeDocumentSn
 import { isCollection } from "../../utils/navigator";
 import { chunk, get } from "lodash";
 import log from 'electron-log';
+import { isRangeFilter } from "../../utils";
+
+const DOCS_PER_PAGE = 200;
 
 export default class FireStoreService implements NSFireStore.IService {
   private ctx: IServiceContext;
@@ -86,28 +89,59 @@ export default class FireStoreService implements NSFireStore.IService {
     return { id: listenerData.id };
   }
 
-  public async subscribeCollection({ path, topic, queryOptions, sortOptions, queryVersion }: NSFireStore.ICollectionSubscribe) {
+  public async subscribeCollection({ path, topic, queryOptions, sortOptions, queryVersion, startAfter, endBefore, startAt, endAt }: NSFireStore.ICollectionSubscribe) {
     log.verbose("received event fs.queryCollection.subscribe", { path, topic });
     log.verbose(sortOptions);
 
-    const collectionRef = this.fsClient()
+
+    const fs = this.fsClient();
+    const collectionRef = fs
       .collection(path);
 
     let querier: FirebaseFirestore.Query = collectionRef;
 
     queryOptions.forEach(({ field, operator: { type, values } }) => {
       querier = querier.where(field, type, values);
+      if (isRangeFilter(type) && !sortOptions.find(({ field: sortField }) => sortField === field)) {
+        // Auto add orderBy if query is filter by range operator
+        querier = querier.orderBy(field, 'asc');
+      }
     })
 
     sortOptions.forEach(({ field, sort }) => {
-      querier = querier.orderBy(field, sort.toLowerCase() as FirebaseFirestore.OrderByDirection);
+      querier = querier.orderBy(field === '__id' ? admin.firestore.FieldPath.documentId() : field, sort.toLowerCase() as FirebaseFirestore.OrderByDirection);
     })
+
+    if (sortOptions.length === 0) {
+      // Default sorting by id
+      querier = querier.orderBy(admin.firestore.FieldPath.documentId());
+    }
+
+    if (endBefore) {
+      querier = querier.endBefore(await fs.doc(endBefore).get());
+    }
+
+    if (startAfter) {
+      querier = querier.startAfter(await fs.doc(startAfter).get());
+    }
+
+    if (endAt) {
+      querier = querier.endAt(await fs.doc(endAt).get());
+    }
+
+    if (startAt) {
+      querier = querier.startAt(await fs.doc(startAt).get());
+    }
+
+    querier = querier.limit(DOCS_PER_PAGE);
+
+    log.debug(JSON.stringify(querier, null, 2));
 
     const close = querier.onSnapshot(
       async (querySnapshot) => {
         log.verbose('Read time', querySnapshot.readTime);
         const docChanges = querySnapshot.docChanges();
-
+        
         const addedData = serializeQuerySnapshot({
           docs: docChanges.filter(changes => changes.type === 'added').map(changes => changes.doc)
         })
@@ -130,6 +164,10 @@ export default class FireStoreService implements NSFireStore.IService {
           queryVersion,
           isInitResult: querySnapshot.size === docChanges.filter(changes => changes.type === 'added').length
         }, { firestore: true });
+      }, (error) => {
+        log.error(error)
+
+        this.ctx.ipc.send('error', { error: error.message });
       }
     );
     // TODO: Handle error
@@ -143,7 +181,14 @@ export default class FireStoreService implements NSFireStore.IService {
     this.listListeners.push(listenerData);
     log.verbose(`Create listener ${listenerData.id}`);
 
-    return { id: listenerData.id };
+    return {
+      id: listenerData.id,
+      queryResult: {
+        docsPerPage: DOCS_PER_PAGE,
+        startAfter,
+        endBefore,
+      }
+    };
   };
 
   public async subscribePathExplorer({ path, topic }: NSFireStore.IPathSubscribe) {

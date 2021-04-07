@@ -20,6 +20,10 @@ declare namespace NSFireStore {
     queryOptions: IQueryEntity[];
     sortOptions: ISorterEntity[];
     queryVersion?: number
+    endBefore?: string;
+    startAfter?: string;
+    endAt?: string;
+    startAt?: string;
   }
 
   interface IQueryEntity {
