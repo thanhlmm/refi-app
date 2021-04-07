@@ -91,6 +91,41 @@ export const contextConfig = {
       type: "separator"
     },
     {
+      id: "CONVERT_NUMBER",
+      label: "To number",
+    },
+    {
+      id: "CONVERT_STRING",
+      label: "To string",
+    },
+    {
+      id: "CONVERT_BOOLEAN",
+      label: "To boolean",
+    },
+    {
+      id: "CONVERT_MAP",
+      label: "To Map",
+    },
+    {
+      id: "CONVERT_ARRAY",
+      label: "To Array",
+    },
+    {
+      id: "CONVERT_TIME",
+      label: "To Timestamp",
+    },
+    {
+      id: "CONVERT_GEOPOINT",
+      label: "To Geopoint",
+    },
+    {
+      id: "CONVERT_NULL",
+      label: "To NULL",
+    },
+    {
+      type: "separator"
+    },
+    {
       id: "EXPORT_CSV",
       label: "Export document as CSV"
     },

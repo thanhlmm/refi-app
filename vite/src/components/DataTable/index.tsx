@@ -1,5 +1,9 @@
 import { collectionWithQueryAtom } from "@/atoms/firestore";
-import { actionDeleteDoc, actionDuplicateDoc } from "@/atoms/firestore.action";
+import {
+  actionDeleteDoc,
+  actionDuplicateDoc,
+  actionSetFieldValue,
+} from "@/atoms/firestore.action";
 import {
   navigatorCollectionPathAtom,
   navigatorPathAtom,
@@ -17,10 +21,23 @@ import {
   actionSetProperty,
   actionSubmitQuery,
 } from "@/atoms/navigator.action";
+import {
+  atomObservable,
+  getRecoilExternalLoadable,
+  setRecoilExternalState,
+} from "@/atoms/RecoilExternalStatePortal";
 import { largeDataAtom } from "@/atoms/ui";
 import { actionToggleModalPickProperty } from "@/atoms/ui.action";
 import { useContextMenu } from "@/hooks/contextMenu";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import {
+  getIdFromPath,
+  getSampleColumn,
+  ignoreBackdropEvent,
+} from "@/utils/common";
+import { Cell } from "@zendeskgarden/react-tables";
+import classNames from "classnames";
+import { get, throttle, uniqueId } from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Scrollbars } from "react-custom-scrollbars";
 import {
@@ -29,23 +46,11 @@ import {
   useSortBy,
   useTable,
 } from "react-table";
+import { useAsync, useCustomCompareEffect } from "react-use";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList } from "react-window";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import EditableCell, { IDReadOnlyField } from "../EditableCell";
-import { useAsync, useCustomCompareEffect } from "react-use";
-import {
-  atomObservable,
-  getRecoilExternalLoadable,
-  setRecoilExternalState,
-} from "@/atoms/RecoilExternalStatePortal";
-import {
-  getIdFromPath,
-  getSampleColumn,
-  ignoreBackdropEvent,
-} from "@/utils/common";
-import classNames from "classnames";
-import { get, throttle, uniqueId } from "lodash";
 
 const EASY_SCROLL_COLUMN_COUNT = 5;
 
@@ -188,11 +193,7 @@ function TableWrapper({
             key: rowOrigin.id,
           })}
           className="border-b border-gray-300 hover:bg-gray-200 group"
-          cm-template="rowContext"
-          cm-id="rowContext"
           data-id={rowOrigin.id}
-          cm-payload-id={rowOrigin.id}
-          cm-payload-path={rowOrigin.ref.path}
           onClick={(e) => onRowClick(e, rowOrigin)}
         >
           {row.cells.map((cell) => {
@@ -201,6 +202,11 @@ function TableWrapper({
               <div
                 {...cell.getCellProps()}
                 className="border-r border-gray-200 last:border-r-0 group-hover:border-gray-300"
+                cm-template="rowContext"
+                cm-id="rowContext"
+                cm-payload-id={rowOrigin.id}
+                cm-payload-path={rowOrigin.ref.path}
+                cm-payload-column={cell.column.id}
               >
                 {cell.render("Cell")}
               </div>
@@ -534,6 +540,70 @@ function DataTable() {
     "DUPLICATE",
     ({ path }) => {
       actionDuplicateDoc(path);
+    },
+    "rowContext"
+  );
+
+  useContextMenu(
+    "CONVERT_NUMBER",
+    ({ path, column }: { path: string; column: string }) => {
+      actionSetFieldValue(path, column, "number");
+    },
+    "rowContext"
+  );
+
+  useContextMenu(
+    "CONVERT_STRING",
+    ({ path, column }: { path: string; column: string }) => {
+      actionSetFieldValue(path, column, "string");
+    },
+    "rowContext"
+  );
+
+  useContextMenu(
+    "CONVERT_BOOLEAN",
+    ({ path, column }: { path: string; column: string }) => {
+      actionSetFieldValue(path, column, "boolean");
+    },
+    "rowContext"
+  );
+
+  useContextMenu(
+    "CONVERT_MAP",
+    ({ path, column }: { path: string; column: string }) => {
+      actionSetFieldValue(path, column, "map");
+    },
+    "rowContext"
+  );
+
+  useContextMenu(
+    "CONVERT_ARRAY",
+    ({ path, column }: { path: string; column: string }) => {
+      actionSetFieldValue(path, column, "array");
+    },
+    "rowContext"
+  );
+
+  useContextMenu(
+    "CONVERT_TIME",
+    ({ path, column }: { path: string; column: string }) => {
+      actionSetFieldValue(path, column, "timestamp");
+    },
+    "rowContext"
+  );
+
+  useContextMenu(
+    "CONVERT_GEOPOINT",
+    ({ path, column }: { path: string; column: string }) => {
+      actionSetFieldValue(path, column, "geopoint");
+    },
+    "rowContext"
+  );
+
+  useContextMenu(
+    "CONVERT_NULL",
+    ({ path, column }: { path: string; column: string }) => {
+      actionSetFieldValue(path, column, "null");
     },
     "rowContext"
   );

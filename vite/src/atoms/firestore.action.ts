@@ -1,4 +1,7 @@
-import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import {
+  ClientDocumentSnapshot,
+  IFieldValue,
+} from "@/types/ClientDocumentSnapshot";
 import { getParentPath, newId, prettifyPath } from "@/utils/common";
 import {
   deserializeDocumentSnapshotArray,
@@ -16,6 +19,8 @@ import {
   newDocsAtom,
   parseFSUrl,
   pathExpanderPureAtom,
+  fieldAtom,
+  buildFSUrl,
 } from "./firestore";
 import {
   getRecoilExternalLoadable,
@@ -28,6 +33,7 @@ import * as immutable from "object-path-immutable";
 import { navigatorPathAtom, queryVersionAtom } from "./navigator";
 import { actionGoTo } from "./navigator.action";
 import { notifyErrorPromise } from "./ui.action";
+import { convertFSValue } from "@/utils/fieldConverter";
 
 export const actionStoreDocs = (
   {
@@ -392,4 +398,17 @@ export const actionNewDocument = async (
   );
 
   setRecoilExternalState(navigatorPathAtom, newPath);
+};
+
+export const actionSetFieldValue = async (
+  docPath: string,
+  field: string,
+  fieldType: RefiFS.IFieldType
+) => {
+  const fieldPath = buildFSUrl({ path: docPath, field });
+  const instanceValue = await getRecoilExternalLoadable(
+    fieldAtom(fieldPath)
+  ).toPromise();
+  const newValue = convertFSValue(instanceValue, fieldType);
+  setRecoilExternalState(fieldAtom(fieldPath), newValue);
 };
