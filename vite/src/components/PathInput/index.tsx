@@ -2,7 +2,11 @@ import { navigatorPathAtom } from "@/atoms/navigator";
 import { actionGoTo } from "@/atoms/navigator.action";
 import { viewModePathInputAtom } from "@/atoms/ui";
 import CopyIcon from "@/components/CopyIcon";
-import { getCollectionPath, getPathEntities } from "@/utils/common";
+import {
+  getCollectionPath,
+  getPathEntities,
+  getProjectId,
+} from "@/utils/common";
 import { Breadcrumb } from "@zendeskgarden/react-breadcrumbs";
 import { Anchor } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
@@ -58,7 +62,7 @@ function PathInput() {
     let entities = getPathEntities(path);
     let currentEntity = entities.pop();
     if (["", "/"].includes(path)) {
-      currentEntity = window.projectId;
+      currentEntity = getProjectId();
     }
 
     if (entities.length > 8) {

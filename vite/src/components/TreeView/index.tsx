@@ -24,6 +24,7 @@ import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import {
   beautifyId,
   getParentPath,
+  getProjectId,
   getRecursivePath,
   isCollection,
   prettifyPath,
@@ -495,7 +496,7 @@ function TreeView({ allDocs, deletedDocs, pathAvailable }: ITreeViewProps) {
         onFocus={handleOnFocus}
       >
         <div className="flex h-8 flex-row items-center justify-between pl-1.5 bg-gray-300 border-b-2 border-gray-500">
-          <span>{window.projectId}</span>
+          <span>{getProjectId()}</span>
 
           <button
             className="h-full px-1.5 hover:bg-gray-400"

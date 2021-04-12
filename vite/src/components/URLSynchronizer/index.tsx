@@ -1,4 +1,5 @@
 import { navigatorPathAtom } from "@/atoms/navigator";
+import { getProjectId } from "@/utils/common";
 import { useEffect } from "react";
 import { useHistory, useLocation, useParams } from "react-router-dom";
 import { useRecoilState } from "recoil";
@@ -20,7 +21,7 @@ const URLSynchronizer = () => {
     window.projectId = params.projectId;
     const urlPath = location.hash.replace("#", "");
     setPath(urlPath || "/");
-    document.title = `${window.projectId} - Refi app`;
+    document.title = `${getProjectId()} - Refi app`;
   }, []);
 
   return null;

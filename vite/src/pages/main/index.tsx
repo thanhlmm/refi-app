@@ -11,7 +11,7 @@ import TreeView from "@/components/TreeView";
 import URLSynchronizer from "@/components/URLSynchronizer";
 import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
-import { useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { withSize } from "react-sizeme";
 import Background from "../background";
 import UniversalHotKey from "../hotkey";
@@ -30,6 +30,7 @@ const BASE_HEIGHT = 32;
 const BASE_SPACE = 16;
 
 function MainLayout({ size }: IMainLayoutProps): ReactElement {
+  const history = useHistory();
   const { projectId } = useParams() as any;
   const [showLoading, setShowLoading] = useState(true);
   const layout = useMemo(() => {
@@ -73,7 +74,13 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
         console.log("Inited fs");
         actionAddPathExpander(response);
       })
-      .catch(notifyErrorPromise);
+      .catch((error) => {
+        history.replace({
+          pathname: `/`,
+          hash: "/",
+        });
+        notifyErrorPromise(error);
+      });
   }, []);
 
   return (

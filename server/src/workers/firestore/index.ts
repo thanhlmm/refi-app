@@ -6,7 +6,8 @@ import { deserializeDocumentSnapshotArray, DocumentSnapshot, serializeDocumentSn
 import { isCollection } from "../../utils/navigator";
 import { chunk, get } from "lodash";
 import log from 'electron-log';
-import { isRangeFilter } from "../../utils";
+import { isRangeFilter, parseEmulatorConnection } from "../../utils";
+import axios from 'axios';
 
 const DOCS_PER_PAGE = 200;
 
@@ -36,6 +37,10 @@ export default class FireStoreService implements NSFireStore.IService {
   }
 
   public async init({ projectId }: NSFireStore.IFSInit): Promise<string[]> {
+    if (projectId.includes(':')) {
+      return await this.initEmulator({ projectId });
+    }
+
     if (this.app?.name === projectId) {
       log.warn(`${projectId} already initiated`);
       const collections = await this.fsClient().listCollections();
@@ -43,12 +48,40 @@ export default class FireStoreService implements NSFireStore.IService {
     }
 
     const cert = this.ctx.localDB.get('keys').find({ projectId }).value();
+    if (!cert) {
+      throw new Error('We do not have credentials for this project')
+    }
     const serviceAccount = require(cert.keyPath);
+
     this.app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     }, projectId);
 
     log.info("Initiated firebase app");
+    const collections = await this.fsClient().listCollections();
+    return collections.map(collection => collection.path)
+  }
+
+  public async initEmulator({ projectId: connection }: NSFireStore.IFSInit): Promise<string[]> {
+    const { host, port, projectId } = parseEmulatorConnection(connection);
+    try {
+      await axios.get(`http://${host}:${port}`);
+    } catch (error) {
+      throw new Error('Can not connect. Please check the config to emulator')
+    }
+    process.env.FIRESTORE_EMULATOR_HOST = `${host}:${port}`;
+
+    if (this.app?.name === projectId) {
+      log.warn(`${host} already initiated`);
+      const collections = await this.fsClient().listCollections();
+      return collections.map(collection => collection.path)
+    }
+
+    this.app = admin.initializeApp({
+      projectId,
+    }, projectId);
+
+    log.info("Initiated emulator firebase app");
     const collections = await this.fsClient().listCollections();
     return collections.map(collection => collection.path)
   }

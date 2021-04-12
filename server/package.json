@@ -2,7 +2,7 @@
   "name": "refi-app",
   "productName": "RefiApp",
   "authors": "mihthanh27@gmail.com",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
   "main": "dist/index.js",
   "scripts": {
@@ -129,6 +129,7 @@
   },
   "dependencies": {
     "@types/lowdb": "^1.0.9",
+    "axios": "^0.21.1",
     "electron-installer-dmg": "^3.0.0",
     "electron-is-dev": "^1.2.0",
     "electron-log": "^4.3.2",

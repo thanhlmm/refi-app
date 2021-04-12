@@ -27,3 +27,12 @@ export const getParentPath = (url: string) => {
 export const isRangeFilter = (operator: string) => {
   return ["<", "<=", ">", ">="].includes(operator)
 }
+
+export const parseEmulatorConnection = (connectionString: string) => {
+  const [connection, projectId] = connectionString.split("_connect_");
+  const [host, port] = connection.split(':');
+  if (!host || !port) {
+    throw new Error('The right connection format is host:port. Eg: 127.0.0.1:8080')
+  }
+  return { host, port, projectId }
+}

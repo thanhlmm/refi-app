@@ -161,3 +161,15 @@ export const dummyAtom = atom({
   key: "ui/dummy",
   default: null,
 });
+
+export const emulatorProjectId = atom({
+  key: "ui/emulator-project",
+  default: "example-project",
+  effects_UNSTABLE: [userPersistAtom],
+});
+
+export const emulatorConnection = atom({
+  key: "ui/emulator-connection",
+  default: "localhost:8080",
+  effects_UNSTABLE: [userPersistAtom],
+});

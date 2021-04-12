@@ -152,7 +152,7 @@ const DataSubscriber = () => {
 
   useEffect(() => {
     // Query document by path
-    if (!isCollection(path)) {
+    if (!isCollection(path) && path !== "/") {
       // Wait a little bit before fetch doc data
       requestAnimationFrame(() => {
         actionGetDocs([path]);

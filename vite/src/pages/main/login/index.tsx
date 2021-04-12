@@ -1,4 +1,5 @@
 import { certs, certsQueryID } from "@/atoms/cert";
+import { emulatorConnection, emulatorProjectId } from "@/atoms/ui";
 import { ignoreBackdropEvent, toBase64 } from "@/utils/common";
 import { Anchor, Button } from "@zendeskgarden/react-buttons";
 import { FileUpload, Input } from "@zendeskgarden/react-forms";
@@ -13,13 +14,19 @@ import { Notification, Title } from "@zendeskgarden/react-notifications";
 import React, { useEffect, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useHistory } from "react-router-dom";
-import { useRecoilValueLoadable, useSetRecoilState } from "recoil";
+import {
+  useRecoilState,
+  useRecoilValueLoadable,
+  useSetRecoilState,
+} from "recoil";
 
 const LoginPage: React.FC = () => {
   const userCertsLoadable = useRecoilValueLoadable(certs);
   const reloadCerts = useSetRecoilState(certsQueryID);
   const [notificationError, setNotificationError] = useState<string>("");
   const [showConfirm, setConfirm] = useState<string>("");
+  const [connection, setConnection] = useRecoilState(emulatorConnection);
+  const [projectValue, setProjectValue] = useRecoilState(emulatorProjectId);
   const history = useHistory();
 
   useEffect(() => {
@@ -65,6 +72,7 @@ const LoginPage: React.FC = () => {
       pathname: `/${projectId}`,
       hash: "/",
     });
+    window.projectId = `/${projectId}`;
   };
 
   const handleDeleteCert = (projectId: string) => {
@@ -86,18 +94,11 @@ const LoginPage: React.FC = () => {
         <div
           key={cert.projectId}
           onDoubleClick={() => handleOpenConnection(cert.projectId)}
-          className="flex flex-row items-center justify-between p-3 border border-gray-300 cursor-pointer group"
+          className="flex flex-row items-center justify-between p-3 border border-gray-300 cursor-pointer hover:bg-gray-200"
         >
           <Title>{cert.projectId}</Title>
           {/* TODO: Last access time */}
           <div className="flex flex-row items-center space-x-2">
-            <Button
-              isPrimary
-              onClick={() => handleOpenConnection(cert.projectId)}
-              size="small"
-            >
-              Connect
-            </Button>
             <button
               role="button"
               className="w-6 h-6 p-1"
@@ -117,11 +118,26 @@ const LoginPage: React.FC = () => {
                 />
               </svg>
             </button>
+            <Button
+              isPrimary
+              onClick={() => handleOpenConnection(cert.projectId)}
+              size="small"
+            >
+              Connect
+            </Button>
           </div>
         </div>
       ));
     }
   }, [userCertsLoadable.contents]);
+
+  const handleConnectLocal = () => {
+    history.push({
+      pathname: `/${connection}_connect_${projectValue}`,
+      hash: "/",
+    });
+    window.projectId = `/${connection}_connect_${projectValue}`;
+  };
 
   return (
     <div>
@@ -139,7 +155,29 @@ const LoginPage: React.FC = () => {
       >
         <Header>Choose your project</Header>
         <Body className="p-4">
-          <div className="space-y-3">
+          <div className="p-3 space-y-3">
+            <Title>Connect to emulator</Title>
+            <div className="flex flex-row items-center justify-between space-x-2 cursor-pointer">
+              <Input
+                value={projectValue}
+                onChange={(e) => setProjectValue(e.target.value)}
+                isCompact
+                placeholder="example-project"
+              />
+              <Input
+                value={connection}
+                onChange={(e) => setConnection(e.target.value)}
+                isCompact
+                placeholder="127.0.0.1:8080"
+              />
+              {/* TODO: Last access time */}
+              <div className="flex flex-row items-center space-x-2">
+                <Button isPrimary onClick={handleConnectLocal} size="small">
+                  Connect
+                </Button>
+              </div>
+            </div>
+            <hr />
             {listCerts}
             <FileUpload {...getRootProps()} isDragging={isDragActive}>
               {isDragActive ? (

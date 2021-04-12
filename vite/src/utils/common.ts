@@ -301,3 +301,12 @@ export function linkify(inputText: string) {
 
   return replacedText;
 }
+
+export function getProjectId() {
+  const projectId = window.projectId || "localhost";
+  if (projectId.includes("_connect_")) {
+    return `Emulator: ${projectId.split("_connect_")[0] || "localhost"}`;
+  }
+
+  return projectId;
+}
