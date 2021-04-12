@@ -135,6 +135,7 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
         onChange={setDefaultValue}
         onValidate={handleEditorValidation}
         options={monacoOption as any}
+        key={doc.ref.path}
       />
       <MonacoPropertyError path={doc.ref.path} />
     </div>
