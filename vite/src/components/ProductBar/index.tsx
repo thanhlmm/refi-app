@@ -1,6 +1,6 @@
 import { isModalFeedbackAtom, isModalNewsAtom } from "@/atoms/ui";
 import { Button, IconButton } from "@zendeskgarden/react-buttons";
-import { Field, Label, Textarea } from "@zendeskgarden/react-forms";
+import { Field, Input, Label, Textarea } from "@zendeskgarden/react-forms";
 import {
   Body,
   Footer,
@@ -62,6 +62,13 @@ const ProductBar = (): ReactElement => {
 
   const handleTweet = () => {
     const content = getValues().feedback;
+    firebase
+      .firestore()
+      .collection("feedbacks")
+      .add(getValues())
+      .then(() => {
+        console.log("Done save user feedback");
+      });
     window.open(`https://twitter.com/intent/tweet?text=${encodeURI(content)}`);
   };
 
@@ -154,6 +161,13 @@ const ProductBar = (): ReactElement => {
                   ref={register}
                   required
                 ></Textarea>
+              </Field>
+              <Field>
+                <Label>
+                  Your email - we will send you update when the issue is fixed
+                  (Optional)
+                </Label>
+                <Input name="email" type="email" ref={register} />
               </Field>
               <div className="mt-8 text-xs text-gray-400">
                 We ❤️ to reply you on Twitter
