@@ -26,12 +26,12 @@ const QuoteLoading = ({ onDone }: IQuoteLoadingProps) => {
       });
   }, []);
 
-  const quote = useMemo(() => {
+  const quote: IQuote | undefined = useMemo(() => {
     if (!quotes) {
       return undefined;
     }
     return quotes[Math.floor(Math.random() * quotes.length)];
-  }, [quotes]);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
