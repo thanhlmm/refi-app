@@ -234,7 +234,7 @@ export const globalHotKeys: IGlobalHotKeys = {
     group: "action",
     sequences: mapHotKeys("command+t"),
     handler: () => {
-      window.api.newTab();
+      window.api.newTab(window.location.href);
     },
   },
 };

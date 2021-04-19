@@ -40,6 +40,11 @@ type NotificationFuncType = (
   showTime = 3000
 ) => void;
 
+interface TabChangeList {
+  tabs: string[];
+  active: string;
+}
+
 interface Window {
   send: SendFuncType;
   listen: ListenFuncType;
@@ -51,7 +56,11 @@ interface Window {
       setZoomFactor: (number) => void;
       getZoomFactor: () => number;
     };
-    newTab: () => void;
+    newTab: (url: string) => void;
+    onTabChange: (cb: (data: TabChangeList) => void) => void;
+    getTabs: () => Promise<TabChangeList>;
+    setTab: (tab: string) => void;
+    closeTab: (tab: string) => void;
   };
   projectId: string;
   os: "Darwin" | string;

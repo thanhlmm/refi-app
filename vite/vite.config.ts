@@ -8,6 +8,9 @@ export default defineConfig({
     alias: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
   },
   plugins: [reactRefresh()],
+  optimizeDeps: {
+    entries: ["index.html", "tabs.html"],
+  },
   build: {
     brotliSize: false,
     target: "chrome89",

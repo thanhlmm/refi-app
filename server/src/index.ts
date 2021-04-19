@@ -10,8 +10,8 @@ if (!isDev) {
 
 process.on('unhandledRejection', log.error);
 
-import { app, BrowserWindow, ipcMain, Menu, autoUpdater, dialog, BrowserView } from 'electron';
-import { fork } from "child_process";
+import { app, BrowserWindow, ipcMain, Menu, autoUpdater, dialog, BrowserView, globalShortcut, MenuItem } from 'electron';
+import { fork, ChildProcess } from "child_process";
 import * as path from 'path';
 import fs from 'fs';
 import findOpenSocket from './utils/find-open-socket';
@@ -19,18 +19,22 @@ import db from './client/db';
 import ContextMenu from './lib/electron-context-menu'
 import { contextConfig } from './contextMenu';
 import serve from 'electron-serve';
-import { needConfirm, setConfirmReload, shouldConfirm } from "./lib/confirmReload";
+import { uniqueId } from "lodash";
+// import { needConfirm, setConfirmReload, shouldConfirm } from "./lib/confirmReload";
 
 const loadURL = serve({ directory: 'build' });
 app.disableHardwareAcceleration()
 
 interface IWindowInstance {
-  window: BrowserWindow;
+  window: BrowserView;
   serverSocket: string;
-  serverProcess: any;
+  serverProcess: ChildProcess;
+  name: string;
 }
 
 let listWindow: IWindowInstance[] = [];
+
+let mainWindow: BrowserWindow;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -68,18 +72,57 @@ if (!isDev) {
   })
 }
 
-const createWindow = async (href?: string) => {
-  // Create the browser window.
+const createMainWindow = async () => {
+  if (mainWindow) {
+    return mainWindow;
+  }
   const window = new BrowserWindow({
     show: false,
     width: 1000,
     height: 1000,
     minWidth: 1500,
     minHeight: 900,
-    backgroundColor: "#fff",
+    backgroundColor: "#E5E7EB",
     icon: path.join(__dirname, '../assets/icon.icns'),
-    titleBarStyle: process.platform === 'darwin' ? 'hidden' : 'default',
+    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     frame: process.platform === 'darwin',
+    webPreferences: {
+      devTools: isDev,
+      enableRemoteModule: false,
+      contextIsolation: false,
+      nodeIntegration: false,
+      preload: __dirname + "/tab-preload.js",
+      disableDialogs: false,
+      safeDialogs: true,
+      enableWebSQL: false,
+    },
+  });
+
+  mainWindow = window;
+
+  if (isDev) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' })
+  }
+
+  ContextMenu.mainBindings(ipcMain, window, Menu, isDev, contextConfig);
+  if (isDev) {
+    window.loadURL("http://localhost:3000/tabs.html");
+  } else {
+    // TODO: What if I need to load the tabs.html file
+    window.loadURL("app://-/tabs.html");
+  }
+
+  window.maximize();
+  window.show();
+
+  const windowView = await createWindow();
+  setTab(windowView);
+  // TODO: Handle reload event
+}
+
+const createWindow = async (href?: string) => {
+  // Create the browser window.
+  const window = new BrowserView({
     webPreferences: {
       devTools: isDev,
       enableRemoteModule: false,
@@ -94,17 +137,17 @@ const createWindow = async (href?: string) => {
 
   // Create sever process
   const { serverSocket, serverProcess } = await createBackgroundProcess(window);
-  
+
   ContextMenu.mainBindings(ipcMain, window, Menu, isDev, contextConfig);
   // and load the index.html of the app.
   if (href) {
     // New tab with same location
-    window.loadURL(href);
+    window.webContents.loadURL(href);
   } else {
     if (isDev) {
-      window.loadURL("http://localhost:3000");
+      window.webContents.loadURL("http://localhost:3000");
     } else {
-      await loadURL(window);
+      window.webContents.loadURL("app://-");
     }
   }
 
@@ -116,40 +159,63 @@ const createWindow = async (href?: string) => {
     }
   });
 
-  window.on('close', () => {
-    log.info(`${window.id} closed`);
-    log.info("kill server");
-    serverProcess.kill();
-    ContextMenu.clearMainBindings(ipcMain);
-    listWindow = listWindow.filter(instance => instance.window.id !== window.id);
-  })
+  // TODO: How to kill the process
+  // window.on('close', () => {
+  //   log.info(`${window.id} closed`);
+  //   log.info("kill server");
+  //   serverProcess.kill();
+  //   ContextMenu.clearMainBindings(ipcMain);
+  //   listWindow = listWindow.filter(instance => instance.window.id !== window.id);
+  // })
 
-  // Open the DevTools.
-  if (isDev) {
-    window.webContents.openDevTools({ mode: 'bottom' });
-  }
+  // // Open the DevTools.
+  // if (isDev) {
+  //   window.webContents.openDevTools({ mode: 'bottom' });
+  // }
 
-  if (listWindow.length <= 0) {
-    log.verbose('Create new window');
-    window.maximize();
-    window.show();
-  } else {
-    log.verbose('Append window to tab');
-    listWindow[0].window.addTabbedWindow(window);
-    listWindow[0].window.selectNextTab();
-  }
+  // if (listWindow.length <= 0) {
+  //   log.verbose('Create new window');
+  //   window.maximize();
+  //   window.show();
+  // } else {
+  //   log.verbose('Append window to tab');
+  //   listWindow[0].window.addTabbedWindow(window);
+  //   listWindow[0].window.selectNextTab();
+  // }
 
   listWindow.push({
     window,
     serverSocket,
-    serverProcess
-  })
+    serverProcess,
+    name: uniqueId('Tab ')
+  });
 
+
+  mainWindow.webContents.send('tabChange', getTabData());
   return window;
 };
 
+const setTab = (instance: BrowserView) => {
+  mainWindow.setBrowserView(instance);
+  instance.setAutoResize({ width: true, height: true, horizontal: true, vertical: true });
+  instance.setBounds({ x: 0, y: 36, width: mainWindow.getBounds().width, height: mainWindow.getBounds().height })
+  mainWindow.webContents.send('tabChange', getTabData());
+}
+
+interface TabList {
+  tabs: string[];
+  active: string;
+}
+
+const getTabData = (): TabList => {
+  return {
+    tabs: listWindow.map((instance) => instance.name),
+    active: listWindow.find((instance) => instance.window.webContents.id === mainWindow.getBrowserView()?.webContents?.id)?.name || ''
+  }
+}
+
 // TODO: Also restart background process when user reload the app
-async function createBackgroundProcess(window?: BrowserWindow) {
+async function createBackgroundProcess(window?: BrowserWindow | BrowserView) {
   const serverSocket = await findOpenSocket();
   log.info(`Create background process for ${serverSocket}`);
   const serverProcess = fork(__dirname + "/workers/server.js", [
@@ -194,9 +260,51 @@ function bootstrap() {
   db(app.getPath('userData'));
 }
 
-ipcMain.handle('new-tab', (event, href: string) => {
+const newTab = async () => {
+  const window = await createWindow(mainWindow.getBrowserView()?.webContents.getURL());
+  setTab(window);
+}
+ipcMain.handle('new-tab', async (event, href: string) => {
   // Create new tab
-  createWindow(href);
+  await newTab();
+});
+
+ipcMain.handle('get-tabs', async (event, href: string) => {
+  return getTabData();
+});
+
+ipcMain.handle('set-tab', async (event, tabName: string) => {
+  setTab(listWindow.find(instance => instance.name === tabName).window || listWindow[0].window)
+});
+
+const closeTab = (tabName: string) => {
+  log.verbose(`Try to close tab ${tabName}`);
+  const closeInstance = listWindow.find(instance => instance.name === tabName);
+  if (closeInstance) {
+    const currentState = getTabData();
+    const closeIndex = listWindow.findIndex(instance => instance === closeInstance);
+
+    closeInstance.serverProcess.kill(); // Kill the server
+    listWindow = listWindow.filter(instance => instance.name !== tabName); // Update the list
+    if (listWindow.length === 0) {
+      mainWindow.close();
+      mainWindow = null;
+      return;
+    }
+    if (closeInstance.name === currentState.active) {
+      // If close the active one, try to set new active to the previous tab
+      log.verbose(`Try to set new active tab`);
+      setTab(listWindow[closeIndex <= 0 ? 0 : closeIndex - 1].window);
+      return;
+    }
+
+    mainWindow.webContents.send('tabChange', getTabData());
+    return;
+  }
+}
+
+ipcMain.handle('close-tab', async (event, tabName: string) => {
+  closeTab(tabName);
 })
 
 app.on('new-window-for-tab', () => {
@@ -210,7 +318,7 @@ app.on('new-window-for-tab', () => {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
   bootstrap();
-  createWindow();
+  createMainWindow();
 
   if (isDev) {
     const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
@@ -249,10 +357,48 @@ app.on("before-quit", () => {
 app.on('activate', async () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (listWindow.length === 0) {
-    createWindow();
+  if (!mainWindow) {
+    createMainWindow();
   }
 });
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+const menu = new Menu()
+if (process.platform === 'darwin') {
+  menu.append(new MenuItem({
+    label: app.name,
+    submenu: [
+      { role: 'about' },
+      { type: 'separator' },
+      { role: 'services' },
+      { type: 'separator' },
+      { role: 'hide' },
+      { role: 'unhide' },
+      { type: 'separator' },
+      { role: 'quit' }
+    ]
+  }))
+}
+menu.append(new MenuItem({
+  label: 'File',
+  submenu: [
+    {
+      label: "New Tab",
+      accelerator: process.platform === 'darwin' ? 'Cmd+T' : 'Ctrl+T',
+      click: async () => {
+        await newTab()
+      }
+    },
+    {
+      label: "Close Tab",
+      accelerator: process.platform === 'darwin' ? 'Cmd+W' : 'Ctrl+W',
+      click: async () => {
+        closeTab(getTabData().active);
+      }
+    },
+  ]
+}))
+
+Menu.setApplicationMenu(menu)

@@ -21,6 +21,7 @@
     "@zendeskgarden/react-modals": "^8.32.1",
     "@zendeskgarden/react-notifications": "^8.32.1",
     "@zendeskgarden/react-tables": "^8.32.1",
+    "@zendeskgarden/react-tabs": "^8.36.1",
     "@zendeskgarden/react-tags": "^8.32.1",
     "@zendeskgarden/react-theming": "^8.32.1",
     "@zendeskgarden/react-tooltips": "^8.32.1",
