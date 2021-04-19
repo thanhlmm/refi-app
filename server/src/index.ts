@@ -10,7 +10,7 @@ if (!isDev) {
 
 process.on('unhandledRejection', log.error);
 
-import { app, BrowserWindow, ipcMain, Menu, autoUpdater, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, autoUpdater, dialog, BrowserView } from 'electron';
 import { fork } from "child_process";
 import * as path from 'path';
 import fs from 'fs';
@@ -22,10 +22,15 @@ import serve from 'electron-serve';
 import { needConfirm, setConfirmReload, shouldConfirm } from "./lib/confirmReload";
 
 const loadURL = serve({ directory: 'build' });
+app.disableHardwareAcceleration()
 
-let serverProcess: any;
-let serverSocket: string;
-let mainWindow: BrowserWindow;
+interface IWindowInstance {
+  window: BrowserWindow;
+  serverSocket: string;
+  serverProcess: any;
+}
+
+let listWindow: IWindowInstance[] = [];
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -63,9 +68,9 @@ if (!isDev) {
   })
 }
 
-const createWindow = async () => {
+const createWindow = async (href?: string) => {
   // Create the browser window.
-  mainWindow = new BrowserWindow({
+  const window = new BrowserWindow({
     show: false,
     width: 1000,
     height: 1000,
@@ -73,52 +78,81 @@ const createWindow = async () => {
     minHeight: 900,
     backgroundColor: "#fff",
     icon: path.join(__dirname, '../assets/icon.icns'),
+    titleBarStyle: process.platform === 'darwin' ? 'hidden' : 'default',
+    frame: process.platform === 'darwin',
     webPreferences: {
-      // devTools: isDev,
+      devTools: isDev,
       enableRemoteModule: false,
       contextIsolation: false,
       nodeIntegration: false,
       preload: __dirname + "/client-preload.js",
       disableDialogs: false,
-      safeDialogs: true
+      safeDialogs: true,
+      enableWebSQL: false,
     },
   });
 
-  ContextMenu.mainBindings(ipcMain, mainWindow, Menu, isDev, contextConfig);
-
-  mainWindow.maximize();
-  mainWindow.show();
-
+  // Create sever process
+  const { serverSocket, serverProcess } = await createBackgroundProcess(window);
+  
+  ContextMenu.mainBindings(ipcMain, window, Menu, isDev, contextConfig);
   // and load the index.html of the app.
-  if (isDev) {
-    mainWindow.loadURL("http://localhost:3000");
+  if (href) {
+    // New tab with same location
+    window.loadURL(href);
   } else {
-    await loadURL(mainWindow);
+    if (isDev) {
+      window.loadURL("http://localhost:3000");
+    } else {
+      await loadURL(window);
+    }
   }
 
-  mainWindow.webContents.on("did-finish-load", () => {
+  window.webContents.on("did-finish-load", () => {
     if (serverSocket) {
-      mainWindow.webContents.send("set-socket", {
+      window.webContents.send("set-socket", {
         name: serverSocket,
       });
     }
   });
 
+  window.on('close', () => {
+    log.info(`${window.id} closed`);
+    log.info("kill server");
+    serverProcess.kill();
+    ContextMenu.clearMainBindings(ipcMain);
+    listWindow = listWindow.filter(instance => instance.window.id !== window.id);
+  })
+
   // Open the DevTools.
   if (isDev) {
-    mainWindow.webContents.openDevTools({ mode: 'bottom' });
+    window.webContents.openDevTools({ mode: 'bottom' });
   }
+
+  if (listWindow.length <= 0) {
+    log.verbose('Create new window');
+    window.maximize();
+    window.show();
+  } else {
+    log.verbose('Append window to tab');
+    listWindow[0].window.addTabbedWindow(window);
+    listWindow[0].window.selectNextTab();
+  }
+
+  listWindow.push({
+    window,
+    serverSocket,
+    serverProcess
+  })
+
+  return window;
 };
 
 // TODO: Also restart background process when user reload the app
-async function createBackgroundProcess() {
-  serverSocket = serverSocket || (await findOpenSocket());
+async function createBackgroundProcess(window?: BrowserWindow) {
+  const serverSocket = await findOpenSocket();
   log.info(`Create background process for ${serverSocket}`);
-  if (serverProcess) {
-    // Ignore if server already created
-    return;
-  }
-  serverProcess = fork(__dirname + "/workers/server.js", [
+  const serverProcess = fork(__dirname + "/workers/server.js", [
     "--subprocess",
     app.getVersion(),
     serverSocket,
@@ -135,16 +169,20 @@ async function createBackgroundProcess() {
     });
   }
 
-  setTimeout(() => {
-    log.info('Notified client that the background process is live');
-    mainWindow.webContents.send("set-socket", {
-      name: serverSocket,
-    });
-  }, 500);
+  if (window) {
+    setTimeout(() => {
+      log.info('Notified client that the background process is live');
+      window.webContents.send("set-socket", {
+        name: serverSocket,
+      });
+    }, 300);
+  }
 
   serverProcess.on("message", (msg: any) => {
     log.info(msg);
   });
+
+  return { serverProcess, serverSocket };
 }
 
 function bootstrap() {
@@ -156,13 +194,23 @@ function bootstrap() {
   db(app.getPath('userData'));
 }
 
+ipcMain.handle('new-tab', (event, href: string) => {
+  // Create new tab
+  createWindow(href);
+})
+
+app.on('new-window-for-tab', () => {
+  if (listWindow[0]?.window) {
+    createWindow(listWindow[0]?.window.webContents.getURL());
+  }
+});
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(async () => {
   bootstrap();
   createWindow();
-  createBackgroundProcess();
 
   if (isDev) {
     const { default: installExtension, REACT_DEVELOPER_TOOLS } = require('electron-devtools-installer');
@@ -179,15 +227,6 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
-
-  ContextMenu.clearMainBindings(ipcMain);
-
-  if (serverProcess) {
-    log.info("kill server");
-    serverProcess.kill();
-    serverProcess = null;
-    serverSocket = null;
-  }
 });
 
 app.on('web-contents-created', (e, contents) => {
@@ -202,19 +241,16 @@ app.on('web-contents-created', (e, contents) => {
 
 app.on("before-quit", () => {
   log.info("Before quit");
-  if (serverProcess) {
-    log.info("kill server");
-    serverProcess.kill();
-    serverProcess = null;
-  }
+  listWindow.forEach(instance => {
+    instance.serverProcess.kill();
+  })
 });
 
 app.on('activate', async () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
+  if (listWindow.length === 0) {
     createWindow();
-    createBackgroundProcess();
   }
 });
 

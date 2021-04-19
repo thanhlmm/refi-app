@@ -51,6 +51,7 @@ interface Window {
       setZoomFactor: (number) => void;
       getZoomFactor: () => number;
     };
+    newTab: () => void;
   };
   projectId: string;
   os: "Darwin" | string;

@@ -229,6 +229,14 @@ export const globalHotKeys: IGlobalHotKeys = {
       );
     },
   },
+  NEW_TAB: {
+    name: "New Tab",
+    group: "action",
+    sequences: mapHotKeys("command+t"),
+    handler: () => {
+      window.api.newTab();
+    },
+  },
 };
 
 type IGlobalHotKeysHandler = Record<string, () => void>;

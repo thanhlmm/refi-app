@@ -38,6 +38,9 @@ window.api = {
       webFrame.setZoomFactor(factor)
     },
     getZoomFactor: () => webFrame.getZoomFactor()
+  },
+  newTab: () => {
+    ipcRenderer.invoke('new-tab', window.location.href);
   }
 }
 
