@@ -36,6 +36,9 @@ let listWindow: IWindowInstance[] = [];
 
 let mainWindow: BrowserWindow;
 
+const isMacOS = process.platform === 'darwin';
+// const isMacOS = false;
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
@@ -82,10 +85,10 @@ const createMainWindow = async () => {
     height: 1000,
     minWidth: 1500,
     minHeight: 900,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: isMacOS ? "#D1D5DB" : "#6B7280",
     icon: path.join(__dirname, '../assets/icon.icns'),
-    titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
-    frame: process.platform === 'darwin',
+    titleBarStyle: isMacOS ? 'hiddenInset' : 'default',
+    frame: isMacOS,
     webPreferences: {
       devTools: isDev,
       enableRemoteModule: false,
@@ -307,6 +310,29 @@ ipcMain.handle('close-tab', async (event, tabName: string) => {
   closeTab(tabName);
 })
 
+ipcMain.handle('close-window', async (event, tabName: string) => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+
+ipcMain.handle('minimum-window', async (event, tabName: string) => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+});
+
+ipcMain.handle('toggle-maximum-window', async (event, tabName: string) => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+      return;
+    }
+    mainWindow.maximize();
+    return;
+  }
+});
+
 app.on('new-window-for-tab', () => {
   if (listWindow[0]?.window) {
     createWindow(listWindow[0]?.window.webContents.getURL());
@@ -366,7 +392,7 @@ app.on('activate', async () => {
 // code. You can also put them in separate files and import them here.
 
 const menu = new Menu()
-if (process.platform === 'darwin') {
+if (isMacOS) {
   menu.append(new MenuItem({
     label: app.name,
     submenu: [
@@ -386,14 +412,14 @@ menu.append(new MenuItem({
   submenu: [
     {
       label: "New Tab",
-      accelerator: process.platform === 'darwin' ? 'Cmd+T' : 'Ctrl+T',
+      accelerator: isMacOS ? 'Cmd+T' : 'Ctrl+T',
       click: async () => {
         await newTab()
       }
     },
     {
       label: "Close Tab",
-      accelerator: process.platform === 'darwin' ? 'Cmd+W' : 'Ctrl+W',
+      accelerator: isMacOS ? 'Cmd+W' : 'Ctrl+W',
       click: async () => {
         closeTab(getTabData().active);
       }

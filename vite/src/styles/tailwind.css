@@ -37,6 +37,12 @@ body {
   #root-body .quote code {
     @apply text-red-600 bg-gray-200 rounded;
   }
+
+  #root-body #drag-title {
+    -webkit-app-region: drag;
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }
 
 /* Start purging... */

@@ -61,6 +61,9 @@ interface Window {
     getTabs: () => Promise<TabChangeList>;
     setTab: (tab: string) => void;
     closeTab: (tab: string) => void;
+    closeWindow: () => void;
+    minimumWindow: () => void;
+    toggleMaximumWindow: () => void;
   };
   projectId: string;
   os: "Darwin" | string;

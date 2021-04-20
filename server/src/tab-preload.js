@@ -31,6 +31,15 @@ window.api = {
   },
   closeTab: (tab) => {
     return ipcRenderer.invoke('close-tab', tab);
+  },
+  closeWindow: () => {
+    return ipcRenderer.invoke('close-window');
+  },
+  minimumWindow: () => {
+    return ipcRenderer.invoke('minimum-window');
+  },
+  toggleMaximumWindow: () => {
+    return ipcRenderer.invoke('toggle-maximum-window');
   }
 }
 
