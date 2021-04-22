@@ -7,10 +7,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Refi App</title>
   <script src="./client-ipc.js"></script>
+  <style>
+    .loader {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  
+    .spinner {
+      color: #4B5563;
+      animation: spin 1s linear infinite;
+    }
+  
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+  
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
 </head>
 
 <body id="root-body">
-  <div id="root" class="overflow-hidden"></div>
+  <div id="root" class="overflow-hidden">
+    <div class="loader">
+      <div class="spinner">
+        <svg width="36" height="36" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+          class="text-gray-600">
+          <path fill-rule="evenodd" clipRule="evenodd"
+            d="M13.917 7A6.002 6.002 0 0 0 2.083 7H1.071a7.002 7.002 0 0 1 13.858 0h-1.012z" />
+        </svg>
+      </div>
+    </div>
+  
+  </div>
   <div id="notifications" class="absolute top-0 right-4" style="z-index: 500;"></div>
   <script type="module" src="/src/index.tsx"></script>
 </body>

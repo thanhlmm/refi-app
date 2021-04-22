@@ -107,7 +107,13 @@ const createMainWindow = async () => {
     mainWindow.webContents.openDevTools({ mode: 'detach' })
   }
 
-  ContextMenu.mainBindings(ipcMain, window, Menu, isDev, contextConfig);
+  window.on('closed', () => {
+    mainWindow = null;
+    listWindow.forEach(instance => {
+      instance.serverProcess.kill();
+    });
+  })
+
   if (isDev) {
     window.loadURL("http://localhost:3000/tabs.html");
   } else {
@@ -162,29 +168,7 @@ const createWindow = async (href?: string) => {
     }
   });
 
-  // TODO: How to kill the process
-  // window.on('close', () => {
-  //   log.info(`${window.id} closed`);
-  //   log.info("kill server");
-  //   serverProcess.kill();
-  //   ContextMenu.clearMainBindings(ipcMain);
-  //   listWindow = listWindow.filter(instance => instance.window.id !== window.id);
-  // })
-
-  // // Open the DevTools.
-  // if (isDev) {
-  //   window.webContents.openDevTools({ mode: 'bottom' });
-  // }
-
-  // if (listWindow.length <= 0) {
-  //   log.verbose('Create new window');
-  //   window.maximize();
-  //   window.show();
-  // } else {
-  //   log.verbose('Append window to tab');
-  //   listWindow[0].window.addTabbedWindow(window);
-  //   listWindow[0].window.selectNextTab();
-  // }
+  ContextMenu.mainBindings(ipcMain, window, Menu, isDev, contextConfig);
 
   listWindow.push({
     window,
@@ -306,6 +290,11 @@ const closeTab = (tabName: string) => {
   }
 }
 
+const getActiveInstance = () => {
+  const data = getTabData();
+  return listWindow.find(instance => instance.name === data.active);
+}
+
 ipcMain.handle('close-tab', async (event, tabName: string) => {
   closeTab(tabName);
 })
@@ -391,9 +380,8 @@ app.on('activate', async () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 
-const menu = new Menu()
-if (isMacOS) {
-  menu.append(new MenuItem({
+const template = [
+  ...(isMacOS ? [{
     label: app.name,
     submenu: [
       { role: 'about' },
@@ -401,30 +389,113 @@ if (isMacOS) {
       { role: 'services' },
       { type: 'separator' },
       { role: 'hide' },
+      { role: 'hideothers' },
       { role: 'unhide' },
       { type: 'separator' },
       { role: 'quit' }
     ]
-  }))
-}
-menu.append(new MenuItem({
-  label: 'File',
-  submenu: [
-    {
-      label: "New Tab",
-      accelerator: isMacOS ? 'Cmd+T' : 'Ctrl+T',
-      click: async () => {
-        await newTab()
+  }] : []),
+  // { role: 'fileMenu' }
+  {
+    label: 'File',
+    submenu: [
+      {
+        label: "New Tab",
+        accelerator: isMacOS ? 'Cmd+T' : 'Ctrl+T',
+        click: async () => {
+          await newTab()
+        }
+      },
+      {
+        label: "Close Tab",
+        accelerator: isMacOS ? 'Cmd+W' : 'Ctrl+W',
+        click: async () => {
+          closeTab(getTabData().active);
+        }
+      },
+    ]
+  },
+  // { role: 'editMenu' }
+  {
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      ...(isMacOS ? [
+        { role: 'pasteAndMatchStyle' },
+        { role: 'delete' },
+        { role: 'selectAll' },
+        { type: 'separator' },
+        {
+          label: 'Speech',
+          submenu: [
+            { role: 'startSpeaking' },
+            { role: 'stopSpeaking' }
+          ]
+        }
+      ] : [
+        { role: 'delete' },
+        { type: 'separator' },
+        { role: 'selectAll' }
+      ])
+    ]
+  },
+  // { role: 'viewMenu' }
+  {
+    label: 'View',
+    submenu: [
+      {
+        label: 'Reload',
+        accelerator: 'CommandOrControl+R',
+        click: () => {
+          const instance = getActiveInstance();
+          if (instance) {
+            instance.window.webContents.reload();
+          }
+        }
+      },
+      { role: 'toggleDevTools' },
+      { type: 'separator' },
+      { role: 'resetZoom' },
+      { role: 'zoomIn' },
+      { role: 'zoomOut' },
+      { type: 'separator' },
+      { role: 'togglefullscreen' }
+    ]
+  },
+  // { role: 'windowMenu' }
+  {
+    label: 'Window',
+    submenu: [
+      { role: 'minimize' },
+      { role: 'zoom' },
+      ...(isMacOS ? [
+        { type: 'separator' },
+        { role: 'front' },
+        { type: 'separator' },
+        { role: 'window' }
+      ] : [
+        { role: 'close' }
+      ])
+    ]
+  },
+  {
+    role: 'help',
+    submenu: [
+      {
+        label: 'Learn More',
+        click: async () => {
+          const { shell } = require('electron')
+          await shell.openExternal('https://refiapp.io')
+        }
       }
-    },
-    {
-      label: "Close Tab",
-      accelerator: isMacOS ? 'Cmd+W' : 'Ctrl+W',
-      click: async () => {
-        closeTab(getTabData().active);
-      }
-    },
-  ]
-}))
+    ]
+  }
+]
 
+const menu = Menu.buildFromTemplate(template as any)
 Menu.setApplicationMenu(menu)

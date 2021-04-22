@@ -16,5 +16,11 @@ export default defineConfig({
     target: "chrome89",
     polyfillDynamicImport: false,
     // sourcemap: "inline",
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, "index.html"),
+        tabs: path.resolve(__dirname, "tabs.html"),
+      },
+    },
   },
 });
