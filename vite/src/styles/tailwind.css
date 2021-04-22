@@ -44,8 +44,7 @@ body {
     user-select: none;
   }
 
-  #root-body {
-    /* disable selection */
+  /* #root-body {
     :not(input):not(textarea),
     :not(input):not(textarea)::after,
     :not(input):not(textarea)::before {
@@ -57,7 +56,6 @@ body {
         outline: none;
     }
 
-    /* disable image and anchor dragging */
     a:not([draggable=true]), img:not([draggable=true]) {
         -webkit-user-drag: none;
         user-drag: none;
@@ -68,7 +66,7 @@ body {
         -webkit-user-drag: auto;
         user-drag: auto;
     }
-  }
+  } */
 }
 
 /* Start purging... */
