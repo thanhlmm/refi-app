@@ -6,15 +6,15 @@ Firebase to **query, insert, monitor and migration** by create **new Awesome cli
 
 ## Features
 ### 📜 Table view - Easy view & edit a large amount of data like Excel
-![table](https://user-images.githubusercontent.com/9281080/112776739-aa1ea400-906a-11eb-9e6c-3793ece10b63.png)
+<img width="1194" alt="Screen Shot 2021-04-08 at 18 28 20" src="https://user-images.githubusercontent.com/9281080/115814339-0b922280-a41f-11eb-90c0-a85ac1979ea8.png">
 
 ### 🗒️ JSON Editor - You can add, edit documents like in your editor. No more wasted time clicking to add just a document
-![editor](https://user-images.githubusercontent.com/9281080/112776778-c15d9180-906a-11eb-8358-256b59b9ded0.png)
+<img width="1186" alt="Screen Shot 2021-04-08 at 18 28 26" src="https://user-images.githubusercontent.com/9281080/115814309-fddc9d00-a41e-11eb-98e0-3133c24e05e2.png">
 
 We integrated Monaco Editor - aka VS Code core so you can feel like 🏠
 
 ### 👨‍💻 Build for Developer - With hotkeys, you can do anything without leaving your keyboard. We are developer, we love keyboard
-![hotkey](https://user-images.githubusercontent.com/9281080/112776824-df2af680-906a-11eb-9028-1dff2357d6c9.png)
+<img width="1165" alt="Screen Shot 2021-04-08 at 18 28 32" src="https://user-images.githubusercontent.com/9281080/115814325-0503ab00-a41f-11eb-8c6b-1b45e39db7d1.png">
 
 Press `Cmd + Shift + P` or `Cmd + /` to open **Command list**
 
@@ -22,7 +22,7 @@ Press `Cmd + Shift + P` or `Cmd + /` to open **Command list**
 We never ever send any of your data. Your data is your and always your
 
 ### 🚧 Preview changes - Confidence edit data without making Production crash
-![preview](https://user-images.githubusercontent.com/9281080/112776856-f23dc680-906a-11eb-858b-4d74d63dff49.png)
+<img width="1170" alt="Screen Shot 2021-04-08 at 18 28 36" src="https://user-images.githubusercontent.com/9281080/115814355-1351c700-a41f-11eb-9e4d-a99f34908877.png">
 
 ## Download
 https://github.com/thanhlmm/refi-app/releases
