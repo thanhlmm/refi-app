@@ -1,8 +1,9 @@
 import firebase from "firebase/app";
 // Add the Firebase products that you want to use
 import "firebase/auth";
-import "firebase/analytics";
+// import "firebase/analytics";
 import "firebase/firestore";
+import "firebase/functions";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAqxdJ-rBGbcpGIdO9pDaBkxlJFSkAcE6s",
@@ -15,3 +16,6 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
+// TODO: Remove in production
+// firebase.functions().useEmulator("localhost", 5001);

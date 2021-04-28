@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Tabs, TabList, Tab, TabPanel } from "@zendeskgarden/react-tabs";
 import classNames from "classnames";
-// import BrowserView from "react-electron-browser-view";
 
 const TabsPage = () => {
   const [selectedTab, setSelectedTab] = useState("tab-1");
@@ -128,39 +127,47 @@ const TabsPage = () => {
             </Tab>
           </TabList>
         </Tabs>
-        {!isMacOS && (
-          <div className="flex flex-row items-stretch justify-center">
-            <div
-              className="p-3 hover:bg-gray-600"
-              onClick={handleMinimumWindow}
-            >
-              <img
-                className="icon"
-                srcSet="icons/min-w-10.png 1x, icons/min-w-12.png 1.25x, icons/min-w-15.png 1.5x, icons/min-w-15.png 1.75x, icons/min-w-20.png 2x, icons/min-w-20.png 2.25x, icons/min-w-24.png 2.5x, icons/min-w-30.png 3x, icons/min-w-30.png 3.5x"
-                draggable="false"
-              />
-            </div>
-
-            <div
-              className="p-3 hover:bg-gray-600"
-              onClick={handleToggleMaximumWindow}
-            >
-              <img
-                className="icon"
-                srcSet="icons/max-w-10.png 1x, icons/max-w-12.png 1.25x, icons/max-w-15.png 1.5x, icons/max-w-15.png 1.75x, icons/max-w-20.png 2x, icons/max-w-20.png 2.25x, icons/max-w-24.png 2.5x, icons/max-w-30.png 3x, icons/max-w-30.png 3.5x"
-                draggable="false"
-              />
-            </div>
-
-            <div className="p-3 hover:bg-red-600" onClick={handleCloseWindow}>
-              <img
-                className="icon"
-                srcSet="icons/close-w-10.png 1x, icons/close-w-12.png 1.25x, icons/close-w-15.png 1.5x, icons/close-w-15.png 1.75x, icons/close-w-20.png 2x, icons/close-w-20.png 2.25x, icons/close-w-24.png 2.5x, icons/close-w-30.png 3x, icons/close-w-30.png 3.5x"
-                draggable="false"
-              />
-            </div>
+        <div className="flex flex-row">
+          <div className="flex flex-row items-center">
+            <a className="p-2 hover:bg-white">
+              <img src="icons/magic-wand.png" className="inline w-5 h-5 mr-1" />
+              Upgrade
+            </a>
           </div>
-        )}
+          {!isMacOS && (
+            <div className="flex flex-row items-stretch justify-center">
+              <div
+                className="p-3 hover:bg-gray-600"
+                onClick={handleMinimumWindow}
+              >
+                <img
+                  className="icon"
+                  srcSet="icons/min-w-10.png 1x, icons/min-w-12.png 1.25x, icons/min-w-15.png 1.5x, icons/min-w-15.png 1.75x, icons/min-w-20.png 2x, icons/min-w-20.png 2.25x, icons/min-w-24.png 2.5x, icons/min-w-30.png 3x, icons/min-w-30.png 3.5x"
+                  draggable="false"
+                />
+              </div>
+
+              <div
+                className="p-3 hover:bg-gray-600"
+                onClick={handleToggleMaximumWindow}
+              >
+                <img
+                  className="icon"
+                  srcSet="icons/max-w-10.png 1x, icons/max-w-12.png 1.25x, icons/max-w-15.png 1.5x, icons/max-w-15.png 1.75x, icons/max-w-20.png 2x, icons/max-w-20.png 2.25x, icons/max-w-24.png 2.5x, icons/max-w-30.png 3x, icons/max-w-30.png 3.5x"
+                  draggable="false"
+                />
+              </div>
+
+              <div className="p-3 hover:bg-red-600" onClick={handleCloseWindow}>
+                <img
+                  className="icon"
+                  srcSet="icons/close-w-10.png 1x, icons/close-w-12.png 1.25x, icons/close-w-15.png 1.5x, icons/close-w-15.png 1.75x, icons/close-w-20.png 2x, icons/close-w-20.png 2.25x, icons/close-w-24.png 2.5x, icons/close-w-30.png 3x, icons/close-w-30.png 3.5x"
+                  draggable="false"
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       <div className="w-full h-full bg-white"></div>
     </div>

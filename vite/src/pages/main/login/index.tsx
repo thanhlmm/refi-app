@@ -153,11 +153,10 @@ const LoginPage: React.FC = () => {
         backdropProps={{ onClick: ignoreBackdropEvent }}
         appendToNode={document.querySelector("#root") || undefined}
       >
-        <Header>Choose your project</Header>
         <Body className="p-4">
           <div className="p-3 space-y-3">
-            <Title>Connect to emulator</Title>
-            <div className="flex flex-row items-center justify-between space-x-2 cursor-pointer">
+            <Title className="text-lg">Connect to emulator</Title>
+            <div className="flex flex-row items-center justify-between pr-4 space-x-2 cursor-pointer">
               <Input
                 value={projectValue}
                 onChange={(e) => setProjectValue(e.target.value)}
@@ -178,6 +177,7 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
             <hr />
+            <Title className="text-lg">Connect to projects</Title>
             {listCerts}
             <FileUpload {...getRootProps()} isDragging={isDragActive}>
               {isDragActive ? (
@@ -192,6 +192,18 @@ const LoginPage: React.FC = () => {
                 href="https://www.notion.so/cuthanh/How-to-get-my-credential-file-781fb9bfa0cf479a81b72a272728808c"
                 className="pt-2 text-sm"
               >
+                <svg
+                  className="inline-block w-4 mb-0.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                    clipRule="evenodd"
+                  />
+                </svg>{" "}
                 I don&apos;t know how to get credential file
               </Anchor>
             </div>

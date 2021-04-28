@@ -104,7 +104,7 @@ const createMainWindow = async () => {
   mainWindow = window;
 
   if (isDev) {
-    mainWindow.webContents.openDevTools({ mode: 'detach' })
+    // mainWindow.webContents.openDevTools({ mode: 'detach' })
   }
 
   window.on('closed', () => {
@@ -459,6 +459,15 @@ const template = [
         }
       },
       { role: 'toggleDevTools' },
+      {
+        label: 'Toggle Developer Tools (App)',
+        click: () => {
+          const instance = getActiveInstance();
+          if (instance) {
+            instance.window.webContents.openDevTools({ mode: 'detach' });
+          }
+        }
+      },
       { type: 'separator' },
       { role: 'resetZoom' },
       { role: 'zoomIn' },

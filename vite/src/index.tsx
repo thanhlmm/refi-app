@@ -11,6 +11,7 @@ import { RecoilExternalStatePortal } from "./atoms/RecoilExternalStatePortal";
 import Notifier from "./components/Notifier";
 import "./config";
 import "./firebase";
+import PricingModal from "./components/PricingModal";
 
 ReactDOM.render(
   <BrowserRouter>
@@ -18,6 +19,7 @@ ReactDOM.render(
       <RecoilRoot>
         <RecoilExternalStatePortal />
         <Notifier />
+        <PricingModal />
         <App />
       </RecoilRoot>
     </ThemeProvider>

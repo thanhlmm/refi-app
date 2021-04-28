@@ -8,6 +8,14 @@ module.exports = {
       minHeight: {
         12: "3rem",
       },
+      colors: {
+        palette: {
+          lighter: "#EFF6FF",
+          light: "#ffd761",
+          primary: "#FFA000",
+          dark: "#F57C00",
+        },
+      },
     },
     fontFamily: {
       sans: ["Inter", "sans-serif"],

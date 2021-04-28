@@ -173,3 +173,8 @@ export const emulatorConnection = atom({
   default: "localhost:8080",
   effects_UNSTABLE: [userPersistAtom],
 });
+
+export const isModalPricingAtom = atom<boolean>({
+  key: "ui/modal-pricing",
+  default: false,
+});

@@ -64,7 +64,10 @@ interface Window {
     closeWindow: () => void;
     minimumWindow: () => void;
     toggleMaximumWindow: () => void;
+    openUpgrade: () => void;
+    onUpgradeOpen: () => void;
   };
   projectId: string;
   os: "Darwin" | string;
+  Chargebee: any;
 }
