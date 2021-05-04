@@ -37,7 +37,7 @@ import {
 } from "@/utils/common";
 import { Cell } from "@zendeskgarden/react-tables";
 import classNames from "classnames";
-import { get, throttle, uniqueId } from "lodash";
+import { get, sumBy, throttle, uniqueId } from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Scrollbars } from "react-custom-scrollbars";
 import {
@@ -450,6 +450,7 @@ function DataTable() {
       actionSetProperty(collectionPath, getSampleColumn(data));
     }
   }, [collectionPath, properties, data]);
+
   const columnViewer = useMemo(() => {
     const docColumns = properties.map((key, index) => ({
       Header: (props) => (
@@ -459,8 +460,15 @@ function DataTable() {
           collectionPath={collectionPath}
         />
       ),
-      accessor: (originalRow, rowIndex) => get(originalRow, key),
+      accessor: (originalRow) => get(originalRow, key),
       id: key,
+      width: Math.min(
+        key.length * 3,
+        (sumBy(data, (row) => get(row.data(), key)?.toString()?.length || 100) /
+          (data.length || 1)) *
+          3, // 1 character = 3px
+        300
+      ),
       Cell: ({ row, column, value }: { row: any; column: any; value: any }) => {
         return (
           <EditableCell
