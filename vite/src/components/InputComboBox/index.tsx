@@ -1,6 +1,6 @@
 import { Input } from "@zendeskgarden/react-forms";
 import { useCombobox } from "downshift";
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useEffect, useState } from "react";
 import classNames from "classnames";
 
 interface IInputComboBoxProps<T> {
@@ -8,6 +8,7 @@ interface IInputComboBoxProps<T> {
   items: T[];
   selectedItem: T;
   handleSelectedItemChange: (T) => void;
+  onSelect?: (T) => void;
   placeholder?: string;
 }
 
@@ -15,6 +16,7 @@ const InputComboBox = ({
   items,
   selectedItem,
   handleSelectedItemChange,
+  onSelect,
   inputRef,
   placeholder,
 }: IInputComboBoxProps<string>): ReactElement => {
@@ -26,11 +28,20 @@ const InputComboBox = ({
     getComboboxProps,
     highlightedIndex,
     getItemProps,
+    setInputValue,
+    closeMenu,
   } = useCombobox({
     defaultInputValue: selectedItem,
     items: inputItems,
     onSelectedItemChange: ({ selectedItem }) => {
-      return handleSelectedItemChange(selectedItem);
+      if (onSelect) {
+        // If we got onSelect, only fire onSelect event
+        onSelect(selectedItem);
+      } else {
+        handleSelectedItemChange(selectedItem);
+      }
+
+      return;
     },
     onInputValueChange: ({ inputValue }) => {
       setInputItems(
@@ -43,6 +54,13 @@ const InputComboBox = ({
       handleSelectedItemChange(inputValue);
     },
   });
+
+  useEffect(() => {
+    if (selectedItem === "") {
+      closeMenu();
+      setInputValue("");
+    }
+  }, [selectedItem]);
 
   return (
     <div className="relative">

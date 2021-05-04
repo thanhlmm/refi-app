@@ -13,11 +13,13 @@ interface IFieldFinderInputProps {
   onChange: (string) => void;
   inputRef?: HTMLInputElement;
   placeholder?: string;
+  onSelect?: (string) => void;
 }
 
 const FieldFinderInput = ({
   value = "",
   onChange,
+  onSelect,
   inputRef,
   placeholder,
 }: IFieldFinderInputProps): ReactElement => {
@@ -33,6 +35,7 @@ const FieldFinderInput = ({
       selectedItem={value}
       handleSelectedItemChange={onChange}
       inputRef={inputRef}
+      onSelect={onSelect}
       placeholder={placeholder}
     />
   );

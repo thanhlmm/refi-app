@@ -13,7 +13,6 @@ import {
   DropResult,
 } from "react-beautiful-dnd";
 import ReactDOM from "react-dom";
-import { Input } from "@zendeskgarden/react-forms";
 import { Controller, useForm } from "react-hook-form";
 import FieldFinderInput from "../FieldFinderInput";
 import {
@@ -162,13 +161,11 @@ const PropertyList = () => {
             control={control}
             name="property"
             defaultValue=""
-            render={(
-              { onChange, onBlur, value, name, ref },
-              { invalid, isTouched, isDirty }
-            ) => (
+            render={({ onChange, value, ref }) => (
               <FieldFinderInput
                 value={value}
                 onChange={onChange}
+                onSelect={(value) => handleAddProperty({ property: value })}
                 inputRef={ref as any}
                 placeholder="Add more property to table"
               />
