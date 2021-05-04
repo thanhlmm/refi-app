@@ -19,9 +19,13 @@ import FieldFinderInput from "../FieldFinderInput";
 import {
   actionAddProperty,
   actionRemoveProperty,
+  actionSetProperty,
 } from "@/atoms/navigator.action";
-import { reorder } from "@/utils/common";
+import { getSampleColumn, reorder } from "@/utils/common";
 import classNames from "classnames";
+import { Button } from "@zendeskgarden/react-buttons";
+import { getRecoilExternalLoadable } from "@/atoms/RecoilExternalStatePortal";
+import { collectionWithQueryAtom } from "@/atoms/firestore";
 
 interface IPropertyItemProps {
   provided: DraggableProvided;
@@ -52,7 +56,7 @@ const PropertyItem = ({
     >
       <div>
         <svg
-          className="inline-block w-4"
+          className="inline-block w-4 text-gray-500"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -104,7 +108,7 @@ const PropertyList = () => {
   const [propertyList, setPropertyList] = useRecoilState(
     propertyListAtom(collectionPath)
   );
-  const { handleSubmit, reset, control, getValues } = useForm({
+  const { handleSubmit, reset, control } = useForm({
     defaultValues: { property: "" },
   });
 
@@ -139,25 +143,41 @@ const PropertyList = () => {
     }
   }, []);
 
+  const handleResetFieldList = async () => {
+    const data = await getRecoilExternalLoadable(
+      collectionWithQueryAtom(collectionPath)
+    ).toPromise();
+
+    actionSetProperty(collectionPath, getSampleColumn(data));
+  };
+
   return (
     <div className="w-54">
-      <form onSubmit={handleSubmit(handleAddProperty)} className="p-0.5">
-        <Controller
-          control={control}
-          name="property"
-          defaultValue=""
-          render={(
-            { onChange, onBlur, value, name, ref },
-            { invalid, isTouched, isDirty }
-          ) => (
-            <FieldFinderInput
-              value={value}
-              onChange={onChange}
-              inputRef={ref as any}
-              placeholder="Add more property to table"
-            />
-          )}
-        />
+      <form
+        onSubmit={handleSubmit(handleAddProperty)}
+        className="p-0.5 flex flex-row space-x-2"
+      >
+        <div className="w-full">
+          <Controller
+            control={control}
+            name="property"
+            defaultValue=""
+            render={(
+              { onChange, onBlur, value, name, ref },
+              { invalid, isTouched, isDirty }
+            ) => (
+              <FieldFinderInput
+                value={value}
+                onChange={onChange}
+                inputRef={ref as any}
+                placeholder="Add more property to table"
+              />
+            )}
+          />
+        </div>
+        <Button onClick={handleResetFieldList} size="small">
+          Reset
+        </Button>
       </form>
       <div className="mt-2 overflow-y-auto max-h-60">
         <DragDropContext onDragEnd={handleDropEnd}>
