@@ -5,8 +5,7 @@ import {
   addFirebaseDocSerializeMetaData,
   removeFirebaseSerializeMetaData,
 } from "@/utils/common";
-import { simplify } from "@/utils/simplifr";
-import Editor, { OnValidate, useMonaco } from "@monaco-editor/react";
+import Editor, { Monaco, OnValidate, useMonaco } from "@monaco-editor/react";
 import { diff } from "deep-diff";
 import firebase from "firebase/app";
 import {
@@ -15,7 +14,7 @@ import {
 } from "firestore-serializers";
 import { DocRef } from "firestore-serializers/src/DocRef";
 import { debounce } from "lodash";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import "./monaco.css";
 
@@ -38,7 +37,7 @@ const monacoOption = {
     verticalScrollbarSize: 5,
   },
   wordWrap: "bounded",
-  theme: "dark",
+  theme: "monacoProperty-light",
   "semanticHighlighting.enabled": true,
 };
 
@@ -70,15 +69,24 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
   const [defaultValue, setDefaultValue] = useState<string | undefined>(
     serializeData(doc)
   );
+  const editorView = useRef<any>();
   const setError = useSetRecoilState(monacoDataErrorAtom(doc.ref.path));
 
   const monaco = useMonaco();
 
   useEffect(() => {
     if (monaco) {
-      monaco.editor.setTheme("monacoProperty-light");
+      monaco.editor.onDidCreateEditor((view) => {
+        editorView.current = view;
+      });
     }
   }, [monaco]);
+
+  useEffect(() => {
+    if (editorView.current) {
+      editorView.current.setScrollTop(0);
+    }
+  }, [doc.ref.path]);
 
   useEffect(() => {
     // If user is editing on monaco editor. Do not sync outside value to it
@@ -135,7 +143,7 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
         onChange={setDefaultValue}
         onValidate={handleEditorValidation}
         options={monacoOption as any}
-        key={doc.ref.path}
+        line={1}
       />
       <MonacoPropertyError path={doc.ref.path} />
     </div>
