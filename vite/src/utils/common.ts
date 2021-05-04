@@ -310,3 +310,20 @@ export function getProjectId() {
 
   return projectId;
 }
+
+export const convertFirebaseType = (input: any): any => {
+  if (Array.isArray(input)) {
+    return input.map((row) => convertFirebaseType(row));
+  }
+
+  if (
+    input.seconds &&
+    input.nanoseconds &&
+    !Number.isNaN(input.seconds) &&
+    !Number.isNaN(input.nanoseconds)
+  ) {
+    return new firebase.firestore.Timestamp(input.seconds, input.nanoseconds);
+  }
+
+  return input;
+};

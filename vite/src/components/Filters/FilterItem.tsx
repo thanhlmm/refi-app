@@ -2,20 +2,21 @@ import {
   navigatorCollectionPathAtom,
   querierAtom,
   querierOptionAtom,
-  IArrayOperator,
 } from "@/atoms/navigator";
 import FieldFinderInput from "@/components/FieldFinderInput";
 import SelectComboBox from "@/components/SelectComboBox";
-import { isNumeric, isArrayOp } from "@/utils/common";
+import { isArrayOp, isNumeric } from "@/utils/common";
 import { convertFSValue } from "@/utils/fieldConverter";
 import { operatorOptions } from "@/utils/searcher";
+import { getFireStoreType } from "@/utils/simplifr";
 import { Button, IconButton } from "@zendeskgarden/react-buttons";
 import { Input } from "@zendeskgarden/react-forms";
+import classNames from "classnames";
 import immer from "immer";
 import React, { useLayoutEffect, useMemo, useRef } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import DateTimePicker from "../DataInput/DateTimePicker";
 import DropdownMenu from "../DropdownMenu";
-import Test from "../Test";
 
 const arrayInput = ["in", "not-in", "array-contains"];
 
@@ -98,7 +99,7 @@ const FilterItem = ({ id }: { id: string }) => {
     return null;
   }
 
-  const menuOptions = ["string", "number", "true", "false"].map(
+  const menuOptions = ["string", "number", "true", "false", "timestamp"].map(
     (fieldType) => ({
       title: fieldType,
       hint: fieldType,
@@ -136,7 +137,7 @@ const FilterItem = ({ id }: { id: string }) => {
       };
 
       const menuOptions = (value, index) =>
-        ["string", "number", "true", "false"].map((fieldType) => ({
+        ["string", "number", "true", "false", "timestamp"].map((fieldType) => ({
           title: fieldType,
           hint: fieldType,
           onClick: () => {
@@ -173,26 +174,43 @@ const FilterItem = ({ id }: { id: string }) => {
           {filter.operator.values.map((value, index) => (
             <div className="relative group" key={index}>
               <div className="absolute z-20 top-1 left-1">
-                <DropdownMenu menu={menuOptions(value, index)} isSmall>
+                <DropdownMenu
+                  menu={menuOptions(value, index)}
+                  isSmall
+                  containerClassName="w-24"
+                >
                   <button
                     role="button"
                     className="p-1 font-mono text-xs text-red-700 hover:bg-white hover:border hover:border-gray-300"
                     tabIndex={-1}
                   >
-                    {typeof value}
+                    {getFireStoreType(value)}
                   </button>
                 </DropdownMenu>
               </div>
-              <Input
-                isCompact
-                className="pl-16"
-                value={String(value)}
-                tabIndex={index * 10 + 1}
-                onChange={(e) =>
-                  handleChangeArrayItemValue(e.target.value, index)
-                }
-                readOnly={typeof value === "boolean"}
-              />
+              {getFireStoreType(value) === "timestamp" ? (
+                <div className="h-8 pl-20 pr-5 border border-gray-300">
+                  <DateTimePicker
+                    value={value as firebase.firestore.Timestamp}
+                    onChange={(newValue) =>
+                      handleChangeArrayItemValue(newValue, index)
+                    }
+                  />
+                </div>
+              ) : (
+                <Input
+                  isCompact
+                  className={classNames("pl-16", {
+                    ["text-gray-400"]: typeof value === "boolean",
+                  })}
+                  value={String(value)}
+                  tabIndex={index * 10 + 1}
+                  onChange={(e) =>
+                    handleChangeArrayItemValue(e.target.value, index)
+                  }
+                  readOnly={typeof value === "boolean"}
+                />
+              )}
               <button
                 className="absolute top-0 right-0 z-20 px-1 py-2 text-gray-500 opacity-0 group-hover:opacity-100"
                 onClick={() => handleRemoveItem(index)}
@@ -247,25 +265,38 @@ const FilterItem = ({ id }: { id: string }) => {
       );
     }
 
+    const inputType = getFireStoreType(filter.operator.values);
+
     return (
       <div className="relative">
         <div className="absolute z-20 top-1 left-1">
-          <DropdownMenu menu={menuOptions} isSmall>
+          <DropdownMenu menu={menuOptions} containerClassName="w-24">
             <button
               role="button"
               className="p-1 font-mono text-xs text-red-700 hover:bg-white hover:border hover:border-gray-300"
             >
-              {typeof filter.operator.values}
+              {inputType}
             </button>
           </DropdownMenu>
         </div>
-        <Input
-          isCompact
-          className="pl-16"
-          value={String(filter?.operator.values)}
-          onChange={(e) => handleChangeValue(e.target.value)}
-          readOnly={typeof filter.operator.values === "boolean"}
-        />
+        {inputType === "timestamp" ? (
+          <div className="h-8 pl-24 border border-gray-300">
+            <DateTimePicker
+              value={filter.operator.values as firebase.firestore.Timestamp}
+              onChange={(newValue) => handleChangeValue(newValue)}
+            />
+          </div>
+        ) : (
+          <Input
+            isCompact
+            className={classNames("pl-24", {
+              ["text-gray-400"]: typeof filter.operator.values === "boolean",
+            })}
+            value={String(filter?.operator.values)}
+            onChange={(e) => handleChangeValue(e.target.value)}
+            readOnly={typeof filter.operator.values === "boolean"}
+          />
+        )}
       </div>
     );
   }, [filter.operator.type, filter.operator.values]);

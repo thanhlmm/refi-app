@@ -1,19 +1,13 @@
-import { atom, atomFamily, selector, selectorFamily } from "recoil";
-import { collectionAtom } from "./firestore";
 import {
+  convertFirebaseType,
   getAllColumns,
   getAllColumnsRecursive,
   getCollectionPath,
-  getParentPath,
-  getSampleColumn,
-  isCollection,
 } from "@/utils/common";
 import produce from "immer";
+import { atom, atomFamily, selector, selectorFamily } from "recoil";
+import { collectionAtom } from "./firestore";
 import persistAtom from "./persistAtom";
-import {
-  getRecoilExternalLoadable,
-  setRecoilExternalState,
-} from "./RecoilExternalStatePortal";
 
 export const FIELD_TYPES: RefiFS.IFieldType[] = [
   "string",
@@ -53,7 +47,7 @@ export type WhereFilterOp =
   | "not-in"
   | "array-contains-any";
 
-type IOperatorValue = string | number | boolean;
+type IOperatorValue = string | number | boolean | firebase.firestore.Timestamp;
 export interface INormalOperator {
   type: "<" | "<=" | "==" | "!=" | ">=" | ">" | "array-contains";
   values: IOperatorValue;
@@ -74,7 +68,29 @@ interface IQueryEntity {
 export const querierAtom = atomFamily<IQueryEntity[], string>({
   key: "fs.querier",
   default: () => [],
-  effects_UNSTABLE: [persistAtom],
+  effects_UNSTABLE: [
+    persistAtom({
+      serialize(input) {
+        return JSON.stringify(input);
+      },
+      deserialize(input) {
+        const data = JSON.parse(input);
+        if (Array.isArray(data)) {
+          const dataWithType = data as IQueryEntity[];
+          return dataWithType.map((querier) => {
+            // This is not immutable :)
+            querier.operator.values = convertFirebaseType(
+              querier.operator.values
+            );
+
+            return querier;
+          });
+        }
+
+        return data;
+      },
+    }).persistAtom,
+  ],
 });
 
 export const querierOptionAtom = selectorFamily<
@@ -202,7 +218,7 @@ export const allColumnsRecursiveAtom = selector<string[]>({
 export const propertyListCoreAtom = atomFamily<string[] | null, string>({
   key: "fs/propertyList",
   default: null,
-  effects_UNSTABLE: [persistAtom],
+  effects_UNSTABLE: [persistAtom().persistAtom],
 });
 
 export const propertyListAtom = selectorFamily<string[], string>({

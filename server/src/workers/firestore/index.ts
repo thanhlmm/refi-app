@@ -6,7 +6,7 @@ import { deserializeDocumentSnapshotArray, DocumentSnapshot, serializeDocumentSn
 import { isCollection } from "../../utils/navigator";
 import { chunk, get } from "lodash";
 import log from 'electron-log';
-import { isRangeFilter, parseEmulatorConnection } from "../../utils";
+import { convertFirebaseType, isRangeFilter, parseEmulatorConnection } from "../../utils";
 import axios from 'axios';
 
 const DOCS_PER_PAGE = 200;
@@ -134,7 +134,7 @@ export default class FireStoreService implements NSFireStore.IService {
     let querier: FirebaseFirestore.Query = collectionRef;
 
     queryOptions.forEach(({ field, operator: { type, values } }) => {
-      querier = querier.where(field, type, values);
+      querier = querier.where(field, type, convertFirebaseType(values));
       if (isRangeFilter(type) && !sortOptions.find(({ field: sortField }) => sortField === field)) {
         // Auto add orderBy if query is filter by range operator
         querier = querier.orderBy(field, 'asc');
@@ -167,8 +167,6 @@ export default class FireStoreService implements NSFireStore.IService {
     }
 
     querier = querier.limit(DOCS_PER_PAGE);
-
-    log.debug(JSON.stringify(querier, null, 2));
 
     const close = querier.onSnapshot(
       async (querySnapshot) => {

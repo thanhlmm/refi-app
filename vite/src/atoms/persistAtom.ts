@@ -1,12 +1,12 @@
-import { recoilPersist } from "recoil-persist";
-const { persistAtom } = recoilPersist({ key: window.projectId || "refi-app" });
+import { recoilPersist } from "recoil-custom-persist";
+const projectPersistAtom = recoilPersist({ key: () => window.projectId });
 
 const { persistAtom: userPersistAtom } = recoilPersist({
   key: "user-settings",
-});
+})();
 
 // Project settings
-export default persistAtom;
+export default projectPersistAtom;
 
 // User settings
 export { userPersistAtom };

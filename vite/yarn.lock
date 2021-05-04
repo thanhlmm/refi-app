@@ -4223,10 +4223,10 @@ readdirp@~3.5.0:
   dependencies:
     picomatch "^2.2.1"
 
-recoil-persist@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/recoil-persist/-/recoil-persist-2.3.0.tgz#4a7cffbeec3d83ee34cccf3b7ca595ce731d1aca"
-  integrity sha512-Wun3i/EsEF49Gf4Oy/q3IuC+lKVkFR2rVxhJFBopEGNLH5VxGmhOHfbPvvzhLP8x82uDyeI6AoexNcy/1z+j3A==
+recoil-custom-persist@^2.6.1:
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/recoil-custom-persist/-/recoil-custom-persist-2.6.1.tgz#662121da15b3bf275883c1a79e5190ce7397f685"
+  integrity sha512-02XGiHFyyaln2tZIF06Az1/t1oiBpe0XH/bHZUM3mHUqqpzWHm6QhpP9M8aMoyBDpQIzXGgLIiEqGYm2AJba7g==
 
 recoil@^0.2.0:
   version "0.2.0"
