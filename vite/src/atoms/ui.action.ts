@@ -31,7 +31,7 @@ export const actionTriggerLoadData = (totalDocs): void => {
 export const actionSendNotification = (
   type: "error" | "warning" | "success",
   message: string,
-  showTime = 3000
+  showTime = 6000
 ): void => {
   setRecoilExternalState(notifierAtom, (notifications) => [
     ...notifications,
