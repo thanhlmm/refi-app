@@ -56,7 +56,7 @@ const EditableCell = ({
     }
     if (
       (fieldType === "number" && isNumeric(newInstanceValue)) ||
-      newInstanceValue === ""
+      (fieldType === "number" && newInstanceValue === "")
     ) {
       // Respect current type
       setInstanceValue(Number(newInstanceValue));
@@ -82,6 +82,7 @@ const EditableCell = ({
   useEffect(() => {
     if (!isEqual(instanceValue, value)) {
       setInstanceValue(value);
+      // TODO: Need approach to only toggleHight if the changes come from others source
       toggleHight();
     }
   }, [value]);
@@ -208,7 +209,7 @@ const EditableCell = ({
                 className={classNames(
                   "focus:ring-1 p-1.5 pt-2 bg-transparent break-all outline-none focus:ring-blue-400 h-full w-full truncate underline text-blue-400 focus:z-50 focus:shadow-lg",
                   {
-                    ["bg-red-300"]: isFieldChanged,
+                    ["bg-blue-100"]: isFieldChanged,
                     ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
                   }
                 )}
@@ -233,7 +234,7 @@ const EditableCell = ({
     <div
       ref={wrapperEl}
       className={classNames("w-full h-full outline-none group relative", {
-        ["bg-red-300"]: isFieldChanged,
+        ["bg-blue-100"]: isFieldChanged,
         ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
       })}
     >
