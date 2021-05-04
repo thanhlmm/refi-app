@@ -131,7 +131,7 @@ const createMainWindow = async () => {
 }
 
 const createWindow = async (href?: string) => {
-  // Create the browser window.
+  // Create the browser view.
   const window = new BrowserView({
     webPreferences: {
       devTools: isDev,
@@ -148,7 +148,6 @@ const createWindow = async (href?: string) => {
   // Create sever process
   const { serverSocket, serverProcess } = await createBackgroundProcess(window);
 
-  ContextMenu.mainBindings(ipcMain, window, Menu, isDev, contextConfig);
   // and load the index.html of the app.
   if (href) {
     // New tab with same location
