@@ -22,7 +22,7 @@ import serve from 'electron-serve';
 import { uniqueId } from "lodash";
 // import { needConfirm, setConfirmReload, shouldConfirm } from "./lib/confirmReload";
 
-const loadURL = serve({ directory: 'build' });
+serve({ directory: 'build' });
 app.disableHardwareAcceleration()
 
 interface IWindowInstance {
@@ -104,13 +104,15 @@ const createMainWindow = async () => {
   mainWindow = window;
 
   if (isDev) {
-    mainWindow.webContents.openDevTools({ mode: 'detach' })
+    // mainWindow.webContents.openDevTools({ mode: 'detach' })
   }
 
   window.on('closed', () => {
     mainWindow = null;
     listWindow.forEach(instance => {
       instance.serverProcess.kill();
+      (instance.window.webContents as any)?.destroy() // TODO: electron haven't make document for it. Ref: https://github.com/electron/electron/issues/26929
+      listWindow = [];
     });
   })
 
@@ -126,7 +128,6 @@ const createMainWindow = async () => {
 
   const windowView = await createWindow();
   setTab(windowView);
-  // TODO: Handle reload event
 }
 
 const createWindow = async (href?: string) => {
@@ -158,6 +159,10 @@ const createWindow = async (href?: string) => {
     } else {
       window.webContents.loadURL("app://-");
     }
+  }
+
+  if (isDev) {
+    window.webContents.openDevTools({ mode: 'detach' })
   }
 
   window.webContents.on("did-finish-load", () => {
