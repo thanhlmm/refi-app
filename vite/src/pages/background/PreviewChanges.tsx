@@ -115,7 +115,8 @@ const PreviewChanges = () => {
           </Header>
 
           <ModalBody className="px-4">
-            <table className="w-full table-fixed">
+            <h3 className="text-lg font-medium">Collections</h3>
+            <table className="w-full mb-4 table-fixed">
               <thead>
                 <tr>
                   <th className="w-full"></th>
@@ -127,7 +128,21 @@ const PreviewChanges = () => {
                 {deletedCollections.map((collection) => (
                   <tr key={collection}>
                     <td>
-                      <b>{collection}</b>
+                      <svg
+                        className="inline-block mr-2"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          clipRule="evenodd"
+                          d="M5 2.5l.5-.5h2l.5.5v11l-.5.5h-2l-.5-.5v-11zM6 3v10h1V3H6zm3.171.345l.299-.641 1.88-.684.64.299 3.762 10.336-.299.641-1.879.684-.64-.299L9.17 3.345zm1.11.128l3.42 9.396.94-.341-3.42-9.397-.94.342zM1 2.5l.5-.5h2l.5.5v11l-.5.5h-2l-.5-.5v-11zM2 3v10h1V3H2z"
+                        />
+                      </svg>{" "}
+                      {collection}
                     </td>
                     <td>
                       <Tag className="text-white bg-red-400">deleted</Tag>
@@ -137,6 +152,8 @@ const PreviewChanges = () => {
                 ))}
               </tbody>
             </table>
+
+            <h3 className="text-lg font-medium">Documents</h3>
             {Object.keys(groupSimilarDoc)
               .sort((a, b) => a.localeCompare(b))
               .map((collection) => {

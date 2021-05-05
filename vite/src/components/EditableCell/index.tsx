@@ -209,7 +209,7 @@ const EditableCell = ({
                 className={classNames(
                   "focus:ring-1 p-1.5 pt-2 bg-transparent break-all outline-none focus:ring-blue-400 h-full w-full truncate underline text-blue-400 focus:z-50 focus:shadow-lg",
                   {
-                    ["bg-blue-100"]: isFieldChanged,
+                    ["bg-blue-200"]: isFieldChanged,
                     ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
                   }
                 )}
@@ -234,7 +234,7 @@ const EditableCell = ({
     <div
       ref={wrapperEl}
       className={classNames("w-full h-full outline-none group relative", {
-        ["bg-blue-100"]: isFieldChanged,
+        ["bg-blue-200"]: isFieldChanged,
         ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
       })}
     >
@@ -268,7 +268,7 @@ export const IDReadOnlyField = ({
           "focus:ring-1 focus:ring-blue-400 w-full h-full bg-transparent outline-none ring-inset focus:bg-blue-100 p-1.5 text-gray-800 font-mono text-sm",
           {
             ["pl-0.5 border-l-4 border-blue-400"]: isActive,
-            ["bg-green-400"]: isNew,
+            ["bg-green-200"]: isNew,
           }
         )}
         value={value}

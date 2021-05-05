@@ -149,15 +149,22 @@ const createWindow = async (href?: string) => {
   const { serverSocket, serverProcess } = await createBackgroundProcess(window);
 
   // and load the index.html of the app.
-  if (href) {
-    // New tab with same location
-    window.webContents.loadURL(href);
+
+  // if (href) {
+  //   // New tab with same location
+  //   window.webContents.loadURL(href);
+  // } else {
+  //   if (isDev) {
+  //     window.webContents.loadURL("http://localhost:3000");
+  //   } else {
+  //     window.webContents.loadURL("app://-");
+  //   }
+  // }
+
+  if (isDev) {
+    window.webContents.loadURL("http://localhost:3000");
   } else {
-    if (isDev) {
-      window.webContents.loadURL("http://localhost:3000");
-    } else {
-      window.webContents.loadURL("app://-");
-    }
+    window.webContents.loadURL("app://-");
   }
 
   if (isDev) {
