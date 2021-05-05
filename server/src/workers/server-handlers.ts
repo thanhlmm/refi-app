@@ -38,5 +38,6 @@ handlers["fs.exportCollection"] = fsService.exportCollection.bind(fsService);
 handlers["fs.getDocs"] = fsService.getDocs.bind(fsService);
 handlers["fs.unsubscribe"] = fsService.unsubscribe.bind(fsService);
 handlers['fs.pathExpander'] = fsService.pathExpander.bind(fsService);
+handlers['fs.getSimulatorData'] = fsService.getSimulatorData.bind(fsService);
 
 export default handlers;

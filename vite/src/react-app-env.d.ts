@@ -21,7 +21,7 @@ declare module "*.svg" {
 declare module "react-grid-layout";
 declare module "react-window";
 
-type SendFuncType = (name: string, args: any) => Promise<any>;
+type SendFuncType = (name: string, args?: any) => Promise<any>;
 type ListenFuncType = (name: string, cb: Function) => Function;
 
 interface IContextMenu {

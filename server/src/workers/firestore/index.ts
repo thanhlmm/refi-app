@@ -461,4 +461,19 @@ export default class FireStoreService implements NSFireStore.IService {
     const listCollections = await (path !== '/' ? fs.doc(path).listCollections() : fs.listCollections());
     return listCollections.map(collection => collection.path);
   }
+
+  public async getSimulatorData(): Promise<any> {
+    try {
+      const response = await axios.get(`http://localhost:4040/api/config`);
+      log.verbose(response.data);
+      return {
+        ok: true, data: response.data
+      };
+    } catch (error) {
+
+      return {
+        ok: false
+      };
+    }
+  }
 }

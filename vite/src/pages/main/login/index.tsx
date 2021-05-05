@@ -75,6 +75,21 @@ const LoginPage: React.FC = () => {
     window.projectId = `/${projectId}`;
   };
 
+  useEffect(() => {
+    // Auto detect project id for simulator
+    window.send("fs.getSimulatorData").then((response) => {
+      if (response?.ok) {
+        if (response?.data?.projectId) {
+          setProjectValue(response?.data?.projectId);
+        }
+
+        if (response?.data?.firestore?.hostAndPort) {
+          setConnection(response?.data?.firestore?.hostAndPort);
+        }
+      }
+    });
+  }, []);
+
   const handleDeleteCert = (projectId: string) => {
     window
       .send("cert.removeKey", { projectId })

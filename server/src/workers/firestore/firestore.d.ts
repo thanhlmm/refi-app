@@ -125,5 +125,6 @@ declare namespace NSFireStore {
     getDocs(params: NSFireStore.IGetDocs): Promise<string>;
     unsubscribe(params: IListenerKey): Promise<boolean>;
     pathExpander(params: NSFireStore.IPathExpander): Promise<string[]>;
+    getSimulatorData(): Promise<any>;
   }
 }
