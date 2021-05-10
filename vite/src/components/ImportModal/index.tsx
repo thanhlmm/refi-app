@@ -48,6 +48,7 @@ const ImportModal = () => {
       mode: "onChange",
       defaultValues: {
         path: collectionPath,
+        idField: "__id__",
       },
     }
   );
@@ -73,6 +74,7 @@ const ImportModal = () => {
   const setShowImportModal = useSetRecoilState(isImportModalAtom);
 
   const onSubmit = (value: any) => {
+    // TODO: If there is really large list, we should show loading somewhere
     actionImportDocs(value.path, docs, {
       idField: value.isAutoId ? null : value.idField,
       autoParseJSON: value.autoParseJSON,
@@ -141,7 +143,6 @@ const ImportModal = () => {
             <Controller
               control={control}
               name="idField"
-              defaultValue="__id__"
               render={({ onChange, value, ref }) => (
                 <SelectComboBox
                   className="mt-2"
