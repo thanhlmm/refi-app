@@ -179,8 +179,6 @@ const createWindow = async (href?: string) => {
     }
   });
 
-  ContextMenu.mainBindings(ipcMain, window, Menu, isDev, contextConfig);
-
   listWindow.push({
     window,
     serverSocket,
@@ -188,12 +186,14 @@ const createWindow = async (href?: string) => {
     name: uniqueId('Tab ')
   });
 
-
   mainWindow.webContents.send('tabChange', getTabData());
   return window;
 };
 
 const setTab = (instance: BrowserView) => {
+  ContextMenu.clearMainBindings(ipcMain);
+  ContextMenu.mainBindings(ipcMain, instance, Menu, isDev, contextConfig);
+
   mainWindow.setBrowserView(instance);
   instance.setAutoResize({ width: true, height: true, horizontal: true, vertical: true });
   instance.setBounds({ x: 0, y: 36, width: mainWindow.getBounds().width, height: mainWindow.getBounds().height })

@@ -12,7 +12,7 @@ import URLSynchronizer from "@/components/URLSynchronizer";
 import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 import { useHistory, useParams } from "react-router-dom";
-import { withSize } from "react-sizeme";
+import AutoSizer from "react-virtualized-auto-sizer";
 import Background from "../background";
 import UniversalHotKey from "../hotkey";
 import Main from "./main";
@@ -47,21 +47,21 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
         x: 0,
         y: 0,
         w: 2,
-        h: remainSpace,
+        h: remainSpace - 1,
       },
       {
         i: "main",
         x: 2,
         y: 0,
         w: 7,
-        h: remainSpace,
+        h: remainSpace - 1,
       },
       {
         i: "property",
         x: 10,
         y: 0,
         w: 3,
-        h: remainSpace,
+        h: remainSpace - 1,
       },
     ];
   }, [size.height]);
@@ -84,7 +84,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
   }, []);
 
   return (
-    <div className="flex flex-col justify-between w-screen h-screen">
+    <div className="w-screen h-screen">
       {showLoading ? (
         <QuoteLoading onDone={() => setShowLoading(false)} />
       ) : (
@@ -118,7 +118,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
             </ReactGridLayout>
             <Background />
           </div>
-          <div className="flex flex-row justify-end pr-3 text-white transform translate-y-1 bg-gray-400">
+          <div className="flex flex-row justify-end pr-3 mt-3 text-white transform translate-y-1 bg-gray-400">
             <ProductBar />
           </div>
         </>
@@ -127,9 +127,14 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
   );
 }
 
-export default withSize({
-  monitorWidth: false,
-  monitorHeight: true,
-  refreshRate: 50,
-  refreshMode: "debounce",
-})(MainLayout);
+const MainWithSize = () => {
+  return (
+    <div className="w-screen h-screen">
+      <AutoSizer>
+        {({ height, width }) => <MainLayout size={{ width, height }} />}
+      </AutoSizer>
+    </div>
+  );
+};
+
+export default MainWithSize;

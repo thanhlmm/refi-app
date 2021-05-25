@@ -77,13 +77,13 @@ const ProductBar = (): ReactElement => {
       <div className="flex flex-row items-center space-x-2 text-sm">
         <button
           onClick={() => setShowNews(true)}
-          className="p-1 hover:bg-gray-500"
+          className="px-2 py-1 hover:bg-gray-300"
         >
           🔥 What&apos;s new
         </button>
         <button
           onClick={() => setShowFeedback(true)}
-          className="p-1 hover:bg-gray-500"
+          className="px-2 py-1 hover:bg-gray-300"
         >
           Feedback
         </button>
