@@ -54,7 +54,13 @@ export default class FireStoreService implements NSFireStore.IService {
     const serviceAccount = require(cert.keyPath);
 
     this.app = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+      // credential: admin.credential.cert(serviceAccount),
+      credential: admin.credential.refreshToken({
+        clientId: '53485597051-7tvldntikkislr06bq8vkc4ae6lmbnvi.apps.googleusercontent.com',
+        clientSecret: 'I4SBlTvlEHci7GsbX7s4D4K3',
+        refreshToken: '1//04Dv7yVRMGepRCgYIARAAGAQSNwF-L9Irt4tA1HRK6R16fbkbXW-VyZ2Kjgp6ZQPRR28v2ZEfvolOY5OrHhthKbfnbzjkQil4qhQ',
+        type: 'authorized_user',
+      }),
     }, projectId);
 
     log.info("Initiated firebase app");

@@ -19,6 +19,23 @@ import {
   useRecoilValueLoadable,
   useSetRecoilState,
 } from "recoil";
+import firebase from "firebase/app";
+import { isFunction } from "lodash";
+
+/**
+ * Google scope
+ * openid
+ * email
+ * https://www.googleapis.com/auth/cloudplatformprojects.readonly
+ * https://www.googleapis.com/auth/firebase
+ * https://www.googleapis.com/auth/cloud-platform
+ *
+ *
+ *
+ * https://www.googleapis.com/auth/cloudplatformprojects.readonly
+ * https://www.googleapis.com/auth/cloud-platform
+ * https://www.googleapis.com/auth/datastore
+ */
 
 const LoginPage: React.FC = () => {
   const userCertsLoadable = useRecoilValueLoadable(certs);
@@ -27,6 +44,7 @@ const LoginPage: React.FC = () => {
   const [showConfirm, setConfirm] = useState<string>("");
   const [connection, setConnection] = useRecoilState(emulatorConnection);
   const [projectValue, setProjectValue] = useRecoilState(emulatorProjectId);
+  const [loginDoc, setLoginDoc] = useState<string | null>(null);
   const history = useHistory();
 
   useEffect(() => {
@@ -103,6 +121,47 @@ const LoginPage: React.FC = () => {
       .then(() => setConfirm(""));
   };
 
+  const handleLoginWithGoogle = async () => {
+    const signInCode = await firebase
+      .functions()
+      .httpsCallable("generateGoogleAuthFlow")();
+
+    console.log(signInCode);
+
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    provider.setCustomParameters({
+      redirect_uri: `http://localhost:5001/${signInCode}`,
+    });
+
+    provider.addScope(
+      "https://www.googleapis.com/auth/cloudplatformprojects.readonly"
+    );
+    provider.addScope("https://www.googleapis.com/auth/cloud-platform");
+    provider.addScope("https://www.googleapis.com/auth/datastore");
+
+    firebase.auth().signInWithRedirect(provider);
+    setLoginDoc((signInCode as unknown) as string);
+  };
+
+  useEffect(() => {
+    let listener;
+    if (loginDoc) {
+      listener = firebase
+        .firestore()
+        .doc(`googleAuth/${loginDoc}`)
+        .onSnapshot((change) => {
+          console.log(change);
+        });
+    }
+
+    return () => {
+      if (listener && isFunction(listener)) {
+        listener();
+      }
+    };
+  }, [loginDoc]);
+
   const listCerts = useMemo(() => {
     if (userCertsLoadable.state === "hasValue") {
       return userCertsLoadable.contents.map((cert) => (
@@ -171,6 +230,31 @@ const LoginPage: React.FC = () => {
         <Header>Choose your project</Header>
         <Body className="p-4">
           <div className="p-3 space-y-3">
+            <div className="flex flex-row space-x-3">
+              <div className="w-1/2">
+                <Button onClick={handleLoginWithGoogle}>
+                  Login with Google
+                </Button>
+              </div>
+              <div className="w-1/2">
+                <FileUpload {...getRootProps()} isDragging={isDragActive}>
+                  {isDragActive ? (
+                    <span>Drop files here</span>
+                  ) : (
+                    <span>Login with credential file</span>
+                  )}
+                  <Input {...getInputProps()} />
+                </FileUpload>
+                <div>
+                  <Anchor
+                    href="https://www.notion.so/cuthanh/How-to-get-my-credential-file-781fb9bfa0cf479a81b72a272728808c"
+                    className="pt-2 text-sm"
+                  >
+                    I don&apos;t know how to get credential file
+                  </Anchor>
+                </div>
+              </div>
+            </div>
             <Title>Connect to emulator</Title>
             <div className="flex flex-row items-center justify-between space-x-2 cursor-pointer">
               <Input
@@ -194,22 +278,6 @@ const LoginPage: React.FC = () => {
             </div>
             <hr />
             {listCerts}
-            <FileUpload {...getRootProps()} isDragging={isDragActive}>
-              {isDragActive ? (
-                <span>Drop files here</span>
-              ) : (
-                <span>Choose a credential file or drag and drop here</span>
-              )}
-              <Input {...getInputProps()} />
-            </FileUpload>
-            <div>
-              <Anchor
-                href="https://www.notion.so/cuthanh/How-to-get-my-credential-file-781fb9bfa0cf479a81b72a272728808c"
-                className="pt-2 text-sm"
-              >
-                I don&apos;t know how to get credential file
-              </Anchor>
-            </div>
           </div>
         </Body>
       </Modal>
