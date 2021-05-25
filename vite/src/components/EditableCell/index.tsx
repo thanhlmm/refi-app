@@ -147,12 +147,16 @@ const EditableCell = ({
       switch (fieldType) {
         case "array":
           defaultEditor = (
-            <div className="p-1.5 font-mono text-red-700">array</div>
+            <div className="p-1.5 font-mono truncate">
+              {JSON.stringify(value)}
+            </div>
           );
           break;
         case "map":
           defaultEditor = (
-            <div className="p-1.5 font-mono text-red-700">map</div>
+            <div className="p-1.5 font-mono truncate">
+              {JSON.stringify(value)}
+            </div>
           );
           break;
         case "geopoint":

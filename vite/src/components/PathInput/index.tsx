@@ -91,7 +91,7 @@ function PathInput() {
   }, [path]);
 
   return (
-    <div className="relative flex flex-row items-center h-full bg-gray-300 group">
+    <div className="relative flex flex-row items-center h-full bg-gray-200 group">
       {isViewMode ? (
         PathViewer
       ) : (

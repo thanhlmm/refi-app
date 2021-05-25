@@ -462,12 +462,17 @@ function DataTable() {
       ),
       accessor: (originalRow) => get(originalRow, key),
       id: key,
-      width: Math.min(
-        key.length * 3,
-        (sumBy(data, (row) => get(row.data(), key)?.toString()?.length || 100) /
-          (data.length || 1)) *
-          3, // 1 character = 3px
-        300
+      width: Math.max(
+        Math.min(
+          key.length * 10,
+          (sumBy(
+            data,
+            (row) => get(row.data(), key)?.toString()?.length || 100
+          ) /
+            (data.length || 1)) *
+            10 // 1 character = 3px
+        ),
+        200
       ),
       Cell: ({ row, column, value }: { row: any; column: any; value: any }) => {
         return (

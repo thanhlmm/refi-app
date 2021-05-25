@@ -495,7 +495,7 @@ function TreeView({ allDocs, deletedDocs, pathAvailable }: ITreeViewProps) {
         ref={treeWrapperRef}
         onFocus={handleOnFocus}
       >
-        <div className="flex h-8 flex-row items-center justify-between pl-1.5 bg-gray-300 border-b-2 border-gray-500">
+        <div className="flex h-8 flex-row items-center justify-between pl-1.5 bg-gray-200 border-b-2 border-gray-400">
           <span>{getProjectId()}</span>
 
           <button
