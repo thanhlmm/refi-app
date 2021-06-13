@@ -2,7 +2,7 @@
   "name": "refi-app",
   "productName": "RefiApp",
   "authors": "mihthanh27@gmail.com",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
   "main": "dist/index.js",
   "scripts": {
@@ -21,7 +21,8 @@
     "make-all": "npm run make-mac && npm run make-linux && npm run make-window",
     "build": "tsc --sourceMap false && node minify.js",
     "release": "npm run build && npm run copy-client && npm run package-all && npm run make-all",
-    "publish-mac": "electron-forge publish --platform darwin",
+    "publish-mac": "electron-forge publish --platform darwin --arch x64,arm",
+    "publish-mac-m1": "electron-forge publish --platform darwin --arch arm",
     "publish-window": "electron-forge publish --platform win32",
     "publish-linux": "electron-forge publish --platform linux",
     "prepare": "npm run copy-client && npm run build",
@@ -67,14 +68,6 @@
           }
         },
         {
-          "name": "@electron-forge/maker-zip",
-          "config": {
-            "platforms": [
-              "win32"
-            ]
-          }
-        },
-        {
           "name": "@electron-forge/maker-deb",
           "config": {}
         },
@@ -92,7 +85,7 @@
             "window"
           ],
           "config": {
-            "authToken": "e3147cb88d692b549430545446ec7f8e5e2f9693",
+            "authToken": "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",
             "repository": {
               "owner": "thanhlmm",
               "name": "refi-app"
