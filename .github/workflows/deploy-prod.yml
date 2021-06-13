@@ -17,7 +17,7 @@ jobs:
       - name: Install lib tree
         run: cd tree && yarn
       - name: Build lib tree
-        run: cd tree && yarn build
+        run: cd tree && yarn run compile
       - name: Install Vite package
         run: cd vite && yarn
       - name: Build Vite
