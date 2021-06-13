@@ -39,7 +39,7 @@
     "moment": "^2.29.1",
     "monaco-editor": "^0.23.0",
     "object-path-immutable": "^4.1.1",
-    "rc-tree": "^4.1.1",
+    "rc-tree": "file:../tree",
     "react": "^17.0.0",
     "react-beautiful-dnd": "^13.0.0",
     "react-custom-scrollbars": "^4.2.1",
