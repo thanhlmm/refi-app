@@ -14,6 +14,10 @@ jobs:
         run: cd firestore-serializers && yarn
       - name: Build lib package
         run: cd firestore-serializers && yarn build
+      - name: Install lib tree
+        run: cd tree && yarn
+      - name: Build lib tree
+        run: cd tree && yarn build
       - name: Install Vite package
         run: cd vite && yarn
       - name: Build Vite
