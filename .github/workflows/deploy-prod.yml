@@ -24,8 +24,8 @@ jobs:
         run: cd vite && yarn run build
       - name: Install electron package
         run: cd server && yarn
-      - name: Build Electron linux
-        run: cd server && yarn run package-linux && yarn run make-linux
+      - name: Release Electron linux
+        run: cd server && yarn run publish-linux
       # - name: Build Electron window
       #   run: cd server && yarn run package-window && yarn run make-window
       - uses: actions/upload-artifact@v1
