@@ -63,9 +63,11 @@
           "name": "@electron-forge/maker-dmg",
           "config": {
             "icon": "./assets/icon.icns",
-            "name": "RefiApp",
             "overwrite": true
           }
+        },
+        {
+          "name": "@electron-forge/maker-zip"
         },
         {
           "name": "@electron-forge/maker-deb",
