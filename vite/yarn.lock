@@ -3919,10 +3919,8 @@ rc-resize-observer@^1.0.0:
     rc-util "^5.0.0"
     resize-observer-polyfill "^1.5.1"
 
-rc-tree@^4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/rc-tree/-/rc-tree-4.1.1.tgz#d40f418b31b75e61886e3969481df1444232c98b"
-  integrity sha512-ufq7CkWfvTQa+xMPzEWYfOjTfsEALlPr0/IyujEG4+4d8NdaR3e+0dc8LkkVWoe1VCcXV2FQqAsgr2z/ThFUrQ==
+"rc-tree@file:../tree":
+  version "4.1.5"
   dependencies:
     "@babel/runtime" "^7.10.1"
     classnames "2.x"

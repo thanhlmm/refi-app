@@ -7,14 +7,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Refi App</title>
   <script src="./client-ipc.js"></script>
-<script type="module" crossorigin src="/assets/index.2f8f1388.js"></script>
-  <link rel="modulepreload" href="/assets/vendor.66a9ffb4.js">
-  <link rel="stylesheet" href="/assets/index.43dd5134.css">
+  <style>
+    .loader {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  
+    .spinner {
+      color: #4B5563;
+      animation: spin 1s linear infinite;
+    }
+  
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+  
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+<script type="module" crossorigin src="/assets/main.85ff90cb.js"></script>
+  <link rel="modulepreload" href="/assets/vendor.a873d349.js">
+  <link rel="modulepreload" href="/assets/theme.d76d16c2.js">
+  <link rel="stylesheet" href="/assets/main.a568a86c.css">
   <link rel="stylesheet" href="/assets/vendor.fdd73218.css">
+  <link rel="stylesheet" href="/assets/theme.6f65dd78.css">
 </head>
 
 <body id="root-body">
-  <div id="root" class="overflow-hidden"></div>
+  <div id="root" class="overflow-hidden">
+    <div class="loader">
+      <div class="spinner">
+        <svg width="36" height="36" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+          class="text-gray-600">
+          <path fill-rule="evenodd" clipRule="evenodd"
+            d="M13.917 7A6.002 6.002 0 0 0 2.083 7H1.071a7.002 7.002 0 0 1 13.858 0h-1.012z" />
+        </svg>
+      </div>
+    </div>
+  
+  </div>
   <div id="notifications" class="absolute top-0 right-4" style="z-index: 500;"></div>
   
 </body>
