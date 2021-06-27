@@ -32,7 +32,7 @@ jobs:
       #   with:
       #     name: build_file
       #     path: vite/dist
-      - uses: actions/upload-artifact@v1
-        with:
-          name: electron_file
-          path: server/out
+      # - uses: actions/upload-artifact@v1
+      #   with:
+      #     name: electron_file
+      #     path: server/out
