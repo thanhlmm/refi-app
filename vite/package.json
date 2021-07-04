@@ -9,6 +9,10 @@
     "build:css": "cross-env NODE_ENV=production postcss src/styles/tailwind.css -o src/styles/index.css",
     "watch:css": "cross-env NODE_ENV=development postcss src/styles/tailwind.css -o src/styles/index.css --watch"
   },
+  "resolutions": {
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
+  },
   "dependencies": {
     "@monaco-editor/react": "^4.0.10",
     "@popperjs/core": "^2.9.1",
@@ -40,12 +44,12 @@
     "monaco-editor": "^0.23.0",
     "object-path-immutable": "^4.1.1",
     "rc-tree": "file:../tree",
-    "react": "^17.0.0",
+    "react": "17.0.2",
     "react-beautiful-dnd": "^13.0.0",
     "react-custom-scrollbars": "^4.2.1",
     "react-datetime": "^3.0.4",
     "react-debounce-props": "^2.0.0",
-    "react-dom": "^17.0.0",
+    "react-dom": "17.0.2",
     "react-dropzone": "^11.3.1",
     "react-grid-layout": "^1.2.0",
     "react-hook-form": "^6.15.4",

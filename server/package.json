@@ -22,7 +22,7 @@
     "build": "tsc --sourceMap false && node minify.js",
     "release": "npm run build && npm run copy-client && npm run package-all && npm run make-all",
     "publish-mac": "electron-forge publish --platform darwin --arch x64",
-    "publish-mac-m1": "electron-forge publish --platform darwin --arch arm64",
+    "publish-mac-m1": "electron-forge publish --platform darwin",
     "publish-window": "electron-forge publish --platform win32",
     "publish-linux": "electron-forge publish --platform linux",
     "prepare": "npm run copy-client && npm run build",

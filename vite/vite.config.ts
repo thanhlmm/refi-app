@@ -6,12 +6,14 @@ import reactRefresh from "@vitejs/plugin-react-refresh";
 export default defineConfig({
   resolve: {
     alias: [{ find: "@", replacement: path.resolve(__dirname, "src") }],
+    dedupe: ["react", "react-dom"],
   },
   plugins: [reactRefresh()],
   optimizeDeps: {
     entries: ["index.html", "tabs.html"],
   },
   build: {
+    minify: false,
     brotliSize: false,
     target: "chrome89",
     polyfillDynamicImport: false,
