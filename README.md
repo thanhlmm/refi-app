@@ -34,6 +34,10 @@ We never ever send any of your data. Your data is your and always your
 
 https://github.com/thanhlmm/refi-app/releases
 
+## Development
+
+https://github.com/thanhlmm/refi-app/blob/main/DEVELOPMENT.md
+
 ## Issues
 
 https://github.com/thanhlmm/refi-app/issues
