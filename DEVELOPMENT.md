@@ -81,5 +81,6 @@ yarn build
 cd server
 yarn build
 yarn prepare
+yarn package-{mac,linux,window}
 yarn make-{mac,linux,window}
 ```
