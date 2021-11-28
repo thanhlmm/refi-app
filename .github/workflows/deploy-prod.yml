@@ -24,15 +24,17 @@ jobs:
         run: cd vite && yarn run build
       - name: Install electron package
         run: cd server && yarn
+      - name: Package
+        run: cd server && yarn package-window && yarn package-linux
       - name: Release Electron linux
-        run: cd server && yarn run publish-linux
-      # - name: Build Electron window
-      #   run: cd server && yarn run package-window && yarn run make-window
-      # - uses: actions/upload-artifact@v1
-      #   with:
-      #     name: build_file
-      #     path: vite/dist
-      # - uses: actions/upload-artifact@v1
-      #   with:
-      #     name: electron_file
-      #     path: server/out
+        run: cd server && yarn run make-linux
+      - name: Build Electron window
+        run: cd server && yarn run make-window
+      - uses: actions/upload-artifact@v1
+        with:
+          name: build_file
+          path: vite/dist
+      - uses: actions/upload-artifact@v1
+        with:
+          name: electron_file
+          path: server/out
