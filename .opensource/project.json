@@ -1,0 +1,6 @@
+{
+  "name": "Refi App",
+  "platforms": ["Node", "Admin", "Web", "Desktop"],
+  "content": "README.md",
+  "pages": ["DEVELOPMENT.md"]
+}
