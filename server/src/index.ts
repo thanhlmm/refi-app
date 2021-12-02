@@ -1,8 +1,13 @@
 import isDev from "electron-is-dev";
 import log from 'electron-log';
+import todesktop from "@todesktop/runtime";
 if (isDev) {
   require('source-map-support').install();
 }
+
+todesktop.init({
+  customLogger: log,
+});
 
 if (!isDev) {
   log.transports.file.level = "verbose";
@@ -45,13 +50,14 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 }
 
 if (!isDev) {
-  const server = "https://refi-updater.vercel.app";
-  const feed = `${server}/update/${process.platform}/${app.getVersion()}`
+  // const server = "https://refi-updater.vercel.app";
+  // const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
-  autoUpdater.setFeedURL({ url: feed, serverType: "json" })
+  // autoUpdater.setFeedURL({ url: feed, serverType: "json" })
 
   setInterval(() => {
-    autoUpdater.checkForUpdates()
+    todesktop.autoUpdater.checkForUpdates();
+    // autoUpdater.checkForUpdates()
   }, 60000);
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
@@ -65,7 +71,7 @@ if (!isDev) {
     }
 
     dialog.showMessageBox(dialogOpts).then((returnValue) => {
-      if (returnValue.response === 0) autoUpdater.quitAndInstall()
+      if (returnValue.response === 0) todesktop.autoUpdater.restartAndInstall();
     })
   })
 

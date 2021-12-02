@@ -1,0 +1,8 @@
+{
+  "id": "211201njqikvxkx",
+  "icon": "./assets/icon.png",
+  "appPath": ".",
+  "schemaVersion": 1,
+  "uploadSizeLimit": 300,
+  "appFiles": ["**/*", "!out/**", "!node_modules/**", "!key/**", "../firestore-serializers"]
+}
