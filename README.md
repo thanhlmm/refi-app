@@ -1,16 +1,16 @@
 ## Refi App
 
-It's a tool to give developers less pain when developing applications with Firestore. Save more time to focus on building applications instead of playing with Firebase's poor UI
+It's a tool to give developers lesser pain when developing applications with Firestore. Save more time to focus on building applications instead of playing with Firebase's poor UI
 
 You can **query, insert, monitor and migration** with our **new Awesome client** that solves it all.
 
 ## Features
 
-### 📜 Table view - Easy view & edit a large amount of data like Excel
+### 📜 Table view - Easily view & edit large amounts of data like in Excel
 
 <img width="1194" alt="Screen Shot 2021-04-08 at 18 28 20" src="https://user-images.githubusercontent.com/9281080/115814339-0b922280-a41f-11eb-90c0-a85ac1979ea8.png">
 
-### 🗒️ JSON Editor - You can add, edit documents like in your editor. No more wasted time clicking to add just a document
+### 🗒️ JSON Editor - You can add, edit documents like in your editor. No more wasted time clicking to just add a document
 
 <img width="1186" alt="Screen Shot 2021-04-08 at 18 28 26" src="https://user-images.githubusercontent.com/9281080/115814309-fddc9d00-a41e-11eb-98e0-3133c24e05e2.png">
 
@@ -22,9 +22,9 @@ We integrated the Monaco Editor - aka VS Code core so you can feel at 🏠
 
 Press `Cmd + Shift + P` or `Cmd + /` to open **Command list**
 
-### Privacy - Your privacy is our first priority. We do not keep any of your data
+### Privacy - Your privacy is our first priority. We do not keep your data
 
-We never collect any of your data. Your data is yours and always will be.
+We never collect your data. Your data is yours and always will be.
 
 ### 🚧 Preview changes - Edit data with confidence, without endangering your production environment
 
