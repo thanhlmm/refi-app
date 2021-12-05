@@ -4261,10 +4261,10 @@ recoil-custom-persist@^2.6.1:
   resolved "https://registry.yarnpkg.com/recoil-custom-persist/-/recoil-custom-persist-2.6.2.tgz#fb40bcd9a799cbdd1f8934b179593d7852cc3fff"
   integrity sha512-dkbq3D0O30WQwuSSo1oEGYziBHajTZLIG3ckEAmOwN9XMzlB4PQHEEONM0KNsfTV+npFT0pzmJvRHiYgN/BzAw==
 
-recoil@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/recoil/-/recoil-0.2.0.tgz#69344b5bec3129272560d8d9d6001ada3ee4d80c"
-  integrity sha512-VOJfYVQ3VgmfS7L5tV9QdOR+AJhvll8yGr1+3nJPCqADulImuScGZ2sJtejPps3zfTu/o98y5kO4lje8Tx6XHw==
+recoil@0.5.2:
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/recoil/-/recoil-0.5.2.tgz#61fecce3b4dc91127a595586cf7369e2811ba024"
+  integrity sha512-Edibzpu3dbUMLy6QRg73WL8dvMl9Xqhp+kU+f2sJtXxsaXvAlxU/GcnDE8HXPkprXrhHF2e6SZozptNvjNF5fw==
   dependencies:
     hamt_plus "1.0.2"
 
