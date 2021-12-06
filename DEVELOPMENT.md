@@ -31,7 +31,7 @@ yarn build
 ```sh
 cd tree
 yarn
-yarn build
+yarn compile
 ```
 
 ### Install node module for client and server
