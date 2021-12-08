@@ -17,22 +17,29 @@ env:
   TODESKTOP_EMAIL: ${{ secrets.TODESKTOP_EMAIL }}
 
 jobs:
-  build:
+  # build-packages:
+  #   name: Build dependencies packages
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-node@v2
+  #       with:
+  #         node-version: "14"
+  #         cache: "yarn"
+  #     - name: Install lib tree
+  #       run: cd tree && yarn
+  #     - name: Build lib tree
+  #       run: cd tree && yarn run compile
+
+  build-vite:
+    # needs: build-packages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - uses: actions/cache@v2
-        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+      - uses: actions/setup-node@v2
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      - name: Build lib package
-        run: cd firestore-serializers && yarn build
+          node-version: "14"
+          cache: "yarn"
       - name: Install lib tree
         run: cd tree && yarn
       - name: Build lib tree
@@ -41,11 +48,32 @@ jobs:
         run: cd vite && yarn
       - name: Build Vite
         run: cd vite && yarn run build
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v2
+        with:
+          name: vite
+          path: vite/dist
+          retention-days: 1
+
+  build-app:
+    needs: build-vite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+          cache: "yarn"
+      - name: Download built Vite files
+        uses: actions/download-artifact@v2
+        with:
+          name: vite
+          path: server/build
       - name: Install Server package
         run: cd server && yarn && yarn global add @todesktop/cli
       - name: Send to ToDesktop
         working-directory: ./server
-        run: yarn run copy-fe && todesktop build
+        run: todesktop build
       # - name: Release
       #   run: todesktop release --latest --force
       #   if: $GITHUB_REF_TYPE == 'tag'
