@@ -2458,8 +2458,10 @@ firebase@^8.2.9:
     "@firebase/storage" "0.5.6"
     "@firebase/util" "1.1.0"
 
-"firestore-serializers@file:../firestore-serializers":
-  version "0.1.4"
+"firestore-serializers@npm:refi-firestore-serializers@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/refi-firestore-serializers/-/refi-firestore-serializers-0.1.7.tgz#dbe20613cc3d18368694c019d235e562edbefaed"
+  integrity sha512-ypvI+wGYBkfrKvVaHiSWPNYG8I4e92iCHEyXf9GQxvycLMw76F9xCjDpDdSalrVLhb8/3X/BIqV0Uf48m/qyZg==
   dependencies:
     firebase "^7.14.1"
     lodash "^4.17.15"
