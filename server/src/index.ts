@@ -80,8 +80,6 @@ const createMainWindow = async () => {
     show: false,
     width: 1000,
     height: 1000,
-    minWidth: 1500,
-    minHeight: 900,
     backgroundColor: isMacOS ? "#D1D5DB" : "#6B7280",
     icon: path.join(__dirname, '../assets/icon.icns'),
     titleBarStyle: isMacOS ? 'hiddenInset' : 'default',
@@ -192,8 +190,8 @@ const setTab = (instance: BrowserView) => {
   ContextMenu.mainBindings(ipcMain, instance, Menu, isDev, contextConfig);
 
   mainWindow.setBrowserView(instance);
-  instance.setAutoResize({ width: true, height: true, horizontal: true, vertical: true });
-  instance.setBounds({ x: 0, y: 36, width: mainWindow.getBounds().width, height: mainWindow.getBounds().height })
+  instance.setBounds({ x: 0, y: 36, width: mainWindow.getBounds().width, height: mainWindow.getBounds().height - 36 })
+  instance.setAutoResize({ width: true, height: true, horizontal: false, vertical: false });
   mainWindow.webContents.send('tabChange', getTabData());
 }
 
