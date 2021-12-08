@@ -51,3 +51,8 @@ declare function itemIsDocumentReference(item: any): item is firebase.firestore.
 declare function itemIsGeoPoint(item: any): item is firebase.firestore.GeoPoint
 
 declare function itemIsTimestamp(item: any): item is firebase.firestore.Timestamp
+
+declare class DocRef {
+    public path: string;
+    public constructor(path: string);
+}

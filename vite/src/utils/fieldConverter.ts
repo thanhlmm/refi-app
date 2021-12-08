@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { DocRef } from "firestore-serializers/src/DocRef";
+import { DocRef } from "firestore-serializers";
 import { getFireStoreType } from "./simplifr";
 import firebase from "firebase/app";
 import { isNumeric } from "@/utils/common";

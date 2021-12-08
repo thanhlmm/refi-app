@@ -1,6 +1,6 @@
 {
   "name": "refi-firestore-serializers",
-  "version": "0.1.4",
+  "version": "0.1.7",
   "description": "An automatic Javascript serialization/deserialization system for Firestore",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

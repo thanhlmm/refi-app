@@ -37,7 +37,7 @@
     "eslint-plugin-react": "^7.22.0",
     "export-from-json": "^1.3.4",
     "firebase": "^8.2.9",
-    "firestore-serializers": "npm:refi-firestore-serializers",
+    "firestore-serializers": "npm:refi-firestore-serializers@^0.1.7",
     "immer": "^9.0.1",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",

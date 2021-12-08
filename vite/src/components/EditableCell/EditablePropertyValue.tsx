@@ -11,7 +11,7 @@ import { convertFSValue } from "@/utils/fieldConverter";
 import { getFireStoreType } from "@/utils/simplifr";
 import { Tooltip } from "@zendeskgarden/react-tooltips";
 import classNames from "classnames";
-import { DocRef } from "firestore-serializers/src/DocRef";
+import { DocRef } from "firestore-serializers";
 import { isEqual, isUndefined } from "lodash";
 import React, {
   ReactElement,

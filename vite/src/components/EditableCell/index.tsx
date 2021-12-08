@@ -8,7 +8,7 @@ import { getFireStoreType } from "@/utils/simplifr";
 import { Checkbox, Field, Label } from "@zendeskgarden/react-forms";
 import { Tooltip } from "@zendeskgarden/react-tooltips";
 import classNames from "classnames";
-import { DocRef } from "firestore-serializers/src/DocRef";
+import { DocRef } from "firestore-serializers";
 import { isEqual, isUndefined } from "lodash";
 import { Textarea } from "@zendeskgarden/react-forms";
 import React, {
@@ -214,7 +214,8 @@ const EditableCell = ({
                   "focus:ring-1 p-1.5 pt-2 bg-transparent break-all outline-none focus:ring-blue-400 h-full w-full truncate underline text-blue-400 focus:z-50 focus:shadow-lg",
                   {
                     ["bg-blue-200"]: isFieldChanged,
-                    ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
+                    ["bg-yellow-200 transition-colors duration-300"]:
+                      isHighlight,
                   }
                 )}
                 isBare
