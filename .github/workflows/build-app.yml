@@ -8,8 +8,13 @@ on:
       - "server/**"
       - "vite/**"
       - "tree/**"
-      - "firestore-serializers/**"
       - ".github/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "server/**"
+      - "vite/**"
+      - "tree/**"
   release:
     types: [published]
 
