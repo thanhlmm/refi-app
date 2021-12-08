@@ -15,7 +15,6 @@
     "quick-build": "yarnn && todesktop build . --code-sign=false",
     "release": "yarn && todesktop build && todesktop release --latest --force",
     "copy-fe": "rm -rf build && cp -r ../vite/dist ./build",
-    "copy-lib": "rm -rf firestore-serializers && cp -r ../firestore-serializers/ ./firestore-serializers",
     "build-ts": "tsc --sourceMap false && node minify.js",
     "prepare": "yarn run build-ts",
     "lint": "eslint --ext .ts ."
