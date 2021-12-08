@@ -5,7 +5,12 @@
   "appPath": ".",
   "schemaVersion": 1,
   "uploadSizeLimit": 300,
-  "appFiles": ["**/*", "!out/**", "!node_modules/**", "!key/**", "../firestore-serializers"],
+  "appFiles": [
+    "**/*",
+    "!out/**",
+    "!node_modules/**",
+    "!key/**"
+  ],
   "mac": {
     "entitlements": "./entitlements.plist",
     "category": "public.app-category.developer-tools"
