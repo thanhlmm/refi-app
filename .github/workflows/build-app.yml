@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "server/**"
+      - "vite/**"
+      - "tree/**"
+      - "firestore-serializers/**"
 
 jobs:
   build:
@@ -22,19 +27,11 @@ jobs:
         run: cd vite && yarn
       - name: Build Vite
         run: cd vite && yarn run build
-      - name: Install electron package
-        run: cd server && yarn
-      - name: Package
-        run: cd server && yarn package-window && yarn package-linux
-      - name: Release Electron linux
-        run: cd server && yarn run make-linux
-      - name: Build Electron window
-        run: cd server && yarn run make-window
-      - uses: actions/upload-artifact@v1
+      - name: Install Server package
+        run: cd server && yarn && yarn global add @todesktop/cli
+      - name: Send to ToDesktop
+        working-directory: ./server
+        run: yarn run copy-fe && todesktop build && todesktop release --latest --force
         with:
-          name: build_file
-          path: vite/dist
-      - uses: actions/upload-artifact@v1
-        with:
-          name: electron_file
-          path: server/out
+          - TODESKTOP_ACCESS_TOKEN: ${{ secrets.TODESKTOP_ACCESS_TOKEN }}
+          - TODESKTOP_EMAIL: ${{ secrets.TODESKTOP_EMAIL }}
