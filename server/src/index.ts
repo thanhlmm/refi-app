@@ -7,6 +7,7 @@ if (isDev) {
 
 todesktop.init({
   customLogger: log,
+  autoUpdater: true
 });
 
 if (!isDev) {
@@ -50,17 +51,7 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 }
 
 if (!isDev) {
-  // const server = "https://refi-updater.vercel.app";
-  // const feed = `${server}/update/${process.platform}/${app.getVersion()}`
-
-  // autoUpdater.setFeedURL({ url: feed, serverType: "json" })
-
-  setInterval(() => {
-    todesktop.autoUpdater.checkForUpdates();
-    // autoUpdater.checkForUpdates()
-  }, 60000);
-
-  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+  todesktop.autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
     log.debug('Downloaded new update');
     const dialogOpts = {
       type: 'info',
