@@ -1,16 +1,12 @@
 name: Production testing & deployment
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    branches: [main]
     paths:
       - "server/**"
       - "vite/**"
       - "tree/**"
-      - ".github/**"
-  release:
-    types: [published]
 
 env:
   TODESKTOP_ACCESS_TOKEN: ${{ secrets.TODESKTOP_ACCESS_TOKEN }}
@@ -45,7 +41,7 @@ jobs:
         run: cd server && yarn && yarn global add @todesktop/cli
       - name: Send to ToDesktop
         working-directory: ./server
-        run: yarn run copy-fe && todesktop build
+        run: yarn run copy-fe && todesktop build --code-sign=false
       # - name: Release
       #   run: todesktop release --latest --force
       #   if: $GITHUB_REF_TYPE == 'tag'
