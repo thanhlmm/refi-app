@@ -1,15 +1,15 @@
 name: Production testing & deployment
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - "server/**"
-  #     - "vite/**"
-  #     - "tree/**"
-  #     - "firestore-serializers/**"
-  #     - ".github/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "server/**"
+      - "vite/**"
+      - "tree/**"
+      - "firestore-serializers/**"
+      - ".github/**"
   release:
     types: [published]
 
@@ -46,4 +46,7 @@ jobs:
         run: cd server && yarn && yarn global add @todesktop/cli
       - name: Send to ToDesktop
         working-directory: ./server
-        run: yarn run copy-fe && todesktop build && todesktop release --latest --force
+        run: yarn run copy-fe && todesktop build
+      - name: Release
+        run: todesktop release --latest --force
+        if: $GITHUB_REF_TYPE == 'tag'
