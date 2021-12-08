@@ -11,8 +11,8 @@ import firebase from "firebase/app";
 import {
   deserializeDocumentSnapshot,
   serializeDocumentSnapshot,
+  DocRef,
 } from "firestore-serializers";
-import { DocRef } from "firestore-serializers/src/DocRef";
 import { debounce } from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";

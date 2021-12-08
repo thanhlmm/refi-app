@@ -1,0 +1,52 @@
+name: Production testing & deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "server/**"
+      - "vite/**"
+      - "tree/**"
+      - "firestore-serializers/**"
+      - ".github/**"
+  release:
+    types: [published]
+
+env:
+  TODESKTOP_ACCESS_TOKEN: ${{ secrets.TODESKTOP_ACCESS_TOKEN }}
+  TODESKTOP_EMAIL: ${{ secrets.TODESKTOP_EMAIL }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: actions/cache@v2
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Build lib package
+        run: cd firestore-serializers && yarn build
+      - name: Install lib tree
+        run: cd tree && yarn
+      - name: Build lib tree
+        run: cd tree && yarn run compile
+      - name: Install Vite package
+        run: cd vite && yarn
+      - name: Build Vite
+        run: cd vite && yarn run build
+      - name: Install Server package
+        run: cd server && yarn && yarn global add @todesktop/cli
+      - name: Send to ToDesktop
+        working-directory: ./server
+        run: yarn run copy-fe && todesktop build
+      # - name: Release
+      #   run: todesktop release --latest --force
+      #   if: $GITHUB_REF_TYPE == 'tag'

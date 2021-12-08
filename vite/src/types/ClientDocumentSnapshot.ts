@@ -1,6 +1,10 @@
 import { IPrimitiveType } from "@/utils/simplifr";
-import { DocumentData, DocumentSnapshot, IDocRef } from "firestore-serializers";
-import { DocRef } from "firestore-serializers/src/DocRef";
+import {
+  DocumentData,
+  DocumentSnapshot,
+  IDocRef,
+  DocRef,
+} from "firestore-serializers";
 import { isUndefined, uniq } from "lodash";
 import * as immutable from "object-path-immutable";
 

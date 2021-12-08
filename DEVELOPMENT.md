@@ -14,6 +14,8 @@ Backend
 
 ## Setup development
 
+Make sure you are using Node v14 or Node v16
+
 ### Build firestore-serializers
 
 `firestore-serializers` is a tools to serialize data from and to Firestore
@@ -31,7 +33,7 @@ yarn build
 ```sh
 cd tree
 yarn
-yarn build
+yarn compile
 ```
 
 ### Install node module for client and server

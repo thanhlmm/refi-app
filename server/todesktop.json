@@ -1,0 +1,18 @@
+{
+  "id": "211201njqikvxkx",
+  "appId": "iOS.RefiApp.desktop",
+  "icon": "./assets/icon.png",
+  "appPath": ".",
+  "schemaVersion": 1,
+  "uploadSizeLimit": 300,
+  "appFiles": [
+    "**/*",
+    "!out/**",
+    "!node_modules/**",
+    "!key/**"
+  ],
+  "mac": {
+    "entitlements": "./entitlements.plist",
+    "category": "public.app-category.developer-tools"
+  }
+}

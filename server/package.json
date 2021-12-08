@@ -1,6 +1,7 @@
 {
   "name": "refi-app",
   "productName": "RefiApp",
+  "homepage": "https://refiapp.io",
   "authors": "mihthanh27@gmail.com",
   "version": "0.0.10",
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
@@ -9,24 +10,14 @@
     "clean": "rm -fr dist",
     "watch": "tsc -w",
     "dev": "run-p watch start",
-    "start": "electron-forge start",
-    "copy-client": "rm -rf build && cp -r ../vite/dist ./build",
-    "package": "electron-forge package --platform darwin",
-    "package-window": "electron-forge package --platform win32",
-    "package-linux": "electron-forge package --platform linux",
-    "package-all": "npm run package && npm run package-window && npm run package-linux",
-    "make-mac": "electron-forge make -v --platform darwin --skip-package",
-    "make-linux": "electron-forge make -v --platform linux --skip-package",
-    "make-window": "electron-forge make -v --platform win32 --skip-package",
-    "make-all": "npm run make-mac && npm run make-linux && npm run make-window",
-    "build": "tsc --sourceMap false && node minify.js",
-    "release": "npm run build && npm run copy-client && npm run package-all && npm run make-all",
-    "publish-mac": "electron-forge publish --platform darwin --arch x64",
-    "publish-mac-m1": "electron-forge publish --platform darwin",
-    "publish-window": "electron-forge publish --platform win32",
-    "publish-linux": "electron-forge publish --platform linux",
-    "prepare": "npm run copy-client && npm run build",
-    "publish-all": "npm run publish-mac && npm run publish-window && npm run publish-linux",
+    "start": "electron .",
+    "build": "yarn && todesktop build",
+    "quick-build": "yarnn && todesktop build . --code-sign=false",
+    "release": "yarn && todesktop build && todesktop release --latest --force",
+    "copy-fe": "rm -rf build && cp -r ../vite/dist ./build",
+    "copy-lib": "rm -rf firestore-serializers && cp -r ../firestore-serializers/ ./firestore-serializers",
+    "build-ts": "tsc --sourceMap false && node minify.js",
+    "prepare": "yarn run build-ts",
     "lint": "eslint --ext .ts ."
   },
   "keywords": [],
@@ -35,85 +26,13 @@
     "email": "mihthanh27@gmail.com"
   },
   "license": "MIT",
-  "config": {
-    "forge": {
-      "packagerConfig": {
-        "executableName": "refi-app",
-        "icon": "./assets/icon",
-        "appCategoryType": "public.app-category.developer-tools",
-        "appBundleId": "iOS.RefiApp.desktop",
-        "osxSign": {
-          "identity": "Developer ID Application: Cary Beam (ADZ55WQV6H)",
-          "hardened-runtime": true,
-          "entitlements": "entitlements.plist",
-          "entitlements-inherit": "entitlements.plist"
-        },
-        "osxNotarize": {
-          "appleId": "nlug27@icloud.com",
-          "appleIdPassword": "vstf-tcos-enfk-jruz",
-          "ascProvider": "4WDTWD675S"
-        },
-        "ignore": [
-          "^/src/",
-          "^/key"
-        ]
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-dmg",
-          "config": {
-            "icon": "./assets/icon.icns",
-            "overwrite": true
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip"
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ],
-      "publishers": [
-        {
-          "name": "@electron-forge/publisher-github",
-          "platforms": [
-            "darwin",
-            "linux",
-            "window"
-          ],
-          "config": {
-            "authToken": "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",
-            "repository": {
-              "owner": "thanhlmm",
-              "name": "refi-app"
-            },
-            "draft": true,
-            "prerelease": true
-          }
-        }
-      ]
-    }
-  },
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.54",
-    "@electron-forge/maker-deb": "^6.0.0-beta.54",
-    "@electron-forge/maker-dmg": "^6.0.0-beta.54",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.54",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
-    "@electron-forge/maker-zip": "^6.0.0-beta.54",
-    "@electron-forge/publisher-github": "^6.0.0-beta.54",
     "@types/electron-devtools-installer": "^2.2.0",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
-    "electron": "12",
+    "electron": "12.0.0",
     "electron-devtools-installer": "^3.1.1",
-    "electron-installer-debian": "^3.1.0",
     "electron-notarize": "^1.0.0",
     "electron-winstaller": "^5.0.0",
     "eslint": "^7.6.0",
@@ -124,6 +43,7 @@
     "typescript": "^4.0.2"
   },
   "dependencies": {
+    "@todesktop/runtime": "^0.6.5",
     "@types/lowdb": "^1.0.9",
     "axios": "^0.21.1",
     "electron-installer-dmg": "^3.0.0",
@@ -132,7 +52,7 @@
     "electron-serve": "^1.1.0",
     "electron-squirrel-startup": "^1.0.0",
     "firebase-admin": "^9.5.0",
-    "firestore-serializers": "file:../firestore-serializers",
+    "firestore-serializers": "npm:refi-firestore-serializers",
     "lodash": "^4.17.21",
     "lowdb": "^1.0.0",
     "node-ipc": "^9.1.3",
