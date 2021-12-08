@@ -47,6 +47,6 @@ jobs:
       - name: Send to ToDesktop
         working-directory: ./server
         run: yarn run copy-fe && todesktop build
-      - name: Release
-        run: todesktop release --latest --force
-        if: $GITHUB_REF_TYPE == 'tag'
+      # - name: Release
+      #   run: todesktop release --latest --force
+      #   if: $GITHUB_REF_TYPE == 'tag'
