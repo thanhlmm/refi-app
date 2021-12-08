@@ -40,6 +40,9 @@ jobs:
         with:
           node-version: "14"
           cache: "yarn"
+          cache-dependency-path: |
+            vite/yarn.lock
+            tree/yarn.lock
       - name: Install lib tree
         run: cd tree && yarn
       - name: Build lib tree
@@ -64,6 +67,7 @@ jobs:
         with:
           node-version: "14"
           cache: "yarn"
+          cache-dependency-path: "server/yarn.lock"
       - name: Download built Vite files
         uses: actions/download-artifact@v2
         with:
