@@ -61,7 +61,7 @@
     "react-use": "^17.1.1",
     "react-virtualized-auto-sizer": "^1.0.5",
     "react-window": "^1.8.6",
-    "recoil": "^0.2.0",
+    "recoil": "0.5.2",
     "recoil-custom-persist": "^2.6.1",
     "rxjs": "^6.6.6",
     "styled-components": "^5.2.1"
