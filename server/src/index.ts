@@ -310,6 +310,7 @@ ipcMain.handle('close-tab', async (event, tabName: string) => {
 ipcMain.handle('close-window', async (event, tabName: string) => {
   if (mainWindow) {
     mainWindow.close();
+    mainWindow = null;
   }
 });
 

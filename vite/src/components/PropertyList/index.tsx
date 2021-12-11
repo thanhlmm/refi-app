@@ -1,30 +1,28 @@
+import { globalHotKeys } from "@/atoms/hotkeys";
 import {
   navigatorCollectionPathAtom,
   propertyListAtom,
 } from "@/atoms/navigator";
+import {
+  actionAddProperty,
+  actionRemoveProperty,
+} from "@/atoms/navigator.action";
+import { reorder } from "@/utils/common";
+import { Button } from "@zendeskgarden/react-buttons";
+import classNames from "classnames";
 import React, { ReactElement, useEffect } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import {
   DragDropContext,
-  Droppable,
   Draggable,
   DraggableProvided,
   DraggableStateSnapshot,
+  Droppable,
   DropResult,
 } from "react-beautiful-dnd";
 import ReactDOM from "react-dom";
 import { Controller, useForm } from "react-hook-form";
+import { useRecoilState, useRecoilValue } from "recoil";
 import FieldFinderInput from "../FieldFinderInput";
-import {
-  actionAddProperty,
-  actionRemoveProperty,
-  actionSetProperty,
-} from "@/atoms/navigator.action";
-import { getSampleColumn, reorder } from "@/utils/common";
-import classNames from "classnames";
-import { Button } from "@zendeskgarden/react-buttons";
-import { getRecoilExternalLoadable } from "@/atoms/RecoilExternalStatePortal";
-import { collectionWithQueryAtom } from "@/atoms/firestore";
 
 interface IPropertyItemProps {
   provided: DraggableProvided;
@@ -143,11 +141,7 @@ const PropertyList = () => {
   }, []);
 
   const handleResetFieldList = async () => {
-    const data = await getRecoilExternalLoadable(
-      collectionWithQueryAtom(collectionPath)
-    ).toPromise();
-
-    actionSetProperty(collectionPath, getSampleColumn(data));
+    globalHotKeys.RESET_PROPERTY.handler(null);
   };
 
   return (
