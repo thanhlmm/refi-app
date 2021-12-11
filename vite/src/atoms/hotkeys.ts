@@ -1,4 +1,5 @@
-import { isCollection, mapHotKeys } from "@/utils/common";
+import { getSampleColumn, isCollection, mapHotKeys } from "@/utils/common";
+import { collectionWithQueryAtom } from "./firestore";
 import {
   actionCommitChange,
   actionDuplicateDoc,
@@ -11,6 +12,7 @@ import {
   actionExportViewCSV,
   actionExportViewJSON,
   actionQueryPage,
+  actionSetProperty,
   actionSubmitQuery,
 } from "./navigator.action";
 import {
@@ -120,6 +122,21 @@ export const globalHotKeys: IGlobalHotKeys = {
     sequences: mapHotKeys("command+shift+Enter"),
     handler: () => {
       actionSubmitQuery(false);
+    },
+  },
+  RESET_PROPERTY: {
+    name: "Reset property columns",
+    group: "action",
+    sequences: mapHotKeys(""),
+    handler: async () => {
+      const collectionPath = await getRecoilExternalLoadable(
+        navigatorCollectionPathAtom
+      ).toPromise();
+      const data = await getRecoilExternalLoadable(
+        collectionWithQueryAtom(collectionPath)
+      ).toPromise();
+
+      actionSetProperty(collectionPath, getSampleColumn(data));
     },
   },
   EXPORT_QUERY_JSON: {

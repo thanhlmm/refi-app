@@ -2,8 +2,8 @@ import {
   actionAddPathExpander,
   actionImportDocs,
 } from "@/atoms/firestore.action";
-import { navigatorCollectionPathAtom } from "@/atoms/navigator";
-import { actionPathExpand, actionSubmitQuery } from "@/atoms/navigator.action";
+import { globalHotKeys } from "@/atoms/hotkeys";
+import { actionSubmitQuery } from "@/atoms/navigator.action";
 import {
   importCollectionPathAtom,
   importFileAtom,
@@ -11,7 +11,6 @@ import {
 } from "@/atoms/ui";
 import { notifyErrorPromise } from "@/atoms/ui.action";
 import {
-  getParentPath,
   ignoreBackdropEvent,
   isCollection,
   readerFilePromise,
@@ -59,7 +58,6 @@ const ImportModal = () => {
   }, []);
 
   const isAutoId = watch("autoId");
-  const selectedIdField = watch("idField");
 
   const onDrop = (acceptedFiles: File[]) => {
     setFile(acceptedFiles[0]);
@@ -86,6 +84,7 @@ const ImportModal = () => {
         if (value.path === collectionPath) {
           // Auto query again if current view same as imported path
           actionSubmitQuery();
+          globalHotKeys.RESET_PROPERTY.handler(null);
         }
       })
       .catch(notifyErrorPromise);
