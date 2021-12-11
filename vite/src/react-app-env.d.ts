@@ -51,6 +51,7 @@ interface Window {
   notification: NotificationFuncType;
   api: {
     contextMenu: IContextMenu;
+    openUrl: (string) => void;
     webFrame: {
       setZoomFactor: (number) => void;
       getZoomFactor: () => number;
