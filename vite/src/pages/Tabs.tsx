@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Tabs, TabList, Tab, TabPanel } from "@zendeskgarden/react-tabs";
+import { Tabs, TabList, Tab } from "@zendeskgarden/react-tabs";
 import classNames from "classnames";
 // import BrowserView from "react-electron-browser-view";
 
