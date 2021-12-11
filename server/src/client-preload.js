@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron')
+const { ipcRenderer, shell } = require('electron')
 const ipc = require('node-ipc')
 const uuid = require('uuid')
 const ContextMenu = require("./lib/electron-context-menu").default;
@@ -33,6 +33,7 @@ window.os = os.type()
 
 window.api = {
   contextMenu: ContextMenu.preloadBindings(ipcRenderer),
+  openUrl: (url) => shell.openExternal(url),
   webFrame: {
     setZoomFactor: (factor) => {
       webFrame.setZoomFactor(factor)
