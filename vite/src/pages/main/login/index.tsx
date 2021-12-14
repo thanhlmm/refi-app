@@ -19,7 +19,6 @@ import {
   useRecoilValueLoadable,
   useSetRecoilState,
 } from "recoil";
-import { shell } from "electron";
 
 const LoginPage: React.FC = () => {
   const userCertsLoadable = useRecoilValueLoadable(certs);
