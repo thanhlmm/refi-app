@@ -28,7 +28,7 @@ const monacoOption = {
   minimap: {
     enabled: false,
   },
-  folding: false,
+  folding: true,
   tabSize: 2,
   formatOnPaste: true,
   autoIndent: "full",
