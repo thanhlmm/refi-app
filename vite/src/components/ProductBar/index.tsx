@@ -101,7 +101,7 @@ const ProductBar = (): ReactElement => {
             <Body className="p-2">
               {/* // TODO: Add user_id to the url */}
               <iframe
-                src="https://docs.refiapp.workers.dev/"
+                src="https://refi-changelog.super.site/"
                 className="w-full h-full"
               />
             </Body>
