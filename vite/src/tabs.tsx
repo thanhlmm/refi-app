@@ -1,7 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./styles/tailwind.css";
-import { RecoilRoot } from "recoil";
 import * as serviceWorker from "./serviceWorker";
 import { ThemeProvider } from "@zendeskgarden/react-theming";
 import { theme } from "./styles/theme";
@@ -10,10 +9,7 @@ import TabsPage from "./pages/Tabs";
 
 ReactDOM.render(
   <ThemeProvider theme={theme} focusVisibleRef={null}>
-    <RecoilRoot>
-      {/* <RecoilExternalStatePortal /> */}
-      <TabsPage />
-    </RecoilRoot>
+    <TabsPage />
   </ThemeProvider>,
   document.getElementById("root")
 );
