@@ -109,7 +109,7 @@ const NavBar = () => {
           content={
             <ShortcutKey
               size="small"
-              title="Revert changes"
+              title="Refresh - Revert uncommitted changes"
               hotkey={globalHotKeys.REVERT_CHANGES.sequences}
             />
           }

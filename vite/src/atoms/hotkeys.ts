@@ -69,7 +69,7 @@ export const globalHotKeys: IGlobalHotKeys = {
     },
   },
   REVERT_CHANGES: {
-    name: "Revert changes",
+    name: "Refresh - Revert uncommitted changes",
     group: "action",
     sequences: mapHotKeys("command+r"),
     handler: () => {
