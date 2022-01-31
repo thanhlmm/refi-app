@@ -32,6 +32,10 @@ const ProductBar = (): ReactElement => {
       .then(() => {
         // TODO: Show a love messages
         setShowFeedback(false);
+        window.notification(
+          "success",
+          "Thank you for your feedback. We will check it as soon as possible"
+        );
       })
       .catch((error) => {
         console.log(error);
@@ -113,7 +117,7 @@ const ProductBar = (): ReactElement => {
         <Modal
           focusOnMount
           isAnimated={false}
-          backdropProps={{ onClick: () => setShowFeedback(false) }}
+          // backdropProps={{ onClick: () => setShowFeedback(false) }}
         >
           <form onSubmit={handleSubmit(onSubmit)}>
             <Body className="p-4 space-y-2">
