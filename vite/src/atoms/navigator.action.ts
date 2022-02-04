@@ -156,7 +156,7 @@ export const actionExportCollectionJSON = async (collectionPath: string) => {
     .then(({ docs }: { docs: string }) => {
       const docsAsString = removeFirebaseSerializeMetaData(docs, ["__path__"]);
       exportFromJSON({
-        data: docsAsString,
+        data: JSON.parse(docsAsString),
         fileName: collectionPath.replaceAll("/", "_"),
         exportType: "json",
       });
@@ -174,7 +174,7 @@ export const actionExportCollectionCSV = async (collectionPath: string) => {
     .then(({ docs }: { docs: string }) => {
       const docsAsString = removeFirebaseSerializeMetaData(docs, ["__path__"]);
       exportFromJSON({
-        data: docsAsString,
+        data: JSON.parse(docsAsString),
         fileName: collectionPath.replaceAll("/", "_"),
         exportType: "csv",
       });
