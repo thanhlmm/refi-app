@@ -274,6 +274,7 @@ const ImportModal = () => {
             <Button
               size="small"
               disabled={!formState.isValid || docs.length <= 0}
+              onClick={handleSubmit(onSubmit)}
               isPrimary
               type="submit"
             >
