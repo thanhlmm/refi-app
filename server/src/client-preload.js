@@ -42,7 +42,10 @@ window.api = {
   },
   newTab: () => {
     ipcRenderer.invoke('new-tab', window.location.href);
-  }
+  },
+  renameTab: (name) => {
+    return ipcRenderer.invoke('rename-tab', name);
+  },
 }
 
 console.log('Done preload client');

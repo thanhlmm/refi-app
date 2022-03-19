@@ -64,6 +64,7 @@ interface Window {
     closeWindow: () => void;
     minimumWindow: () => void;
     toggleMaximumWindow: () => void;
+    renameTab: (name: string) => void;
   };
   projectId: string;
   os: "Darwin" | string;
