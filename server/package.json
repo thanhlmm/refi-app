@@ -3,7 +3,7 @@
   "productName": "RefiApp",
   "homepage": "https://refiapp.io",
   "authors": "mihthanh27@gmail.com",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
   "main": "dist/index.js",
   "scripts": {
