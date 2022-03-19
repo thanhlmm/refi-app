@@ -73,6 +73,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
       .then((response: string[]) => {
         console.log("Inited fs");
         actionAddPathExpander(response);
+        window.api.renameTab(projectId);
       })
       .catch((error) => {
         history.replace({

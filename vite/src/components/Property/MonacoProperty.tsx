@@ -112,10 +112,18 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
 
   const commitChange = debounce((docStr?: string) => {
     if (!docStr) {
-      console.log("Can not parse data from JSON");
+      setError("Can not parse data from JSON");
       return;
     }
 
+    try {
+      JSON.parse(docStr);
+    } catch (error) {
+      setError("Can not parse data from JSON");
+      return;
+    }
+
+    setError("");
     try {
       const newDoc = deserializeData(doc, docStr);
       const changes = diff(doc.data(), newDoc.data()) || [];

@@ -29,6 +29,9 @@ window.api = {
   setTab: (tab) => {
     return ipcRenderer.invoke('set-tab', tab);
   },
+  renameTab: (name) => {
+    return ipcRenderer.invoke('rename-tab', name);
+  },
   closeTab: (tab) => {
     return ipcRenderer.invoke('close-tab', tab);
   },

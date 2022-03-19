@@ -185,6 +185,7 @@ const createWindow = async (href?: string) => {
   return window;
 };
 
+// Set active tab
 const setTab = (instance: BrowserView) => {
   ContextMenu.clearMainBindings(ipcMain);
   ContextMenu.mainBindings(ipcMain, instance, Menu, isDev, contextConfig);
@@ -264,6 +265,15 @@ ipcMain.handle('new-tab', async (event, href: string) => {
 
 ipcMain.handle('get-tabs', async (event, href: string) => {
   return getTabData();
+});
+
+ipcMain.handle('rename-tab', async (event, newName: string) => {
+  // return getTabData();
+  const activeTab = listWindow.find((instance) => instance.window.webContents.id === mainWindow.getBrowserView()?.webContents?.id)
+  if (activeTab) {
+    activeTab.name = newName;
+    mainWindow.webContents.send('tabChange', getTabData());
+  }
 });
 
 ipcMain.handle('set-tab', async (event, tabName: string) => {
