@@ -107,8 +107,8 @@ const createMainWindow = async () => {
     listWindow.forEach(instance => {
       instance.serverProcess.kill();
       (instance.window.webContents as any)?.destroy() // TODO: electron haven't make document for it. Ref: https://github.com/electron/electron/issues/26929
-      listWindow = [];
     });
+    listWindow = [];
   })
 
   if (isDev) {
