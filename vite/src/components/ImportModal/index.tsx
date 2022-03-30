@@ -178,7 +178,7 @@ const ImportModal = () => {
       isAnimated={false}
       isLarge
       focusOnMount
-      backdropProps={{ onClick: ignoreBackdropEvent }}
+      // backdropProps={{ onClick: ignoreBackdropEvent }}
       appendToNode={document.querySelector("#root") || undefined}
       className="w-3/5"
     >

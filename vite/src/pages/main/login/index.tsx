@@ -165,7 +165,7 @@ const LoginPage: React.FC = () => {
         isAnimated={false}
         isLarge
         focusOnMount
-        backdropProps={{ onClick: ignoreBackdropEvent }}
+        // backdropProps={{ onClick: ignoreBackdropEvent }}
         appendToNode={document.querySelector("#root") || undefined}
       >
         <Header>Choose your project</Header>
