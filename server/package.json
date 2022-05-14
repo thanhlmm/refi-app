@@ -3,7 +3,7 @@
   "productName": "RefiApp",
   "homepage": "https://refiapp.io",
   "authors": "mihthanh27@gmail.com",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
   "main": "dist/index.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "dev": "run-p watch start",
     "start": "electron .",
     "build": "yarn && todesktop build",
-    "quick-build": "yarnn && todesktop build . --code-sign=false",
+    "quick-build": "yarn && todesktop build . --code-sign=false",
     "release": "yarn && todesktop build && todesktop release --latest --force",
     "copy-fe": "rm -rf build && cp -r ../vite/dist ./build",
     "build-ts": "tsc --sourceMap false && node minify.js",
