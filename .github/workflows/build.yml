@@ -70,7 +70,6 @@ jobs:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       volumes:
         - .:/project
-      options:
     steps:
       - name: Build app
         run: cd server && yarn && yarn ./node_modules/.bin/electron-builder -wl
