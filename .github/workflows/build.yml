@@ -5,7 +5,35 @@ env:
   GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
+  build-vite:
+    # needs: build-packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+          cache: "yarn"
+          cache-dependency-path: |
+            vite/yarn.lock
+            tree/yarn.lock
+      - name: Install lib tree
+        run: cd tree && yarn
+      - name: Build lib tree
+        run: cd tree && yarn run compile
+      - name: Install Vite package
+        run: cd vite && yarn
+      - name: Build Vite
+        run: cd vite && yarn run build
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v2
+        with:
+          name: vite
+          path: vite/dist
+          retention-days: 1
+
   release:
+    needs: build-vite
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -17,16 +45,13 @@ jobs:
       - uses: actions/setup-node@master
         with:
           node-version: 14
-      - name: Install lib tree
-        run: cd tree && yarn
-      - name: Build lib tree
-        run: cd tree && yarn run compile
-      - name: Install Vite package
-        run: cd vite && yarn
-      - name: Build Vite
-        run: cd vite && yarn run build
       - name: Install Server package
         run: cd server && yarn
+      - name: Download built Vite files
+        uses: actions/download-artifact@v2
+        with:
+          name: vite
+          path: server/build
       - name: Build app
         run: cd server && yarn release
       - name: "Upload Artifact"
