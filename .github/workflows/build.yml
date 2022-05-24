@@ -68,7 +68,7 @@ jobs:
       image: electronuserland/builder:wine
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      options: -v "${{ GITHUB_WORKSPACE }}":"/project"
+      options: -v ${ GITHUB_WORKSPACE }:/project
       # volumes:
       #   - ${GITHUB_WORKSPACE}:/project
     steps:
