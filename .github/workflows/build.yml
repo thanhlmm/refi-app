@@ -35,6 +35,11 @@ jobs:
   release-macos:
     needs: build-vite
     runs-on: macos-latest
+    env:
+      CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+      CSC_LINK: ${{ secrets.CSC_LINK }}
+      APPLEID: ${{ secrets.APPLEID }}
+      APPLEIDPASS: ${{ secrets.APPLEIDPASS }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@master
@@ -49,12 +54,12 @@ jobs:
           path: server/build
       - name: Build app
         run: cd server && yarn release
-      - name: "Upload Artifact"
-        uses: actions/upload-artifact@v2
-        with:
-          name: Upload build file
-          path: server/dist
-          retention-days: 1
+      # - name: "Upload Artifact"
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: Upload build file
+      #     path: server/dist
+      #     retention-days: 1
 
   release-linux-window:
     needs: build-vite
@@ -62,11 +67,11 @@ jobs:
     container: electronuserland/builder:wine
     steps:
       - run: |
-          --env-file <(env | grep -iE 'DEBUG|NODE_|ELECTRON_|YARN_|NPM_|CI|CIRCLE|TRAVIS_TAG|TRAVIS|TRAVIS_REPO_|TRAVIS_BUILD_|TRAVIS_BRANCH|TRAVIS_PULL_REQUEST_|APPVEYOR_|CSC_|GH_|GITHUB_|BT_|AWS_|STRIP|BUILD_') \
+          --env GH_TOKEN="${GH_TOKEN}"
           --env ELECTRON_CACHE="/root/.cache/electron" \
           --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" \
           -v ${PWD}:/project \
           -v ${PWD##*/}-node-modules:/project/node_modules \
           -v ~/.cache/electron:/root/.cache/electron \
           -v ~/.cache/electron-builder:/root/.cache/electron-builder \
-          cd server && yarn release
+          cd server && yarn && ./node_modules/.bin/electron-builder -wl
