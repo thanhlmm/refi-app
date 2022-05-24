@@ -91,9 +91,8 @@
       "icon": "./assets/icon.ico"
     },
     "linux": {
-      "target": {
-        "target": "deb"
-      },
+      "target": "deb",
+      "icon": "./assets/icon.png"
     },
     "files": [
       "**/*",
