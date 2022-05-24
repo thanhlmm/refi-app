@@ -5,19 +5,33 @@
   "authors": "mihthanh27@gmail.com",
   "version": "0.0.16",
   "description": "A tool to make developer less pain when developing application with Firestore indeed they will save move time to focus on building application instead of playing with poor DX product",
-  "main": "dist/index.js",
+  "main": "server/index.js",
+  "repository": "github:thanhlmm/refi-app",
   "scripts": {
     "clean": "rm -fr dist",
     "watch": "tsc -w",
     "dev": "run-p watch start",
-    "start": "electron .",
+    "start": "electron-forge start",
     "build": "yarn && todesktop build",
     "quick-build": "yarn && todesktop build . --code-sign=false",
-    "release": "yarn && todesktop build && todesktop release --latest --force",
+    "release-todesktop": "yarn && todesktop build && todesktop release --latest --force",
     "copy-fe": "rm -rf build && cp -r ../vite/dist ./build",
-    "build-ts": "tsc --sourceMap false && node minify.js",
+    "build-ts": "tsc --sourceMap false",
     "prepare": "yarn run build-ts",
-    "lint": "eslint --ext .ts ."
+    "lint": "eslint --ext .ts .",
+    "package": "electron-forge package",
+    "make-mac": "electron-forge make -v --platform darwin  --arch x64",
+    "make-mac-m1": "electron-forge make -v --platform darwin",
+    "make-linux": "electron-forge make -v --platform linux",
+    "make-window": "electron-forge make -v --platform win32",
+    "make-all": "npm run make-mac && npm run make-mac-m1 && npm run make-linux && npm run make-window",
+    "publish-mac": "electron-forge publish --platform darwin --arch x64",
+    "publish-mac-m1": "electron-forge publish --platform darwin",
+    "publish-window": "electron-forge publish --platform win32",
+    "publish-linux": "electron-forge publish --platform linux",
+    "publish-all": "npm run publish-mac-m1 && npm run publish-mac && npm run publish-window && npm run publish-linux",
+    "release-local": "npm run build-ts && npm run copy-fe && npm run make-all && yarn run publish-all",
+    "release": "electron-builder"
   },
   "keywords": [],
   "author": {
@@ -26,14 +40,20 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.63",
+    "@electron-forge/maker-deb": "^6.0.0-beta.63",
+    "@electron-forge/maker-dmg": "^6.0.0-beta.63",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.63",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
+    "@electron-forge/maker-zip": "^6.0.0-beta.63",
     "@types/electron-devtools-installer": "^2.2.0",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
     "@typescript-eslint/parser": "^2.18.0",
     "electron": "12.0.0",
+    "electron-builder": "^23.0.3",
     "electron-devtools-installer": "^3.1.1",
     "electron-notarize": "^1.0.0",
-    "electron-winstaller": "^5.0.0",
     "eslint": "^7.6.0",
     "eslint-plugin-import": "^2.20.0",
     "npm-run-all": "^4.1.5",
@@ -45,7 +65,7 @@
     "@todesktop/runtime": "^0.6.5",
     "@types/lowdb": "^1.0.9",
     "axios": "^0.21.1",
-    "electron-installer-dmg": "^3.0.0",
+    "electron-installer-debian": "^3.1.0",
     "electron-is-dev": "^1.2.0",
     "electron-log": "^4.3.2",
     "electron-serve": "^1.1.0",
@@ -58,5 +78,97 @@
     "open": "^8.0.1",
     "secure-electron-context-menu": "^1.2.2",
     "uuid": "^8.3.2"
+  },
+  "build": {
+    "appId": "iOS.RefiApp.desktop",
+    "productName": "Refi App",
+    "asar": false,
+    "mac": {
+      "icon": "./assets/icon.icns",
+      "entitlements": "entitlements.plist"
+    },
+    "win": {
+      "icon": "./assets/icon.ico"
+    },
+    "files": [
+      "**/*",
+      "server/**/*",
+      "build/**/*",
+      "!out/**",
+      "!key/**"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "thanhlmm",
+        "private": false,
+        "releaseType": "draft"
+      }
+    ]
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "executableName": "refi-app",
+        "icon": "./assets/icon",
+        "appCategoryType": "public.app-category.developer-tools",
+        "appBundleId": "iOS.RefiApp.desktop",
+        "osxSign": {
+          "identity": "Developer ID Application: Le Thanh (QSRG8L64DM)",
+          "hardened-runtime": true,
+          "entitlements": "entitlements.plist",
+          "entitlements-inherit": "entitlements.plist"
+        },
+        "osxNotarize": {
+          "appleId": "nlug27@icloud.com",
+          "appleIdPassword": "vstf-tcos-enfk-jruz"
+        },
+        "ignore": [
+          "^/src/",
+          "^/key"
+        ]
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-dmg",
+          "config": {
+            "icon": "./assets/icon.icns",
+            "overwrite": true
+          }
+        },
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "refi_app"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-squirrel"
+        }
+      ],
+      "publishers": [
+        {
+          "name": "@electron-forge/publisher-github",
+          "platforms": [
+            "darwin",
+            "linux",
+            "window"
+          ],
+          "config": {
+            "authToken": "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",
+            "repository": {
+              "owner": "thanhlmm",
+              "name": "refi-app"
+            },
+            "draft": true,
+            "prerelease": true
+          }
+        }
+      ]
+    }
   }
 }

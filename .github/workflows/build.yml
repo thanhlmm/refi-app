@@ -1,0 +1,34 @@
+name: Build
+on: [push, pull_request]
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@master
+        with:
+          node-version: 14
+      - name: Install lib tree
+        run: cd tree && yarn
+      - name: Build lib tree
+        run: cd tree && yarn run compile
+      - name: Install Vite package
+        run: cd vite && yarn
+      - name: Build Vite
+        run: cd vite && yarn run build
+      - name: Install Server package
+        run: cd server && yarn
+      - name: Build app
+        run: cd server && yarn release
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v2
+        with:
+          name: Upload build file
+          path: server/dist
+          retention-days: 1

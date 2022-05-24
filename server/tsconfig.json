@@ -6,7 +6,7 @@
     "inlineSourceMap": true,
     "inlineSources": true,
     "baseUrl": ".",
-    "outDir": "dist",
+    "outDir": "server",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
