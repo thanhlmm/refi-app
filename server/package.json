@@ -90,8 +90,10 @@
     "win": {
       "icon": "./assets/icon.ico"
     },
-    "target": {
-      "target": "deb"
+    "linux": {
+      "target": {
+        "target": "deb"
+      },
     },
     "files": [
       "**/*",
