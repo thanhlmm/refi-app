@@ -90,6 +90,9 @@
     "win": {
       "icon": "./assets/icon.ico"
     },
+    "target": {
+      "target": "deb"
+    },
     "files": [
       "**/*",
       "server/**/*",
