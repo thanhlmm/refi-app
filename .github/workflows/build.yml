@@ -64,14 +64,13 @@ jobs:
   release-linux-window:
     needs: build-vite
     runs-on: ubuntu-18.04
-    container: electronuserland/builder:wine
+    container:
+      image: electronuserland/builder:wine
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      volumes:
+        - .:/project
+      options:
     steps:
-      - run: |
-          --env GH_TOKEN="${GH_TOKEN}"
-          --env ELECTRON_CACHE="/root/.cache/electron" \
-          --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" \
-          -v ${PWD}:/project \
-          -v ${PWD##*/}-node-modules:/project/node_modules \
-          -v ~/.cache/electron:/root/.cache/electron \
-          -v ~/.cache/electron-builder:/root/.cache/electron-builder \
-          cd server && yarn && ./node_modules/.bin/electron-builder -wl
+      - name: Build app
+        run: cd server && yarn && yarn ./node_modules/.bin/electron-builder -wl
