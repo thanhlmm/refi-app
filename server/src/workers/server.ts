@@ -19,8 +19,8 @@ if (process.argv[2] === "--subprocess") {
   let socketName = process.argv[4];
   ipc.init(socketName, serverHandlers);
 } else {
-  let { ipcRenderer, remote } = require("electron");
-  version = remote.app.getVersion();
+  let { ipcRenderer } = require("electron");
+  // version = remote.app.getVersion();
 
   ipcRenderer.on("set-socket", (event: any, { name }: { name: string }) => {
     ipc.init(name, serverHandlers);

@@ -1,14 +1,15 @@
 import isDev from "electron-is-dev";
 import log from 'electron-log';
-import todesktop from "@todesktop/runtime";
+import { autoUpdater } from "electron-updater"
+// import todesktop from "@todesktop/runtime";
 if (isDev) {
   require('source-map-support').install();
 }
 
-todesktop.init({
-  customLogger: log,
-  autoUpdater: true
-});
+// todesktop.init({
+//   customLogger: log,
+//   autoUpdater: true
+// });
 
 if (!isDev) {
   log.transports.file.level = "verbose";
@@ -16,7 +17,7 @@ if (!isDev) {
 
 process.on('unhandledRejection', log.error);
 
-import { app, BrowserWindow, ipcMain, Menu, autoUpdater, dialog, BrowserView, globalShortcut, MenuItem } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, BrowserView, globalShortcut, MenuItem } from 'electron';
 import { fork, ChildProcess } from "child_process";
 import * as path from 'path';
 import fs from 'fs';
@@ -51,7 +52,16 @@ if (require('electron-squirrel-startup')) { // eslint-disable-line global-requir
 }
 
 if (!isDev) {
-  todesktop.autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+  const server = "https://refi-updater.vercel.app";
+  const feed = `${server}/update/${process.platform}/${app.getVersion()}`
+
+  // autoUpdater.setFeedURL({ url: feed, serverType: "json" })
+
+  setInterval(() => {
+    autoUpdater.checkForUpdates()
+  }, 60000);
+
+  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
     log.debug('Downloaded new update');
     const dialogOpts = {
       type: 'info',
@@ -62,7 +72,7 @@ if (!isDev) {
     }
 
     dialog.showMessageBox(dialogOpts).then((returnValue) => {
-      if (returnValue.response === 0) todesktop.autoUpdater.restartAndInstall();
+      if (returnValue.response === 0) autoUpdater.quitAndInstall()
     })
   })
 
@@ -86,7 +96,7 @@ const createMainWindow = async () => {
     frame: isMacOS,
     webPreferences: {
       devTools: isDev,
-      enableRemoteModule: false,
+      // enableRemoteModule: false,
       contextIsolation: false,
       nodeIntegration: false,
       preload: __dirname + "/tab-preload.js",
@@ -130,7 +140,7 @@ const createWindow = async (href?: string) => {
   const window = new BrowserView({
     webPreferences: {
       devTools: isDev,
-      enableRemoteModule: false,
+      // enableRemoteModule: false,
       contextIsolation: false,
       nodeIntegration: false,
       preload: __dirname + "/client-preload.js",
