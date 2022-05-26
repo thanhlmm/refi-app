@@ -71,8 +71,8 @@ jobs:
         ELECTRON_CACHE: /root/.cache/electron
         ELECTRON_BUILDER_CACHE: /root/.cache/electron-builder
       volumes:
-        - ~/.cache/electron:/root/.cache/electron
-        - ~/.cache/electron-builder:/root/.cache/electron-builder
+        - /home/runner/.cache/electron:/root/.cache/electron
+        - /home/runner/.cache/electron-builder:/root/.cache/electron-builder
     steps:
       - uses: actions/checkout@v2
       - name: Install Server package
