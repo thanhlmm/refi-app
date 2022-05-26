@@ -60,21 +60,27 @@ jobs:
       #     name: Upload build file
       #     path: server/dist
       #     retention-days: 1
-
   release-linux-window:
     needs: build-vite
     runs-on: ubuntu-18.04
-    container:
-      image: electronuserland/builder:wine
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        ELECTRON_CACHE: /root/.cache/electron
-        ELECTRON_BUILDER_CACHE: /root/.cache/electron-builder
-      volumes:
-        - /home/runner/.cache/electron:/root/.cache/electron
-        - /home/runner/.cache/electron-builder:/root/.cache/electron-builder
+    # container:
+    #   image: electronuserland/builder:wine
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #     ELECTRON_CACHE: /root/.cache/electron
+    #     ELECTRON_BUILDER_CACHE: /root/.cache/electron-builder
+    #   volumes:
+    #     - /home/runner/.cache/electron:/root/.cache/electron
+    #     - /home/runner/.cache/electron-builder:/root/.cache/electron-builder
     steps:
       - uses: actions/checkout@v2
+      - name: Install wine
+        run: |
+          sudo dpkg --add-architecture i386
+          wget -qO - https://dl.winehq.org/wine-builds/winehq.key | sudo apt-key add -
+          sudo add-apt-repository ppa:cybermax-dexter/sdl2-backport
+          sudo apt-add-repository "deb https://dl.winehq.org/wine-builds/ubuntu $(lsb_release -cs) main"
+          sudo apt install --install-recommends winehq-stable
       - name: Install Server package
         run: cd server && yarn
       - name: Download built Vite files
@@ -84,3 +90,27 @@ jobs:
           path: server/build
       - name: Build app
         run: cd server && yarn release-wl
+
+  # release-linux-window:
+  #   needs: build-vite
+  #   runs-on: ubuntu-18.04
+  #   container:
+  #     image: electronuserland/builder:wine
+  #     env:
+  #       GH_TOKEN: ${{ secrets.GH_TOKEN }}
+  #       ELECTRON_CACHE: /root/.cache/electron
+  #       ELECTRON_BUILDER_CACHE: /root/.cache/electron-builder
+  #     volumes:
+  #       - /home/runner/.cache/electron:/root/.cache/electron
+  #       - /home/runner/.cache/electron-builder:/root/.cache/electron-builder
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Install Server package
+  #       run: cd server && yarn
+  #     - name: Download built Vite files
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: vite
+  #         path: server/build
+  #     - name: Build app
+  #       run: cd server && yarn release-wl
