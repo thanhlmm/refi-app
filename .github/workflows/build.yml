@@ -68,6 +68,11 @@ jobs:
       image: electronuserland/builder:wine
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        ELECTRON_CACHE: /root/.cache/electron
+        ELECTRON_BUILDER_CACHE: /root/.cache/electron-builder
+      volumes:
+        - ~/.cache/electron:/root/.cache/electron
+        - ~/.cache/electron-builder:/root/.cache/electron-builder
     steps:
       - uses: actions/checkout@v2
       - name: Install Server package
