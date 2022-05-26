@@ -31,7 +31,8 @@
     "publish-linux": "electron-forge publish --platform linux",
     "publish-all": "npm run publish-mac-m1 && npm run publish-mac && npm run publish-window && npm run publish-linux",
     "release-local": "npm run build-ts && npm run copy-fe && npm run make-all && yarn run publish-all",
-    "release": "electron-builder"
+    "release": "electron-builder",
+    "release-wl": "electron-builder -wl"
   },
   "keywords": [],
   "author": {
