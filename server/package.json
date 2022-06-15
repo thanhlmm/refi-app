@@ -20,17 +20,6 @@
     "prepare": "yarn run build-ts",
     "lint": "eslint --ext .ts .",
     "package": "electron-forge package",
-    "make-mac": "electron-forge make -v --platform darwin  --arch x64",
-    "make-mac-m1": "electron-forge make -v --platform darwin",
-    "make-linux": "electron-forge make -v --platform linux",
-    "make-window": "electron-forge make -v --platform win32",
-    "make-all": "npm run make-mac && npm run make-mac-m1 && npm run make-linux && npm run make-window",
-    "publish-mac": "electron-forge publish --platform darwin --arch x64",
-    "publish-mac-m1": "electron-forge publish --platform darwin",
-    "publish-window": "electron-forge publish --platform win32",
-    "publish-linux": "electron-forge publish --platform linux",
-    "publish-all": "npm run publish-mac-m1 && npm run publish-mac && npm run publish-window && npm run publish-linux",
-    "release-local": "npm run build-ts && npm run copy-fe && npm run make-all && yarn run publish-all",
     "release": "electron-builder",
     "release-wl": "electron-builder -wl"
   },
@@ -41,12 +30,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.63",
-    "@electron-forge/maker-deb": "^6.0.0-beta.63",
-    "@electron-forge/maker-dmg": "^6.0.0-beta.63",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.63",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
-    "@electron-forge/maker-zip": "^6.0.0-beta.63",
     "@types/electron-devtools-installer": "^2.2.0",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^2.18.0",
@@ -111,70 +94,5 @@
         "releaseType": "draft"
       }
     ]
-  },
-  "config": {
-    "forge": {
-      "packagerConfig": {
-        "executableName": "refi-app",
-        "icon": "./assets/icon",
-        "appCategoryType": "public.app-category.developer-tools",
-        "appBundleId": "iOS.RefiApp.desktop",
-        "osxSign": {
-          "identity": "Developer ID Application: Le Thanh (QSRG8L64DM)",
-          "hardened-runtime": true,
-          "entitlements": "entitlements.plist",
-          "entitlements-inherit": "entitlements.plist"
-        },
-        "osxNotarize": {
-          "appleId": "nlug27@icloud.com",
-          "appleIdPassword": "vstf-tcos-enfk-jruz"
-        },
-        "ignore": [
-          "^/src/",
-          "^/key"
-        ]
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-dmg",
-          "config": {
-            "icon": "./assets/icon.icns",
-            "overwrite": true
-          }
-        },
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "refi_app"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-squirrel"
-        }
-      ],
-      "publishers": [
-        {
-          "name": "@electron-forge/publisher-github",
-          "platforms": [
-            "darwin",
-            "linux",
-            "window"
-          ],
-          "config": {
-            "authToken": "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",
-            "repository": {
-              "owner": "thanhlmm",
-              "name": "refi-app"
-            },
-            "draft": true,
-            "prerelease": true
-          }
-        }
-      ]
-    }
   }
 }
