@@ -67,6 +67,7 @@
     "appId": "iOS.RefiApp.desktop",
     "productName": "Refi App",
     "asar": false,
+    "afterSign": "notarize.js",
     "mac": {
       "icon": "./assets/icon.icns",
       "entitlements": "entitlements.plist",
