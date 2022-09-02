@@ -4,6 +4,11 @@ It's a tool to give developers lesser pain when developing applications with Fir
 
 You can **query, insert, monitor and migration** with our **new Awesome client** that solves it all.
 
+---
+
+⭐️ **Don't forget to star this repo if this tool help your workflow**
+
+
 ## Features
 
 ### 📜 Table view - Easily view & edit large amounts of data like in Excel
