@@ -16,6 +16,7 @@ import {
 import { debounce } from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useTheme } from "styled-components";
 import "./monaco.css";
 
 interface IMonacoPropertyProps {
@@ -66,6 +67,8 @@ const deserializeData = (
 };
 
 const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
+  const theme = useTheme();
+  console.log({ theme });
   const [defaultValue, setDefaultValue] = useState<string | undefined>(
     serializeData(doc)
   );
@@ -146,8 +149,12 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
         defaultLanguage="json"
         value={defaultValue}
         height="100%"
-        theme="monacoProperty-light"
-        wrapperClassName="border border-gray-300 pt-2 pb-2"
+        theme={
+          theme.name === "light"
+            ? "monacoProperty-light"
+            : "monacoProperty-dark"
+        }
+        wrapperClassName="border border-gray-300 dark:border-gray-700 pt-2 pb-2"
         onChange={setDefaultValue}
         onValidate={handleEditorValidation}
         options={monacoOption as any}
@@ -163,7 +170,7 @@ export const MonacoPropertyError = ({ path }: { path: string }) => {
 
   return (
     <div
-      className="p-1 text-xs text-red-700 truncate border-b border-l border-r border-gray-300"
+      className="p-1 text-xs text-red-700 truncate border-b border-l border-r border-gray-300 dark:border-gray-700"
       style={{ minHeight: "1.5rem" }}
     >
       {error}

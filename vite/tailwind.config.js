@@ -1,5 +1,6 @@
 module.exports = {
   important: "#root-body",
+  darkMode: "class",
   theme: {
     extend: {
       fontSize: {

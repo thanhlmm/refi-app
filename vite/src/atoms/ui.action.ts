@@ -1,4 +1,6 @@
 import { uniqueId } from "lodash";
+import { atom } from "recoil";
+import { userPersistAtom } from "./persistAtom";
 import { setRecoilExternalState } from "./RecoilExternalStatePortal";
 import {
   importCollectionPathAtom,
@@ -48,3 +50,9 @@ window.notification = actionSendNotification;
 export const notifyErrorPromise = (error: Error) => {
   actionSendNotification("error", error.message);
 };
+
+export const appThemeAtom = atom({
+  key: "ui/appTheme",
+  default: true,
+  effects_UNSTABLE: [userPersistAtom],
+});

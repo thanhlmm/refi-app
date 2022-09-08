@@ -120,10 +120,10 @@ const Property = () => {
         <InputGroup isCompact>
           <div
             className={classNames(
-              "w-8 p-1 text-center text-gray-700 border font-bold",
+              "w-8 p-1 text-center text-gray-700 border font-bold dark:text-gray-200",
               {
-                ["border-gray-200"]: !doc.isNew,
-                ["border-gray-300"]: doc.isNew,
+                ["border-gray-200 dark:border-gray-700"]: !doc.isNew,
+                ["border-gray-300 dark:border-gray-500"]: doc.isNew,
               }
             )}
           >
@@ -132,7 +132,7 @@ const Property = () => {
           <Input
             ref={idInputRef}
             isCompact
-            className="pr-6 font-mono disabled:text-gray-700 disabled:border-gray-200"
+            className="pr-6 font-mono disabled:text-gray-700 disabled:border-gray-200 dark:border-gray-700 dark:text-white"
             placeholder="Document id"
             defaultValue={doc.id}
             disabled={!doc.isNew}
@@ -166,7 +166,7 @@ const Property = () => {
             appendToNode={document.body}
             zIndex={40}
             content={
-              <span>
+              <span className="dark:text-gray-200">
                 Type <code className="text-red-700 bg-gray-100 p-0.5">/</code>{" "}
                 to start insert new type
               </span>

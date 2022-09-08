@@ -179,7 +179,7 @@ export const EditablePropertyValue = ({
           type="light"
           className="max-w-2xl"
           content={
-            <span>
+            <span className="dark:text-gray-200">
               <a
                 className="text-blue-400"
                 onClick={() => handleClickFollowLink(null, refValue.path)}

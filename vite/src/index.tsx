@@ -5,22 +5,28 @@ import App from "./App";
 import { RecoilRoot } from "recoil";
 import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter } from "react-router-dom";
-import { ThemeProvider } from "@zendeskgarden/react-theming";
-import { theme } from "./styles/theme";
+import AppTheme, { setTheme } from "./styles/theme";
 import { RecoilExternalStatePortal } from "./atoms/RecoilExternalStatePortal";
 import Notifier from "./components/Notifier";
 import "./config";
 import "./firebase";
 
+try {
+  const userSettings = JSON.parse(localStorage.getItem("user-settings"));
+  setTheme(userSettings["ui/appTheme"]);
+} catch (error) {
+  console.log(error);
+}
+
 ReactDOM.render(
   <BrowserRouter>
-    <ThemeProvider theme={theme} focusVisibleRef={null}>
-      <RecoilRoot>
+    <RecoilRoot>
+      <AppTheme>
         <RecoilExternalStatePortal />
         <Notifier />
         <App />
-      </RecoilRoot>
-    </ThemeProvider>
+      </AppTheme>
+    </RecoilRoot>
   </BrowserRouter>,
   document.getElementById("root")
 );

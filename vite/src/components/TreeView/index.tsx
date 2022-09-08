@@ -60,7 +60,7 @@ const NodeComponent = ({ path, name, isCollection }: IFSDataNode) => {
 
   return (
     <span
-      className={classNames("text-gray-800", {
+      className={classNames("dark:text-gray-100", {
         ["text-green-600"]: doc?.isNew,
         ["text-blue-600"]: doc?.isChanged(),
         ["font-mono text-xs"]: !isCollection,
@@ -97,7 +97,8 @@ function buildTree(
       title: (props) => <NodeComponent {...props} />,
       children: [],
       isCollection: isCollection,
-      className: "hover:bg-gray-200 cursor-pointer",
+      className:
+        "hover:bg-gray-200 cursor-pointer dark:hover:bg-gray-800 dark:text-white",
       props: {
         onClick: (e) => {
           if (e.target?.getAttribute("role") !== "expander") {
@@ -113,7 +114,7 @@ function buildTree(
       },
       icon: ({ expanded }: { expanded: boolean }) => {
         return (
-          <div className="w-4">
+          <div className="w-5">
             {isCollection ? (
               <svg
                 width="16"
@@ -488,6 +489,7 @@ function TreeView({ allDocs, deletedDocs, pathAvailable }: ITreeViewProps) {
         isCompact
         value={searchInput}
         onChange={(e) => setSearchInput(e.target.value)}
+        className="dark:bg-gray-900"
       />
       <div
         className="flex flex-col h-full mt-2"
@@ -495,7 +497,7 @@ function TreeView({ allDocs, deletedDocs, pathAvailable }: ITreeViewProps) {
         ref={treeWrapperRef}
         onFocus={handleOnFocus}
       >
-        <div className="flex h-8 flex-row items-center justify-between pl-1.5 bg-gray-200 border-b-2 border-gray-400">
+        <div className="flex h-8 flex-row items-center justify-between pl-1.5 bg-gray-200 dark:bg-gray-900 border-b-2 border-gray-400">
           <span>{getProjectId()}</span>
 
           <button
@@ -518,7 +520,7 @@ function TreeView({ allDocs, deletedDocs, pathAvailable }: ITreeViewProps) {
             </svg>
           </button>
         </div>
-        <div className="w-full h-full">
+        <div className="w-full h-full dark:bg-gray-900">
           <AutoSizer disableWidth>
             {({ height }) => (
               <Tree

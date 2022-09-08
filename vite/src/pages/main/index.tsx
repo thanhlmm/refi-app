@@ -119,7 +119,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
             </ReactGridLayout>
             <Background />
           </div>
-          <div className="flex flex-row justify-end pr-3 mt-3 text-white transform translate-y-1 bg-gray-400">
+          <div className="flex flex-row justify-end pr-3 mt-3 text-white transform translate-y-1 bg-gray-400 dark:bg-gray-900">
             <ProductBar />
           </div>
         </>
@@ -130,7 +130,7 @@ function MainLayout({ size }: IMainLayoutProps): ReactElement {
 
 const MainWithSize = () => {
   return (
-    <div className="w-screen h-screen">
+    <div className="w-screen h-screen bg-white dark:bg-gray-800 dark:text-gray-200">
       <AutoSizer>
         {({ height, width }) => <MainLayout size={{ width, height }} />}
       </AutoSizer>

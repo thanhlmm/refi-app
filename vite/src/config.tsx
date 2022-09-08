@@ -157,6 +157,21 @@ loader.init().then((monaco) => {
     ],
   });
 
+  monaco.editor.defineTheme("monacoProperty-dark", {
+    base: "vs-dark",
+    inherit: true,
+    colors: {},
+    rules: [
+      { token: "__GeoPoint__", foreground: "0000ff", fontStyle: "bold" },
+      {
+        token: "__DocumentReference__",
+        foreground: "0000ff",
+        fontStyle: "bold",
+      },
+      { token: "__Timestamp__", foreground: "0000ff", fontStyle: "bold" },
+    ],
+  });
+
   monaco.languages.registerCompletionItemProvider("json", {
     provideCompletionItems: function (model, position) {
       const word = model.getWordUntilPosition(position);

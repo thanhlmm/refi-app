@@ -192,7 +192,7 @@ function TableWrapper({
             },
             key: rowOrigin.id,
           })}
-          className="border-b border-gray-300 hover:bg-gray-200 group"
+          className="border-b border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-900 group dark:text-gray-200"
           data-id={rowOrigin.id}
           onClick={(e) => onRowClick(e, rowOrigin)}
         >
@@ -201,7 +201,7 @@ function TableWrapper({
               // eslint-disable-next-line react/jsx-key
               <div
                 {...cell.getCellProps()}
-                className="border-r border-gray-200 last:border-r-0 group-hover:border-gray-300"
+                className="border-r border-gray-200 dark:border-gray-600 last:border-r-0 group-hover:border-gray-300"
                 cm-template="rowContext"
                 cm-id="rowContext"
                 cm-payload-id={rowOrigin.id}
@@ -249,7 +249,7 @@ function TableWrapper({
       {({ height, width }) => (
         <table
           {...getTableProps()}
-          className="w-full h-full border-b border-gray-300"
+          className="w-full h-full border-b border-gray-300 dark:border-gray-600"
         >
           <thead>
             {headerGroups.map((headerGroup) => (
@@ -262,7 +262,8 @@ function TableWrapper({
                     minWidth: "unset",
                   },
 
-                  className: "border-t border-b border-gray-300",
+                  className:
+                    "border-t border-b border-gray-300 dark:border-gray-600",
                 })}
                 ref={headerRef}
               >
@@ -272,7 +273,7 @@ function TableWrapper({
                     {...column.getHeaderProps(
                       (column as any).getSortByToggleProps()
                     )}
-                    className="text-left text-gray-500 border-r border-gray-200"
+                    className="text-left text-gray-500 border-r border-gray-200 dark:border-gray-600"
                   >
                     <div
                       {...(column as any).getResizerProps({
@@ -390,7 +391,9 @@ function ColumnHeader({
       cm-payload-column={fieldPath}
       cm-id={fieldPath}
     >
-      <div className="font-semibold text-gray-800 truncate">{fieldPath}</div>
+      <div className="font-semibold dark:text-gray-200 truncate dark:text-gray-100">
+        {fieldPath}
+      </div>
       {isSorted && (
         <span>
           {isSortedDesc ? (
@@ -678,7 +681,7 @@ function DataTable() {
   );
 
   return (
-    <div className="w-full h-full mt-2 border-l border-r border-gray-300">
+    <div className="w-full h-full mt-2 border-l border-r border-gray-300 dark:border-gray-600">
       <TableWrapper
         columns={columnViewer}
         data={data}
