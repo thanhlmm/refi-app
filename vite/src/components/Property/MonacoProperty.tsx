@@ -1,5 +1,6 @@
 import { actionUpdateDoc } from "@/atoms/firestore.action";
 import { monacoDataErrorAtom } from "@/atoms/ui";
+import { appThemeAtom } from "@/atoms/ui.action";
 import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
 import {
   addFirebaseDocSerializeMetaData,
@@ -67,13 +68,12 @@ const deserializeData = (
 };
 
 const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
-  const theme = useTheme();
-  console.log({ theme });
   const [defaultValue, setDefaultValue] = useState<string | undefined>(
     serializeData(doc)
   );
   const editorView = useRef<any>();
   const setError = useSetRecoilState(monacoDataErrorAtom(doc.ref.path));
+  const appTheme = useRecoilValue(appThemeAtom);
 
   const monaco = useMonaco();
 
@@ -149,11 +149,7 @@ const MonacoProperty = ({ doc }: IMonacoPropertyProps) => {
         defaultLanguage="json"
         value={defaultValue}
         height="100%"
-        theme={
-          theme.name === "light"
-            ? "monacoProperty-light"
-            : "monacoProperty-dark"
-        }
+        theme={appTheme ? "monacoProperty-light" : "monacoProperty-dark"}
         wrapperClassName="border border-gray-300 dark:border-gray-700 pt-2 pb-2"
         onChange={setDefaultValue}
         onValidate={handleEditorValidation}

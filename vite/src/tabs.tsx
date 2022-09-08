@@ -3,12 +3,12 @@ import ReactDOM from "react-dom";
 import "./styles/tailwind.css";
 import * as serviceWorker from "./serviceWorker";
 import { ThemeProvider } from "@zendeskgarden/react-theming";
-import { theme } from "./styles/theme";
+import { lightTheme } from "./styles/theme";
 // import { RecoilExternalStatePortal } from "./atoms/RecoilExternalStatePortal";
 import TabsPage from "./pages/Tabs";
 
 ReactDOM.render(
-  <ThemeProvider theme={theme} focusVisibleRef={null}>
+  <ThemeProvider theme={lightTheme} focusVisibleRef={null}>
     <TabsPage />
   </ThemeProvider>,
   document.getElementById("root")

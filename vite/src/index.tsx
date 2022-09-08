@@ -12,7 +12,9 @@ import "./config";
 import "./firebase";
 
 try {
-  const userSettings = JSON.parse(localStorage.getItem("user-settings"));
+  const userSettings = JSON.parse(
+    localStorage.getItem("user-settings") || "{}"
+  );
   setTheme(userSettings["ui/appTheme"]);
 } catch (error) {
   console.log(error);
