@@ -128,6 +128,7 @@ const TabsPage = () => {
             </Tab>
           </TabList>
         </Tabs>
+        <section className="draggable-containers p-3 xl:w-auto flex-1  md:w-auto sm:w-auto"></section>
         {!isMacOS && (
           <div className="flex flex-row items-stretch justify-center">
             <div
