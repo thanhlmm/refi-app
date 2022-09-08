@@ -33,16 +33,27 @@ body {
   #root-body .h-focus-full-2:focus {
     height: 200%;
   }
-  
+
   #root-body .quote code {
     @apply text-red-600 bg-gray-200 rounded;
   }
 
-  #root-body #drag-title {
-    -webkit-app-region: drag;
+  #root-body  {
+    -webkit-app-region: no-drag;
     -webkit-user-select: none;
     user-select: none;
   }
+  #drag-title {
+  -webkit-user-select: none;
+    user-select: none;
+  -webkit-app-region: no-drag;
+}
+
+  .draggable-containers {
+    -webkit-user-select: none;
+    user-select: none;
+  -webkit-app-region: drag;
+}
 
   /* #root-body {
     :not(input):not(textarea),
