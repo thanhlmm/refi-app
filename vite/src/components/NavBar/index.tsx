@@ -72,6 +72,7 @@ const NavBar = () => {
             size="small"
             onClick={() => setShowChangeModal(true)}
             disabled={!isCommittable}
+            className="dark:text-white"
           >
             Preview changes
           </Button>
@@ -95,6 +96,7 @@ const NavBar = () => {
             size="small"
             disabled={!isCommittable}
             onClick={actionCommitChange}
+            className="dark:text-white"
           >
             Commit
           </Button>
@@ -115,12 +117,13 @@ const NavBar = () => {
           }
         >
           <IconButton isPill size="small" onClick={actionReverseChange}>
-            <div className="w-5">
+            <div className="w-5 dark:text-gray-200">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                className="dark:text-white"
               >
                 <path
                   strokeLinecap="round"

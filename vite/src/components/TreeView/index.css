@@ -164,7 +164,7 @@
 }
 
 .rc-tree-treenode-selected {
-  @apply bg-gray-300 !important;
+  @apply bg-gray-300 dark:bg-gray-800 !important;
 }
 
 .rc-tree-icon__open {

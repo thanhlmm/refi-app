@@ -51,13 +51,13 @@ const ShortcutKey = ({
     });
 
   return (
-    <span>
+    <span className="dark:text-gray-200">
       {title}
       {keys.map((key) => (
         <span
           key={key}
           className={classNames(
-            "bg-gray-300 ml-1 rounded-sm inline-block text-center",
+            "bg-gray-300 ml-1 rounded-sm inline-block text-center dark:text-gray-600",
             {
               ["text-key font-bold p-0.5"]: size === "small",
               ["text-xs py-1 px-1.5"]: size === "normal",

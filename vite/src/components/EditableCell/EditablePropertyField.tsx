@@ -141,7 +141,7 @@ export const EditablePropertyField = ({
       <DataInput
         ref={inputEl}
         className={classNames(
-          "font-semibold text-gray-800 focus:ring-1 focus:ring-blue-400",
+          "font-semibold dark:text-gray-200 dark:text-gray-200 focus:ring-1 focus:ring-blue-400",
           {
             ["bg-red-300"]: isFieldChanged,
             // ["bg-yellow-200 transition-colors duration-300"]: isHighlight,

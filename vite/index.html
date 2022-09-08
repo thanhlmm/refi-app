@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html id="root-body" lang="en">
 
 <head>
   <meta charset="UTF-8" />
@@ -15,17 +15,17 @@
       justify-content: center;
       align-items: center;
     }
-  
+
     .spinner {
       color: #4B5563;
       animation: spin 1s linear infinite;
     }
-  
+
     @keyframes spin {
       from {
         transform: rotate(0deg);
       }
-  
+
       to {
         transform: rotate(360deg);
       }
@@ -33,7 +33,7 @@
   </style>
 </head>
 
-<body id="root-body">
+<body>
   <div id="root" class="overflow-hidden">
     <div class="loader">
       <div class="spinner">
@@ -44,7 +44,7 @@
         </svg>
       </div>
     </div>
-  
+
   </div>
   <div id="notifications" class="absolute top-0 right-4" style="z-index: 500;"></div>
   <script type="module" src="/src/index.tsx"></script>

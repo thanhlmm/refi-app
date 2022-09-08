@@ -137,6 +137,7 @@ const Filters = () => {
       {
         title: "Without filter",
         hotkey: globalHotKeys.SEND_QUERY_WITHOUT_FILTER.sequences,
+        className: "dark:text-gray-200",
         onClick: () => {
           actionSubmitQuery(false);
         },
@@ -260,7 +261,7 @@ const Filters = () => {
               menu={queryMenu}
               placement="bottom-end"
               className="ml-px"
-              containerClassName="w-60"
+              containerClassName="w-60 dark:bg-gray-50"
             >
               <Button size="small" isPrimary className="px-0.5">
                 <svg

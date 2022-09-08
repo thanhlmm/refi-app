@@ -128,7 +128,7 @@ const EditableCell = ({
       <Textarea
         ref={inputEl}
         className={classNames(
-          "w-full absolute bg-transparent overflow-hidden truncate h-full min-h-full outline-none ring-inset focus:bg-blue-100 p-1.5 pt-2 focus:ring-1 focus:ring-blue-400 focus:z-50 focus:shadow-lg",
+          "w-full absolute bg-transparent overflow-hidden truncate h-full min-h-full outline-none ring-inset dark:focus:bg-gray-900 focus:bg-blue-100 p-1.5 pt-2 focus:ring-1 focus:ring-blue-400 focus:z-50 focus:shadow-lg",
           {
             ["text-right"]: fieldType === "number",
             ["h-focus-full-2"]: String(instanceValue).includes("\n"),
@@ -197,7 +197,7 @@ const EditableCell = ({
               type="light"
               className="w-32"
               content={
-                <span>
+                <span className="dark:text-gray-200">
                   <a
                     className="text-blue-400 cursor-pointer"
                     onClick={() => handleClickFollowLink(null, refValue.path)}
@@ -213,9 +213,8 @@ const EditableCell = ({
                 className={classNames(
                   "focus:ring-1 p-1.5 pt-2 bg-transparent break-all outline-none focus:ring-blue-400 h-full w-full truncate underline text-blue-400 focus:z-50 focus:shadow-lg",
                   {
-                    ["bg-blue-200"]: isFieldChanged,
-                    ["bg-yellow-200 transition-colors duration-300"]:
-                      isHighlight,
+                    ["bg-blue-200 dark:bg-gray-500"]: isFieldChanged,
+                    ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
                   }
                 )}
                 isBare
@@ -239,7 +238,7 @@ const EditableCell = ({
     <div
       ref={wrapperEl}
       className={classNames("w-full h-full outline-none group relative", {
-        ["bg-blue-200"]: isFieldChanged,
+        ["bg-blue-200 dark:bg-gray-500"]: isFieldChanged,
         ["bg-yellow-200 transition-colors duration-300"]: isHighlight,
       })}
     >
@@ -270,7 +269,7 @@ export const IDReadOnlyField = ({
     <div className="relative w-full h-full px-px font-mono group">
       <input
         className={classNames(
-          "focus:ring-1 focus:ring-blue-400 w-full h-full bg-transparent outline-none ring-inset focus:bg-blue-100 p-1.5 text-gray-800 font-mono text-sm",
+          "focus:ring-1 focus:ring-blue-400 w-full h-full bg-transparent outline-none ring-inset focus:bg-blue-100 p-1.5 dark:text-gray-200 font-mono text-sm",
           {
             ["pl-0.5 border-l-4 border-blue-400"]: isActive,
             ["bg-green-200"]: isNew,

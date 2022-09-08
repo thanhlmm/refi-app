@@ -49,7 +49,7 @@ const DateTimePicker = ({
       className="h-full"
       inputProps={{
         className: classNames(
-          "w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5 border-none focus:ring-1 text-sm text-gray-800 bg-transparent",
+          "w-full h-full outline-none ring-inset focus:bg-blue-100 p-1.5 border-none focus:ring-1 text-sm dark:text-gray-200 bg-transparent",
           {
             ["focus:ring-red-400"]: !isValid,
             ["focus:ring-blue-400"]: isValid,
