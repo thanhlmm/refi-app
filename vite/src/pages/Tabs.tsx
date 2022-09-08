@@ -80,14 +80,11 @@ const TabsPage = () => {
 							<Tab
 								item={tab}
 								key={tab}
-								className={classNames(
-									"py-2 px-8 border-0 text-left group relative",
-									{
-										["bg-white"]: tab === selectedTab,
-										["text-white"]: !isMacOS && tab !== selectedTab,
-										["text-gray-600"]: isMacOS && tab !== selectedTab,
-									},
-								)}>
+								className={classNames("py-2 px-8 border-0 text-left group relative", {
+									["bg-white"]: tab === selectedTab,
+									["text-white"]: !isMacOS && tab !== selectedTab,
+									["text-gray-600"]: isMacOS && tab !== selectedTab,
+								})}>
 								{tab}
 								<svg
 									width="16"
@@ -125,9 +122,7 @@ const TabsPage = () => {
 				<section className="draggable-containers p-3 xl:w-auto flex-1  md:w-auto sm:w-auto"></section>
 				{!isMacOS && (
 					<div className="flex flex-row items-stretch justify-center">
-						<div
-							className="p-3 hover:bg-gray-600"
-							onClick={handleMinimumWindow}>
+						<div className="p-3 hover:bg-gray-600" onClick={handleMinimumWindow}>
 							<img
 								className="icon"
 								srcSet="icons/min-w-10.png 1x, icons/min-w-12.png 1.25x, icons/min-w-15.png 1.5x, icons/min-w-15.png 1.75x, icons/min-w-20.png 2x, icons/min-w-20.png 2.25x, icons/min-w-24.png 2.5x, icons/min-w-30.png 3x, icons/min-w-30.png 3.5x"
