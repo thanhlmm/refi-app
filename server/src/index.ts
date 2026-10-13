@@ -17,7 +17,7 @@ if (!isDev) {
 
 process.on('unhandledRejection', log.error);
 
-import { app, BrowserWindow, ipcMain, Menu, dialog, BrowserView, globalShortcut, MenuItem } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, BrowserView, globalShortcut, MenuItem, shell } from 'electron';
 import { fork, ChildProcess } from "child_process";
 import * as path from 'path';
 import fs from 'fs';
@@ -44,6 +44,14 @@ let listWindow: IWindowInstance[] = [];
 let mainWindow: BrowserWindow;
 
 const isMacOS = process.platform === 'darwin';
+
+const canOpenExternally = (url: string) => {
+  try {
+    return ["http:", "https:", "mailto:"].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+};
 // const isMacOS = false;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -64,7 +72,7 @@ if (!isDev) {
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
     log.debug('Downloaded new update');
     const dialogOpts = {
-      type: 'info',
+      type: 'info' as const,
       buttons: ['Restart', 'Later'],
       title: 'Application Update',
       message: process.platform === 'win32' ? releaseNotes : releaseName,
@@ -389,12 +397,15 @@ app.on('window-all-closed', () => {
 });
 
 app.on('web-contents-created', (e, contents) => {
-  contents.on('new-window', (e, url) => {
-    e.preventDefault();
-    require('open')(url);
+  contents.setWindowOpenHandler(({ url }) => {
+    if (canOpenExternally(url)) shell.openExternal(url);
+    return { action: "deny" };
   });
   contents.on('will-navigate', (e, url) => {
-    if (url !== contents.getURL()) e.preventDefault(), require('open')(url);
+    if (url !== contents.getURL()) {
+      e.preventDefault();
+      if (canOpenExternally(url)) shell.openExternal(url);
+    }
   });
 });
 
