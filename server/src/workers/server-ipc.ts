@@ -12,9 +12,8 @@ const post = (port: MessagePortMain, msg: object) => {
 
 export function init(handlers: Record<string, Function>) {
   const handleRequest = (port: MessagePortMain, msg: { id: string, name: string, args: any }) => {
-    log.debug(`${tabName} page -> worker`, msg);
     const { id, name, args } = msg
-
+    log.debug(`${tabName} page -> worker`, name === 'cert.storeKey' ? { id, name } : msg);
     if (handlers[name]) {
       handlers[name](args).then(
         (result: any) => {

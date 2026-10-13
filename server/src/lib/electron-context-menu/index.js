@@ -12,8 +12,6 @@ class ContextMenu {
 
   mainBindings(ipcMain, view, mainWindow, Menu, isDevelopment, templates) {
 
-    // Anytime a user right-clicks the browser window, send where they
-    // clicked to the renderer process
     view.webContents.on("context-menu", (event, params) => {
       view.webContents.send(contextMenuRequest, {
         params
@@ -33,7 +31,6 @@ class ContextMenu {
       let generatedContextMenu;
       if (args.template === null || typeof this.cleanedTemplates[cleanedTemplatesKey] === "undefined") {
 
-        // Build our context menu based on our templates
         generatedContextMenu = templates[args.template] ? cloneDeep(templates[args.template]) : [];
         if (isDevelopment) {
           generatedContextMenu.push({
@@ -46,8 +43,6 @@ class ContextMenu {
 
         if (args.template !== null) {
 
-          // For any menu items that don't have a role or click event,
-          // create one so we can tie back the click to the code!
           for (let i = 0; i < generatedContextMenu.length; i++) {
             if (typeof generatedContextMenu[i]["click"] === "undefined") {
               generatedContextMenu[i].click = function (event, window, webContents) {
@@ -59,7 +54,6 @@ class ContextMenu {
           }
         }
 
-        // Save this cleaned template, so we can re-use it
         this.cleanedTemplates[cleanedTemplatesKey] = generatedContextMenu;
       }
       generatedContextMenu = this.cleanedTemplates[cleanedTemplatesKey];

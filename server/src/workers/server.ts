@@ -4,6 +4,10 @@ import * as path from 'path';
 // A utility process can't ask Electron for userData; main passes it as cwd
 log.transports.file.resolvePath = () => path.join(process.cwd(), 'logs', 'worker.log');
 
+if (process.argv[5] !== 'dev') {
+  log.transports.file.level = 'verbose';
+}
+
 // TODO: Check is dev to enable source-map-support
 // require('source-map-support').install();
 process.on('unhandledRejection', (error) => {

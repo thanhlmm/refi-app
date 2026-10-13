@@ -31,9 +31,10 @@ serve({ directory: 'build' });
 app.disableHardwareAcceleration()
 
 interface IWindowInstance {
-  window: WebContentsView;
-  serverProcess: UtilityProcess;
+  view: WebContentsView;
+  serverProcess: UtilityProcess | null;
   workerReady: boolean;
+  workerExited: boolean;
   connectRequested: boolean;
   name: string;
 }
@@ -145,8 +146,7 @@ const createMainWindow = async () => {
 }
 
 const createWindow = async (href?: string) => {
-  // Create the browser view.
-  const window = new WebContentsView({
+  const view = new WebContentsView({
     webPreferences: {
       devTools: isDev,
       // enableRemoteModule: false,
@@ -162,48 +162,43 @@ const createWindow = async (href?: string) => {
 
   const name = uniqueId('Tab ');
   const instance: IWindowInstance = {
-    window,
-    serverProcess: createBackgroundProcess(name),
+    view,
+    serverProcess: null,
     workerReady: false,
+    workerExited: false,
     connectRequested: false,
     name,
   };
   listWindow.push(instance);
-  instance.serverProcess.on("message", (msg: any) => {
-    if (msg?.type === "ready") {
-      instance.workerReady = true;
-      connectWorker(instance);
-    }
-  });
+  startWorker(instance);
 
   // and load the index.html of the app.
 
   // if (href) {
   //   // New tab with same location
-  //   window.webContents.loadURL(href);
+  //   view.webContents.loadURL(href);
   // } else {
   //   if (isDev) {
-  //     window.webContents.loadURL("http://localhost:3000");
+  //     view.webContents.loadURL("http://localhost:3000");
   //   } else {
-  //     window.webContents.loadURL("app://-");
+  //     view.webContents.loadURL("app://-");
   //   }
   // }
 
   if (isDev) {
-    window.webContents.loadURL("http://localhost:3000");
+    view.webContents.loadURL("http://localhost:3000");
   } else {
-    window.webContents.loadURL("app://-");
+    view.webContents.loadURL("app://-");
   }
 
   if (isDev) {
-    window.webContents.openDevTools({ mode: 'detach' })
+    view.webContents.openDevTools({ mode: 'detach' })
   }
 
   mainWindow.webContents.send('tabChange', getTabData());
   return instance;
 };
 
-// Set active tab
 const tabBarHeight = 36;
 
 const layoutActiveView = () => {
@@ -211,25 +206,25 @@ const layoutActiveView = () => {
     return;
   }
   const { width, height } = mainWindow.getContentBounds();
-  activeInstance.window.setBounds({ x: 0, y: tabBarHeight, width, height: height - tabBarHeight });
+  activeInstance.view.setBounds({ x: 0, y: tabBarHeight, width, height: height - tabBarHeight });
 }
 
 const setTab = (instance: IWindowInstance) => {
   ContextMenu.clearMainBindings(ipcMain);
-  ContextMenu.mainBindings(ipcMain, instance.window, mainWindow, Menu, isDev, contextConfig);
+  ContextMenu.mainBindings(ipcMain, instance.view, mainWindow, Menu, isDev, contextConfig);
 
   if (activeInstance && activeInstance !== instance) {
-    mainWindow.contentView.removeChildView(activeInstance.window);
+    mainWindow.contentView.removeChildView(activeInstance.view);
   }
   activeInstance = instance;
-  mainWindow.contentView.addChildView(instance.window);
+  mainWindow.contentView.addChildView(instance.view);
   layoutActiveView();
   mainWindow.webContents.send('tabChange', getTabData());
 }
 
 const releaseInstance = (instance: IWindowInstance) => {
-  instance.serverProcess.kill();
-  instance.window.webContents.close();
+  instance.serverProcess?.kill();
+  instance.view.webContents.close();
 }
 
 interface TabList {
@@ -245,11 +240,34 @@ const getTabData = (): TabList => {
 }
 
 // TODO: Also restart background process when user reload the app
+function startWorker(instance: IWindowInstance) {
+  const serverProcess = createBackgroundProcess(instance.name);
+  instance.serverProcess = serverProcess;
+  instance.workerReady = false;
+  instance.workerExited = false;
+
+  serverProcess.on("message", (msg: any) => {
+    if (msg?.type === "ready") {
+      instance.workerReady = true;
+      connectWorker(instance);
+    }
+  });
+  serverProcess.on("exit", (code) => {
+    if (instance.serverProcess !== serverProcess || !listWindow.includes(instance)) {
+      return;
+    }
+    log.error(`Worker of ${instance.name} exited with code ${code}`);
+    instance.workerReady = false;
+    instance.workerExited = true;
+  });
+}
+
 function createBackgroundProcess(name: string) {
   const serverProcess = utilityProcess.fork(__dirname + "/workers/server.js", [
     "--subprocess",
     app.getVersion(),
     name,
+    isDev ? "dev" : "prod",
   ], {
     cwd: app.getPath('userData'),
     serviceName: name,
@@ -277,16 +295,19 @@ function connectWorker(instance: IWindowInstance) {
   instance.connectRequested = false;
 
   const { port1, port2 } = new MessageChannelMain();
-  instance.serverProcess.postMessage({ type: "port" }, [port1]);
-  instance.window.webContents.postMessage("worker-port", null, [port2]);
+  instance.serverProcess?.postMessage({ type: "port" }, [port1]);
+  instance.view.webContents.postMessage("worker-port", null, [port2]);
 }
 
 ipcMain.on("connect-worker", (event) => {
-  const instance = listWindow.find(item => item.window.webContents.id === event.sender.id);
+  const instance = listWindow.find(item => item.view.webContents.id === event.sender.id);
   if (!instance) {
     return;
   }
 
+  if (instance.workerExited) {
+    startWorker(instance);
+  }
   instance.connectRequested = true;
   connectWorker(instance);
 });
@@ -301,7 +322,7 @@ function bootstrap() {
 }
 
 const newTab = async () => {
-  const instance = await createWindow(activeInstance?.window.webContents.getURL());
+  const instance = await createWindow(activeInstance?.view.webContents.getURL());
   setTab(instance);
 }
 ipcMain.handle('open-url', async (event, url: string) => {
@@ -339,7 +360,7 @@ const closeTab = (tabName: string) => {
     const closeIndex = listWindow.findIndex(instance => instance === closeInstance);
 
     if (closeInstance === activeInstance) {
-      mainWindow.contentView.removeChildView(closeInstance.window);
+      mainWindow.contentView.removeChildView(closeInstance.view);
       activeInstance = null;
     }
     releaseInstance(closeInstance);
@@ -390,8 +411,8 @@ ipcMain.handle('toggle-maximum-window', async (event, tabName: string) => {
 });
 
 app.on('new-window-for-tab', () => {
-  if (listWindow[0]?.window) {
-    createWindow(listWindow[0]?.window.webContents.getURL());
+  if (listWindow[0]?.view) {
+    createWindow(listWindow[0]?.view.webContents.getURL());
   }
 });
 
@@ -435,7 +456,7 @@ app.on('web-contents-created', (e, contents) => {
 app.on("before-quit", () => {
   log.info("Before quit");
   listWindow.forEach(instance => {
-    instance.serverProcess.kill();
+    instance.serverProcess?.kill();
   })
 });
 
@@ -522,7 +543,7 @@ const template = [
         label: 'Reload',
         accelerator: 'CommandOrControl+R',
         click: () => {
-          activeInstance?.window.webContents.reload();
+          activeInstance?.view.webContents.reload();
         }
       },
       { role: 'toggleDevTools' },
