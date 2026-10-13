@@ -56,7 +56,7 @@ const SorterItem = ({
             d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
           />
         </svg>
-        {sorter.field} - {sorter.sort}
+        {sorter.field} - {sorter.sort.toUpperCase()}
       </div>
       <button
         className="w-4 opacity-0 group-hover:opacity-100"
@@ -149,8 +149,8 @@ const SorterList = () => {
           )}
         />
         <select ref={register} name="sort">
-          <option value="ASC">ASC</option>
-          <option value="DESC">DESC</option>
+          <option value="asc">ASC</option>
+          <option value="desc">DESC</option>
         </select>
       </form>
       <div className="mt-2">
