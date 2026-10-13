@@ -17,8 +17,7 @@ if (!isDev) {
 
 process.on('unhandledRejection', log.error);
 
-import { app, BrowserWindow, ipcMain, Menu, dialog, BrowserView, globalShortcut, MenuItem, shell } from 'electron';
-import { fork, ChildProcess } from "child_process";
+import { app, BrowserWindow, ipcMain, Menu, dialog, BrowserView, globalShortcut, MenuItem, shell, utilityProcess, MessageChannelMain, UtilityProcess } from 'electron';
 import * as path from 'path';
 import fs from 'fs';
 import db from './client/db';
@@ -33,9 +32,9 @@ app.disableHardwareAcceleration()
 
 interface IWindowInstance {
   window: BrowserView;
-  serverProcess: ChildProcess;
+  serverProcess: UtilityProcess;
   workerReady: boolean;
-  pendingRequests: any[];
+  connectRequested: boolean;
   name: string;
 }
 
@@ -160,15 +159,21 @@ const createWindow = async (href?: string) => {
     },
   });
 
+  const name = uniqueId('Tab ');
   const instance: IWindowInstance = {
     window,
-    serverProcess: createBackgroundProcess(),
+    serverProcess: createBackgroundProcess(name),
     workerReady: false,
-    pendingRequests: [],
-    name: uniqueId('Tab '),
+    connectRequested: false,
+    name,
   };
   listWindow.push(instance);
-  attachWorkerRelay(instance);
+  instance.serverProcess.on("message", (msg: any) => {
+    if (msg?.type === "ready") {
+      instance.workerReady = true;
+      connectWorker(instance);
+    }
+  });
 
   // and load the index.html of the app.
 
@@ -221,57 +226,50 @@ const getTabData = (): TabList => {
 }
 
 // TODO: Also restart background process when user reload the app
-function createBackgroundProcess() {
-  const serverProcess = fork(__dirname + "/workers/server.js", [
+function createBackgroundProcess(name: string) {
+  const serverProcess = utilityProcess.fork(__dirname + "/workers/server.js", [
     "--subprocess",
     app.getVersion(),
+    name,
   ], {
-    cwd: app.getPath('userData')
+    cwd: app.getPath('userData'),
+    serviceName: name,
+    stdio: isDev ? "pipe" : "ignore",
   });
 
-  log.info(`Done create background process #${serverProcess.pid}`);
+  serverProcess.once("spawn", () => log.info(`Done create background process #${serverProcess.pid}`));
 
   if (isDev) {
-    // Print log.info of child process
-    serverProcess?.stdout?.on("data", function (data: any) {
+    serverProcess.stdout?.on("data", function (data: any) {
       log.info(data.toString());
+    });
+    serverProcess.stderr?.on("data", function (data: any) {
+      log.error(data.toString());
     });
   }
 
   return serverProcess;
 }
 
-function attachWorkerRelay(instance: IWindowInstance) {
-  instance.serverProcess.on("message", (msg: any) => {
-    log.debug(`${instance.name} worker -> page`, msg);
+function connectWorker(instance: IWindowInstance) {
+  if (!instance.workerReady || !instance.connectRequested) {
+    return;
+  }
+  instance.connectRequested = false;
 
-    if (msg?.type === "ready") {
-      instance.workerReady = true;
-      instance.pendingRequests.forEach(request => instance.serverProcess.send(request));
-      instance.pendingRequests = [];
-      return;
-    }
-
-    const { webContents } = instance.window;
-    if (!webContents.isDestroyed()) {
-      webContents.send("worker-message", msg);
-    }
-  });
+  const { port1, port2 } = new MessageChannelMain();
+  instance.serverProcess.postMessage({ type: "port" }, [port1]);
+  instance.window.webContents.postMessage("worker-port", null, [port2]);
 }
 
-ipcMain.on("worker-request", (event, msg) => {
+ipcMain.on("connect-worker", (event) => {
   const instance = listWindow.find(item => item.window.webContents.id === event.sender.id);
   if (!instance) {
     return;
   }
 
-  log.debug(`${instance.name} page -> worker`, msg);
-
-  if (instance.workerReady) {
-    instance.serverProcess.send(msg);
-  } else {
-    instance.pendingRequests.push(msg);
-  }
+  instance.connectRequested = true;
+  connectWorker(instance);
 });
 
 function bootstrap() {

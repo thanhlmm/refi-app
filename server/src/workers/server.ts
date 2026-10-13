@@ -1,4 +1,9 @@
 import log from 'electron-log';
+import * as path from 'path';
+
+// A utility process can't ask Electron for userData; main passes it as cwd
+log.transports.file.resolvePath = () => path.join(process.cwd(), 'logs', 'worker.log');
+
 // TODO: Check is dev to enable source-map-support
 // require('source-map-support').install();
 process.on('unhandledRejection', (error) => {

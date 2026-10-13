@@ -80,9 +80,27 @@ const contextMenu = {
   },
 }
 
+let workerPort = null
+let pendingRequests = []
+const messageListeners = []
+
+ipcRenderer.on('worker-port', (event) => {
+  workerPort = event.ports[0]
+  workerPort.onmessage = (portEvent) => messageListeners.forEach((cb) => cb(portEvent.data))
+  pendingRequests.forEach((msg) => workerPort.postMessage(msg))
+  pendingRequests = []
+})
+ipcRenderer.send('connect-worker')
+
 contextBridge.exposeInMainWorld('ipc', {
-  request: (msg) => ipcRenderer.send('worker-request', msg),
-  onMessage: (cb) => ipcRenderer.on('worker-message', (event, msg) => cb(msg)),
+  request: (msg) => {
+    if (workerPort) {
+      workerPort.postMessage(msg)
+    } else {
+      pendingRequests.push(msg)
+    }
+  },
+  onMessage: (cb) => messageListeners.push(cb),
 })
 
 contextBridge.exposeInMainWorld('platform', process.platform)
