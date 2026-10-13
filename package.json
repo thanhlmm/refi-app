@@ -4,7 +4,8 @@
   "workspaces": [
     "vite",
     "server",
-    "firestore-serializers"
+    "firestore-serializers",
+    "e2e"
   ],
   "packageManager": "bun@1.4.2",
   "engines": {
@@ -24,6 +25,7 @@
     "dev:server": "bun run build:serializers && bun run --cwd server dev",
     "build": "bun run build:serializers && bun run --cwd vite build && bun run --cwd server copy-fe && bun run --cwd server build-ts",
     "test:serializers": "bun run --cwd firestore-serializers test:emulator",
-    "test": "bun run build:serializers && bun run --cwd firestore-serializers test && bun run --cwd vite test"
+    "test": "bun run build:serializers && bun run --cwd firestore-serializers test && bun run --cwd vite test",
+    "test:e2e": "bun run build && bun run --cwd e2e test"
   }
 }
