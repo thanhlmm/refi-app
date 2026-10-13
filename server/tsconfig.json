@@ -4,6 +4,7 @@
     "module": "commonjs",
     "noImplicitAny": true,
     "strictBindCallApply": true,
+    "strictFunctionTypes": true,
     "inlineSourceMap": true,
     "inlineSources": true,
     "baseUrl": ".",
