@@ -17,7 +17,7 @@ if (!isDev) {
 
 process.on('unhandledRejection', log.error);
 
-import { app, BrowserWindow, ipcMain, Menu, dialog, BrowserView, globalShortcut, MenuItem, shell, utilityProcess, MessageChannelMain, UtilityProcess } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, WebContentsView, globalShortcut, MenuItem, shell, utilityProcess, MessageChannelMain, UtilityProcess } from 'electron';
 import * as path from 'path';
 import fs from 'fs';
 import db from './client/db';
@@ -31,7 +31,7 @@ serve({ directory: 'build' });
 app.disableHardwareAcceleration()
 
 interface IWindowInstance {
-  window: BrowserView;
+  window: WebContentsView;
   serverProcess: UtilityProcess;
   workerReady: boolean;
   connectRequested: boolean;
@@ -42,7 +42,10 @@ let listWindow: IWindowInstance[] = [];
 
 let mainWindow: BrowserWindow;
 
+let activeInstance: IWindowInstance | null = null;
+
 const isMacOS = process.platform === 'darwin';
+// const isMacOS = false;
 
 const canOpenExternally = (url: string) => {
   try {
@@ -51,7 +54,6 @@ const canOpenExternally = (url: string) => {
     return false;
   }
 };
-// const isMacOS = false;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -122,12 +124,12 @@ const createMainWindow = async () => {
 
   window.on('closed', () => {
     mainWindow = null;
-    listWindow.forEach(instance => {
-      instance.serverProcess.kill();
-      (instance.window.webContents as any)?.destroy() // TODO: electron haven't make document for it. Ref: https://github.com/electron/electron/issues/26929
-    });
+    activeInstance = null;
+    listWindow.forEach(releaseInstance);
     listWindow = [];
   })
+
+  window.on('resize', layoutActiveView);
 
   if (isDev) {
     window.loadURL("http://localhost:3000/tabs.html");
@@ -139,13 +141,12 @@ const createMainWindow = async () => {
   window.maximize();
   window.show();
 
-  const windowView = await createWindow();
-  setTab(windowView);
+  setTab(await createWindow());
 }
 
 const createWindow = async (href?: string) => {
   // Create the browser view.
-  const window = new BrowserView({
+  const window = new WebContentsView({
     webPreferences: {
       devTools: isDev,
       // enableRemoteModule: false,
@@ -199,18 +200,36 @@ const createWindow = async (href?: string) => {
   }
 
   mainWindow.webContents.send('tabChange', getTabData());
-  return window;
+  return instance;
 };
 
 // Set active tab
-const setTab = (instance: BrowserView) => {
-  ContextMenu.clearMainBindings(ipcMain);
-  ContextMenu.mainBindings(ipcMain, instance, Menu, isDev, contextConfig);
+const tabBarHeight = 36;
 
-  mainWindow.setBrowserView(instance);
-  instance.setBounds({ x: 0, y: 36, width: mainWindow.getBounds().width, height: mainWindow.getBounds().height - 36 })
-  instance.setAutoResize({ width: true, height: true, horizontal: false, vertical: false });
+const layoutActiveView = () => {
+  if (!mainWindow || !activeInstance) {
+    return;
+  }
+  const { width, height } = mainWindow.getContentBounds();
+  activeInstance.window.setBounds({ x: 0, y: tabBarHeight, width, height: height - tabBarHeight });
+}
+
+const setTab = (instance: IWindowInstance) => {
+  ContextMenu.clearMainBindings(ipcMain);
+  ContextMenu.mainBindings(ipcMain, instance.window, mainWindow, Menu, isDev, contextConfig);
+
+  if (activeInstance && activeInstance !== instance) {
+    mainWindow.contentView.removeChildView(activeInstance.window);
+  }
+  activeInstance = instance;
+  mainWindow.contentView.addChildView(instance.window);
+  layoutActiveView();
   mainWindow.webContents.send('tabChange', getTabData());
+}
+
+const releaseInstance = (instance: IWindowInstance) => {
+  instance.serverProcess.kill();
+  instance.window.webContents.close();
 }
 
 interface TabList {
@@ -221,7 +240,7 @@ interface TabList {
 const getTabData = (): TabList => {
   return {
     tabs: listWindow.map((instance) => instance.name),
-    active: listWindow.find((instance) => instance.window.webContents.id === mainWindow.getBrowserView()?.webContents?.id)?.name || ''
+    active: activeInstance?.name || ''
   }
 }
 
@@ -282,8 +301,8 @@ function bootstrap() {
 }
 
 const newTab = async () => {
-  const window = await createWindow(mainWindow.getBrowserView()?.webContents.getURL());
-  setTab(window);
+  const instance = await createWindow(activeInstance?.window.webContents.getURL());
+  setTab(instance);
 }
 ipcMain.handle('open-url', async (event, url: string) => {
   if (canOpenExternally(url)) {
@@ -302,15 +321,14 @@ ipcMain.handle('get-tabs', async (event, href: string) => {
 
 ipcMain.handle('rename-tab', async (event, newName: string) => {
   // return getTabData();
-  const activeTab = listWindow.find((instance) => instance.window.webContents.id === mainWindow.getBrowserView()?.webContents?.id)
-  if (activeTab) {
-    activeTab.name = newName;
+  if (activeInstance) {
+    activeInstance.name = newName;
     mainWindow.webContents.send('tabChange', getTabData());
   }
 });
 
 ipcMain.handle('set-tab', async (event, tabName: string) => {
-  setTab(listWindow.find(instance => instance.name === tabName).window || listWindow[0].window)
+  setTab(listWindow.find(instance => instance.name === tabName) || listWindow[0])
 });
 
 const closeTab = (tabName: string) => {
@@ -320,7 +338,11 @@ const closeTab = (tabName: string) => {
     const currentState = getTabData();
     const closeIndex = listWindow.findIndex(instance => instance === closeInstance);
 
-    closeInstance.serverProcess.kill(); // Kill the server
+    if (closeInstance === activeInstance) {
+      mainWindow.contentView.removeChildView(closeInstance.window);
+      activeInstance = null;
+    }
+    releaseInstance(closeInstance);
     listWindow = listWindow.filter(instance => instance.name !== tabName); // Update the list
     if (listWindow.length === 0) {
       mainWindow.close();
@@ -330,18 +352,13 @@ const closeTab = (tabName: string) => {
     if (closeInstance.name === currentState.active) {
       // If close the active one, try to set new active to the previous tab
       log.verbose(`Try to set new active tab`);
-      setTab(listWindow[closeIndex <= 0 ? 0 : closeIndex - 1].window);
+      setTab(listWindow[closeIndex <= 0 ? 0 : closeIndex - 1]);
       return;
     }
 
     mainWindow.webContents.send('tabChange', getTabData());
     return;
   }
-}
-
-const getActiveInstance = () => {
-  const data = getTabData();
-  return listWindow.find(instance => instance.name === data.active);
 }
 
 ipcMain.handle('close-tab', async (event, tabName: string) => {
@@ -505,10 +522,7 @@ const template = [
         label: 'Reload',
         accelerator: 'CommandOrControl+R',
         click: () => {
-          const instance = getActiveInstance();
-          if (instance) {
-            instance.window.webContents.reload();
-          }
+          activeInstance?.window.webContents.reload();
         }
       },
       { role: 'toggleDevTools' },

@@ -10,12 +10,12 @@ class ContextMenu {
     this.cleanedTemplates = {};
   }
 
-  mainBindings(ipcMain, browserWindow, Menu, isDevelopment, templates) {
+  mainBindings(ipcMain, view, mainWindow, Menu, isDevelopment, templates) {
 
     // Anytime a user right-clicks the browser window, send where they
     // clicked to the renderer process
-    browserWindow.webContents.on("context-menu", (event, params) => {
-      browserWindow.webContents.send(contextMenuRequest, {
+    view.webContents.on("context-menu", (event, params) => {
+      view.webContents.send(contextMenuRequest, {
         params
       });
     });
@@ -39,7 +39,7 @@ class ContextMenu {
           generatedContextMenu.push({
             label: "Inspect element",
             click: () => {
-              browserWindow.inspectElement(args.params.x, args.params.y);
+              view.webContents.inspectElement(args.params.x, args.params.y);
             }
           });
         }
@@ -51,7 +51,7 @@ class ContextMenu {
           for (let i = 0; i < generatedContextMenu.length; i++) {
             if (typeof generatedContextMenu[i]["click"] === "undefined") {
               generatedContextMenu[i].click = function (event, window, webContents) {
-                browserWindow.webContents.send(contextMenuClicked, {
+                view.webContents.send(contextMenuClicked, {
                   id: `${idPrepend}${(generatedContextMenu[i].id || generatedContextMenu[i].label)}`
                 });
               }
@@ -64,7 +64,7 @@ class ContextMenu {
       }
       generatedContextMenu = this.cleanedTemplates[cleanedTemplatesKey];
 
-      Menu.buildFromTemplate(generatedContextMenu).popup(browserWindow);
+      Menu.buildFromTemplate(generatedContextMenu).popup({ window: mainWindow });
     });
   }
 
