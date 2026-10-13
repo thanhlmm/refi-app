@@ -1,5 +1,3 @@
-window.uuid = window.ipc.uuid;
-
 const replyHandlers = new Map();
 const listeners = new Map();
 
@@ -40,7 +38,7 @@ window.ipc.onMessage((msg) => {
 
 function send(name, args) {
   return new Promise((resolve, reject) => {
-    let id = window.uuid.v4();
+    let id = crypto.randomUUID();
     replyHandlers.set(id, { resolve, reject });
     window.ipc.request({ id, name, args });
   });

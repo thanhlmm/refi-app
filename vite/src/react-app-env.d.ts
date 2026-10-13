@@ -67,5 +67,5 @@ interface Window {
     renameTab: (name: string) => void;
   };
   projectId: string;
-  os: "Darwin" | string;
+  platform: string;
 }

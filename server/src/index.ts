@@ -105,7 +105,8 @@ const createMainWindow = async () => {
     webPreferences: {
       devTools: isDev,
       // enableRemoteModule: false,
-      contextIsolation: false,
+      contextIsolation: true,
+      sandbox: true,
       nodeIntegration: false,
       preload: __dirname + "/tab-preload.js",
       disableDialogs: false,
@@ -149,7 +150,8 @@ const createWindow = async (href?: string) => {
     webPreferences: {
       devTools: isDev,
       // enableRemoteModule: false,
-      contextIsolation: false,
+      contextIsolation: true,
+      sandbox: true,
       nodeIntegration: false,
       preload: __dirname + "/client-preload.js",
       disableDialogs: false,
@@ -285,6 +287,12 @@ const newTab = async () => {
   const window = await createWindow(mainWindow.getBrowserView()?.webContents.getURL());
   setTab(window);
 }
+ipcMain.handle('open-url', async (event, url: string) => {
+  if (canOpenExternally(url)) {
+    await shell.openExternal(url);
+  }
+});
+
 ipcMain.handle('new-tab', async (event, href: string) => {
   // Create new tab
   await newTab();
