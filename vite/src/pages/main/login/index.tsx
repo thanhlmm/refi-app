@@ -206,11 +206,12 @@ const LoginPage: React.FC = () => {
               <Anchor
                 href="https://www.notion.so/cuthanh/How-to-get-my-credential-file-781fb9bfa0cf479a81b72a272728808c"
                 className="pt-2 text-sm"
-                onClick={() =>
+                onClick={(e) => {
+                  e.preventDefault();
                   window.api.openUrl(
                     "https://www.notion.so/cuthanh/How-to-get-my-credential-file-781fb9bfa0cf479a81b72a272728808c"
-                  )
-                }
+                  );
+                }}
               >
                 I don&apos;t know how to get credential file
               </Anchor>
