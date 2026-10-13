@@ -45,7 +45,7 @@ const LoginPage: React.FC = () => {
 
     const fileBase64 = await toBase64(acceptedFiles[0]);
     window
-      .send("cert.storeKey", { file: fileBase64, foo: "bar" })
+      .send("cert.storeKey", { file: fileBase64 as string })
       .then(() => {
         reloadCerts((val) => val + 1);
       })

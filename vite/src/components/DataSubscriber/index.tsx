@@ -140,7 +140,7 @@ const DataSubscriber = () => {
         startAfter,
         endBefore,
       })
-      .then(({ id, queryResult }) => {
+      .then(({ id }) => {
         subscribeId.current = id;
       })
       .catch(notifyErrorPromise);

@@ -27,6 +27,10 @@
         "typescript": "^3.8.3",
       },
     },
+    "ipc": {
+      "name": "refi-ipc",
+      "version": "1.0.0",
+    },
     "server": {
       "name": "refi-app",
       "version": "0.0.19",
@@ -57,6 +61,7 @@
         "eslint": "^7.6.0",
         "eslint-plugin-import": "^2.20.0",
         "npm-run-all": "^4.1.5",
+        "refi-ipc": "workspace:*",
         "source-map-support": "^0.5.19",
         "terser": "^5.6.1",
         "typescript": "^4.0.2",
@@ -152,6 +157,7 @@
         "postcss-preset-env": "^6.7.0",
         "postcss-safe-parser": "^5.0.2",
         "prettier": "^2.2.1",
+        "refi-ipc": "workspace:*",
         "tailwindcss": "2.2.16",
         "typescript": "~4.9.5",
         "vite": "^2.0.1",
@@ -2172,6 +2178,8 @@
     "refi-app": ["refi-app@workspace:server"],
 
     "refi-client": ["refi-client@workspace:vite"],
+
+    "refi-ipc": ["refi-ipc@workspace:ipc"],
 
     "regenerator-runtime": ["regenerator-runtime@0.13.7", "", {}, "sha512-a54FxoJDIr27pgf7IgeQGxmqUNYrcV338lf/6gH456HZ/PhX+5BcwHXG9ajESmwe6WRO0tAzRUrRmNONWgkrew=="],
 

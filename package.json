@@ -5,6 +5,7 @@
     "vite",
     "server",
     "firestore-serializers",
+    "ipc",
     "e2e"
   ],
   "packageManager": "bun@1.4.2",

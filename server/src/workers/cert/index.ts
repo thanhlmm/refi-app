@@ -2,9 +2,10 @@ import path from 'path';
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 
+import type { ICertificateData, IRemoveKey, IStoreKey } from "refi-ipc";
 import { IServiceContext } from "../service";
 
-export default class CertService implements NSCert.IService {
+export default class CertService {
   private ctx: IServiceContext;
   constructor(ctx: IServiceContext) {
     this.ctx = ctx;
@@ -17,7 +18,7 @@ export default class CertService implements NSCert.IService {
     return keyContent;
   }
 
-  public async storeKey({ file }: NSCert.IStoreKey): Promise<boolean> {
+  public async storeKey({ file }: IStoreKey): Promise<boolean> {
     const base64data = file.split(';base64,').pop();
 
     const keyPath = path.join(this.ctx.userDataPath, 'Keys', `${uuidv4()}.json`);
@@ -37,12 +38,12 @@ export default class CertService implements NSCert.IService {
     return true;
   }
 
-  public async getKeys(): Promise<NSCert.ICertificateData[]> {
+  public async getKeys(): Promise<ICertificateData[]> {
     return this.ctx.localDB.get('keys')
       .value()
   }
 
-  public async removeKey({ projectId }: NSCert.IRemoveKey): Promise<boolean> {
+  public async removeKey({ projectId }: IRemoveKey): Promise<boolean> {
     const keys = await this.getKeys();
     try {
       const keyData = keys.find(key => key.projectId === projectId);

@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import type { IAddDoc, IAddDocs, ICollectionSubscribe, IDocSubscribe, IExportCollection, IExportCollectionResponse, IFSInit, IGetDocs, IImportDocs, IListenerKey, IPathSubscribe, IRemoveCollections, IRemoveDocs, IUpdateDocs } from "refi-ipc";
 import { IServiceContext } from "../service";
 import { getDocMetaData } from "../../utils/converter";
 import { v4 as uuidv4 } from 'uuid';
@@ -11,7 +12,7 @@ import axios from 'axios';
 
 const DOCS_PER_PAGE = 200;
 
-export default class FireStoreService implements NSFireStore.IService {
+export default class FireStoreService {
   private ctx: IServiceContext;
   private app: admin.app.App;
   private listListeners: NSFireStore.IListenerEntity[] = [];
@@ -36,7 +37,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return admin.firestore(this.app)
   }
 
-  public async init({ projectId }: NSFireStore.IFSInit): Promise<string[]> {
+  public async init({ projectId }: IFSInit): Promise<string[]> {
     if (projectId.includes(':')) {
       return await this.initEmulator({ projectId });
     }
@@ -62,7 +63,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return collections.map(collection => collection.path)
   }
 
-  public async initEmulator({ projectId: connection }: NSFireStore.IFSInit): Promise<string[]> {
+  public async initEmulator({ projectId: connection }: IFSInit): Promise<string[]> {
     const { host, port, projectId } = parseEmulatorConnection(connection);
     try {
       await axios.get(`http://${host}:${port}`);
@@ -86,7 +87,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return collections.map(collection => collection.path)
   }
 
-  public async subscribeDoc({ path, topic }: NSFireStore.IDocSubscribe) {
+  public async subscribeDoc({ path, topic }: IDocSubscribe) {
     log.verbose("received event fs.query.subscribe", { path, topic });
     const close = this.fsClient()
       .doc(path)
@@ -122,7 +123,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return { id: listenerData.id };
   }
 
-  public async subscribeCollection({ path, topic, queryOptions, sortOptions, queryVersion, startAfter, endBefore, startAt, endAt }: NSFireStore.ICollectionSubscribe) {
+  public async subscribeCollection({ path, topic, queryOptions, sortOptions, queryVersion, startAfter, endBefore, startAt, endAt }: ICollectionSubscribe) {
     log.verbose("received event fs.queryCollection.subscribe", { path, topic });
     log.verbose(sortOptions);
 
@@ -222,7 +223,7 @@ export default class FireStoreService implements NSFireStore.IService {
     };
   };
 
-  public async subscribePathExplorer({ path, topic }: NSFireStore.IPathSubscribe) {
+  public async subscribePathExplorer({ path, topic }: IPathSubscribe) {
     log.verbose("received event fs.pathExplorer", { path, topic });
     // TODO: Change me to not realtime
     const close = this.fsClient()
@@ -251,7 +252,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return { id: listenerData.id };
   };
 
-  public async updateDocs({ docs }: NSFireStore.IUpdateDocs): Promise<boolean> {
+  public async updateDocs({ docs }: IUpdateDocs): Promise<boolean> {
     const fs = this.fsClient();
     const docsSnapshot = deserializeDocumentSnapshotArray(docs, admin.firestore.GeoPoint, admin.firestore.Timestamp, path => fs.doc(path))
     try {
@@ -286,7 +287,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return true;
   };
 
-  public async unsubscribe({ id }: NSFireStore.IListenerKey) {
+  public async unsubscribe({ id }: IListenerKey) {
     const dataSource = this.listListeners.filter((doc) => doc.id === id);
     dataSource.forEach((source) => {
       source.close();
@@ -297,14 +298,14 @@ export default class FireStoreService implements NSFireStore.IService {
     return true;
   };
 
-  public async addDoc({ doc, path }: NSFireStore.IAddDoc): Promise<string> {
+  public async addDoc({ doc, path }: IAddDoc): Promise<string> {
     const fs = this.fsClient();
     const newDoc = await fs.collection(path).add(doc);
 
     return newDoc.path;
   }
 
-  public async addDocs({ docs }: NSFireStore.IAddDocs): Promise<boolean> {
+  public async addDocs({ docs }: IAddDocs): Promise<boolean> {
     const fs = this.fsClient();
     const docsSnapshot = deserializeDocumentSnapshotArray(docs, admin.firestore.GeoPoint, admin.firestore.Timestamp, path => fs.doc(path))
 
@@ -334,7 +335,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return true
   }
 
-  public async deleteDocs({ docs }: NSFireStore.IRemoveDocs): Promise<boolean> {
+  public async deleteDocs({ docs }: IRemoveDocs): Promise<boolean> {
     const fs = this.fsClient();
 
     const docsTrunk = chunk(docs, 500); // Split by 500 each chunk
@@ -350,7 +351,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return true;
   }
 
-  public async deleteCollections({ collections }: NSFireStore.IRemoveCollections): Promise<boolean> {
+  public async deleteCollections({ collections }: IRemoveCollections): Promise<boolean> {
     // TODO: Check this solution https://firebase.google.com/docs/firestore/solutions/delete-collections
     const fs = this.fsClient();
 
@@ -391,7 +392,7 @@ export default class FireStoreService implements NSFireStore.IService {
     });
   }
 
-  public async importDocs({ docs, path, option: { idField = null, autoParseJSON } }: NSFireStore.IImportDocs): Promise<boolean> {
+  public async importDocs({ docs, path, option: { idField = null, autoParseJSON } }: IImportDocs): Promise<boolean> {
     const fs = this.fsClient();
     const collection = fs.collection(path);
 
@@ -426,7 +427,7 @@ export default class FireStoreService implements NSFireStore.IService {
     return true
   }
 
-  public async exportCollection({ path }: NSFireStore.IExportCollection): Promise<NSFireStore.IExportCollectionResponse> {
+  public async exportCollection({ path }: IExportCollection): Promise<IExportCollectionResponse> {
     const fs = this.fsClient();
     return fs.collection(path).get().then(querySnapshot => {
       const docs = serializeQuerySnapshot(querySnapshot);
@@ -436,7 +437,7 @@ export default class FireStoreService implements NSFireStore.IService {
     });
   }
 
-  public async getDocs({ docs }: NSFireStore.IGetDocs): Promise<string> {
+  public async getDocs({ docs }: IGetDocs): Promise<string> {
     const fs = this.fsClient();
     const docsSnapshot = await Promise.all(docs.map(doc => fs.doc(doc).get()))
     return serializeQuerySnapshot({

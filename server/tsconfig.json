@@ -3,6 +3,7 @@
     "allowJs": true,
     "module": "commonjs",
     "noImplicitAny": true,
+    "strictBindCallApply": true,
     "inlineSourceMap": true,
     "inlineSources": true,
     "baseUrl": ".",
