@@ -233,12 +233,15 @@ function createBackgroundProcess() {
 
 function attachWorkerRelay(instance: IWindowInstance) {
   instance.serverProcess.on("message", (msg: any) => {
+    log.debug(`${instance.name} worker -> page`, msg);
+
     if (msg?.type === "ready") {
       instance.workerReady = true;
       instance.pendingRequests.forEach(request => instance.serverProcess.send(request));
       instance.pendingRequests = [];
       return;
     }
+
     const { webContents } = instance.window;
     if (!webContents.isDestroyed()) {
       webContents.send("worker-message", msg);
@@ -251,6 +254,9 @@ ipcMain.on("worker-request", (event, msg) => {
   if (!instance) {
     return;
   }
+
+  log.debug(`${instance.name} page -> worker`, msg);
+
   if (instance.workerReady) {
     instance.serverProcess.send(msg);
   } else {
