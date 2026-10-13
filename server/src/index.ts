@@ -21,7 +21,6 @@ import { app, BrowserWindow, ipcMain, Menu, dialog, BrowserView, globalShortcut,
 import { fork, ChildProcess } from "child_process";
 import * as path from 'path';
 import fs from 'fs';
-import findOpenSocket from './utils/find-open-socket';
 import db from './client/db';
 import ContextMenu from './lib/electron-context-menu'
 import { contextConfig } from './contextMenu';
@@ -34,8 +33,9 @@ app.disableHardwareAcceleration()
 
 interface IWindowInstance {
   window: BrowserView;
-  serverSocket: string;
   serverProcess: ChildProcess;
+  workerReady: boolean;
+  pendingRequests: any[];
   name: string;
 }
 
@@ -150,8 +150,15 @@ const createWindow = async (href?: string) => {
     },
   });
 
-  // Create sever process
-  const { serverSocket, serverProcess } = await createBackgroundProcess(window);
+  const instance: IWindowInstance = {
+    window,
+    serverProcess: createBackgroundProcess(),
+    workerReady: false,
+    pendingRequests: [],
+    name: uniqueId('Tab '),
+  };
+  listWindow.push(instance);
+  attachWorkerRelay(instance);
 
   // and load the index.html of the app.
 
@@ -175,21 +182,6 @@ const createWindow = async (href?: string) => {
   if (isDev) {
     window.webContents.openDevTools({ mode: 'detach' })
   }
-
-  window.webContents.on("did-finish-load", () => {
-    if (serverSocket) {
-      window.webContents.send("set-socket", {
-        name: serverSocket,
-      });
-    }
-  });
-
-  listWindow.push({
-    window,
-    serverSocket,
-    serverProcess,
-    name: uniqueId('Tab ')
-  });
 
   mainWindow.webContents.send('tabChange', getTabData());
   return window;
@@ -219,13 +211,10 @@ const getTabData = (): TabList => {
 }
 
 // TODO: Also restart background process when user reload the app
-async function createBackgroundProcess(window?: BrowserWindow | BrowserView) {
-  const serverSocket = await findOpenSocket();
-  log.info(`Create background process for ${serverSocket}`);
+function createBackgroundProcess() {
   const serverProcess = fork(__dirname + "/workers/server.js", [
     "--subprocess",
     app.getVersion(),
-    serverSocket,
   ], {
     cwd: app.getPath('userData')
   });
@@ -239,21 +228,35 @@ async function createBackgroundProcess(window?: BrowserWindow | BrowserView) {
     });
   }
 
-  if (window) {
-    setTimeout(() => {
-      log.info('Notified client that the background process is live');
-      window.webContents.send("set-socket", {
-        name: serverSocket,
-      });
-    }, 300);
-  }
-
-  serverProcess.on("message", (msg: any) => {
-    log.info(msg);
-  });
-
-  return { serverProcess, serverSocket };
+  return serverProcess;
 }
+
+function attachWorkerRelay(instance: IWindowInstance) {
+  instance.serverProcess.on("message", (msg: any) => {
+    if (msg?.type === "ready") {
+      instance.workerReady = true;
+      instance.pendingRequests.forEach(request => instance.serverProcess.send(request));
+      instance.pendingRequests = [];
+      return;
+    }
+    const { webContents } = instance.window;
+    if (!webContents.isDestroyed()) {
+      webContents.send("worker-message", msg);
+    }
+  });
+}
+
+ipcMain.on("worker-request", (event, msg) => {
+  const instance = listWindow.find(item => item.window.webContents.id === event.sender.id);
+  if (!instance) {
+    return;
+  }
+  if (instance.workerReady) {
+    instance.serverProcess.send(msg);
+  } else {
+    instance.pendingRequests.push(msg);
+  }
+});
 
 function bootstrap() {
   // Init key store

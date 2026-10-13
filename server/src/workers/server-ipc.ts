@@ -1,49 +1,28 @@
-const ipc = require('node-ipc');
 import log from 'electron-log';
 
-export function init(socketName: string, handlers: Record<string, Function>, buffer = false) {
-  ipc.config.id = socketName;
-  ipc.config.silent = false;
-  ipc.config.logger = log.debug;
-  ipc.config.rawBuffer = buffer;
+export function init(handlers: Record<string, Function>) {
+  process.on('message', (msg: { id: string, name: string, args: any }) => {
+    const { id, name, args } = msg
 
-  ipc.serve(() => {
-    ipc.server.on('message', (data: string, socket: any) => {
-      let msg = JSON.parse(data)
-      let { id, name, args } = msg
-
-      if (handlers[name]) {
-        handlers[name](args).then(
-          (result: any) => {
-            ipc.server.emit(
-              socket,
-              'message',
-              JSON.stringify({ type: 'reply', id, result })
-            )
-          },
-          (error: Error) => {
-            log.verbose('this is error throw to client');
-            log.error(error);
-            ipc.server.emit(
-              socket,
-              'message',
-              JSON.stringify({ type: 'error', id, message: error.message })
-            )
-            throw error
-          }
-        )
-      } else {
-        console.warn('Unknown method: ' + name)
-        ipc.server.emit(
-          socket,
-          'message',
-          JSON.stringify({ type: 'reply', id, result: null })
-        )
-      }
-    })
+    if (handlers[name]) {
+      handlers[name](args).then(
+        (result: any) => {
+          process.send!({ type: 'reply', id, result })
+        },
+        (error: Error) => {
+          log.verbose('this is error throw to client');
+          log.error(error);
+          process.send!({ type: 'error', id, message: error.message })
+          throw error
+        }
+      )
+    } else {
+      console.warn('Unknown method: ' + name)
+      process.send!({ type: 'reply', id, result: null })
+    }
   })
 
-  ipc.server.start()
+  process.send!({ type: 'ready' })
 }
 
 interface ISendOption {
@@ -51,7 +30,7 @@ interface ISendOption {
 }
 
 export function send(name: string, args: any, option: ISendOption = { firestore: false }) {
-  ipc.server.broadcast('message', JSON.stringify({ type: 'push', name, args, option }))
+  process.send!({ type: 'push', name, args, option })
 }
 
 export default { init, send }

@@ -1,34 +1,12 @@
 const { ipcRenderer, shell } = require('electron')
-const ipc = require('node-ipc')
 const uuid = require('uuid')
 const ContextMenu = require("./lib/electron-context-menu").default;
 const os = require("os"); // Comes with node.js
 const { webFrame } = require('electron')
 
-let resolveSocketPromise
-let socketPromise = new Promise(resolve => {
-  resolveSocketPromise = resolve
-})
-
-// Electron 12 dev mode on Windows stops polling the renderer's libuv loop, stranding node-ipc replies; a live timer keeps it polling.
-require('timers').setInterval(() => {}, 100)
-
-ipcRenderer.on('set-socket', (event, { name }) => {
-  resolveSocketPromise(name)
-})
-
 window.ipc = {
-  getServerSocket: () => {
-    return socketPromise
-  },
-  ipcConnect: (id, func, buffer = false) => {
-    ipc.config.silent = true;
-    ipc.config.rawBuffer = buffer;
-
-    ipc.connectTo(id, () => {
-      func(ipc.of[id])
-    })
-  },
+  request: (msg) => ipcRenderer.send('worker-request', msg),
+  onMessage: (cb) => ipcRenderer.on('worker-message', (event, msg) => cb(msg)),
   uuid: uuid
 }
 

@@ -9,22 +9,9 @@ process.on('unhandledRejection', (error) => {
 import serverHandlers from './server-handlers';
 import ipc from './server-ipc';
 
-let version;
-
 log.info("Starting IPC server");
 log.debug(process.argv);
-if (process.argv[2] === "--subprocess") {
-  version = process.argv[3];
-
-  let socketName = process.argv[4];
-  ipc.init(socketName, serverHandlers);
-} else {
-  let { ipcRenderer } = require("electron");
-  // version = remote.app.getVersion();
-
-  ipcRenderer.on("set-socket", (event: any, { name }: { name: string }) => {
-    ipc.init(name, serverHandlers);
-  });
-}
+const version = process.argv[3];
+ipc.init(serverHandlers);
 
 log.info(`Initiated IPC server v${version}`);
