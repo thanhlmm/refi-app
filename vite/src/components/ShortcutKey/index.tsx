@@ -1,5 +1,6 @@
 import React from "react";
 import classNames from "classnames";
+import { isMacOS } from "@/utils/platform";
 
 interface IShortcutKeyProps {
   hotkey: string | string[];
@@ -27,7 +28,7 @@ const ShortcutKey = ({
         return "⌥";
       }
 
-      if (key === "control" && window.os === "Darwin") {
+      if (key === "control" && isMacOS()) {
         return "⌃";
       }
 

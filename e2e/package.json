@@ -5,7 +5,7 @@
     "test": "firebase emulators:exec --only firestore --project demo-refi-e2e \"playwright test\""
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
+    "@playwright/test": "1.64.0",
     "firebase-admin": "9.5.0",
     "firebase-tools": "15.33.0"
   }

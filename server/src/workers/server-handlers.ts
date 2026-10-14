@@ -1,3 +1,4 @@
+import type { WorkerRequests } from "refi-ipc";
 import { send } from "./server-ipc";
 import db from '../client/db';
 import { IServiceContext } from './service';
@@ -5,7 +6,6 @@ import FireStoreService from './firestore';
 import CertService from './cert';
 
 const userDataPath = process.cwd();
-const handlers: Record<string, Function> = {};
 
 // Create service context
 const ctx: IServiceContext = {
@@ -20,24 +20,28 @@ const ctx: IServiceContext = {
 const certService = new CertService(ctx);
 const fsService = new FireStoreService(ctx);
 
-handlers["cert.storeKey"] = certService.storeKey.bind(certService);
-handlers["cert.getKeys"] = certService.getKeys.bind(certService);
-handlers["cert.removeKey"] = certService.removeKey.bind(certService);
+const handlers: {
+  [Name in keyof WorkerRequests]: (args: WorkerRequests[Name]["args"]) => Promise<WorkerRequests[Name]["result"]>
+} = {
+  "cert.storeKey": certService.storeKey.bind(certService),
+  "cert.getKeys": certService.getKeys.bind(certService),
+  "cert.removeKey": certService.removeKey.bind(certService),
 
-handlers["fs.init"] = fsService.init.bind(fsService);
-handlers["fs.queryDoc.subscribe"] = fsService.subscribeDoc.bind(fsService);
-handlers["fs.queryCollection.subscribe"] = fsService.subscribeCollection.bind(fsService);
-handlers["fs.pathExplorer.subscribe"] = fsService.subscribePathExplorer.bind(fsService);
-handlers["fs.updateDocs"] = fsService.updateDocs.bind(fsService);
-handlers["fs.addDoc"] = fsService.addDoc.bind(fsService);
-handlers["fs.addDocs"] = fsService.addDocs.bind(fsService);
-handlers["fs.deleteDocs"] = fsService.deleteDocs.bind(fsService);
-handlers["fs.deleteCollections"] = fsService.deleteCollections.bind(fsService);
-handlers["fs.importDocs"] = fsService.importDocs.bind(fsService);
-handlers["fs.exportCollection"] = fsService.exportCollection.bind(fsService);
-handlers["fs.getDocs"] = fsService.getDocs.bind(fsService);
-handlers["fs.unsubscribe"] = fsService.unsubscribe.bind(fsService);
-handlers['fs.pathExpander'] = fsService.pathExpander.bind(fsService);
-handlers['fs.getSimulatorData'] = fsService.getSimulatorData.bind(fsService);
+  "fs.init": fsService.init.bind(fsService),
+  "fs.queryDoc.subscribe": fsService.subscribeDoc.bind(fsService),
+  "fs.queryCollection.subscribe": fsService.subscribeCollection.bind(fsService),
+  "fs.pathExplorer.subscribe": fsService.subscribePathExplorer.bind(fsService),
+  "fs.updateDocs": fsService.updateDocs.bind(fsService),
+  "fs.addDoc": fsService.addDoc.bind(fsService),
+  "fs.addDocs": fsService.addDocs.bind(fsService),
+  "fs.deleteDocs": fsService.deleteDocs.bind(fsService),
+  "fs.deleteCollections": fsService.deleteCollections.bind(fsService),
+  "fs.importDocs": fsService.importDocs.bind(fsService),
+  "fs.exportCollection": fsService.exportCollection.bind(fsService),
+  "fs.getDocs": fsService.getDocs.bind(fsService),
+  "fs.unsubscribe": fsService.unsubscribe.bind(fsService),
+  "fs.pathExpander": fsService.pathExpander.bind(fsService),
+  "fs.getSimulatorData": fsService.getSimulatorData.bind(fsService),
+};
 
 export default handlers;

@@ -13,7 +13,7 @@ export const certs = selector({
   key: "certs",
   get: async ({ get }): Promise<ICertificateData[]> => {
     get(certsQueryID);
-    const response = await window.send("cert.getKeys", null);
+    const response = await window.send("cert.getKeys");
     return response;
   },
 });

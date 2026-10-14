@@ -3,6 +3,8 @@
     "allowJs": true,
     "module": "commonjs",
     "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
     "inlineSourceMap": true,
     "inlineSources": true,
     "baseUrl": ".",
@@ -10,6 +12,7 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "skipLibCheck": true,
     "types": ["node"],
     "paths": {
       "*": [

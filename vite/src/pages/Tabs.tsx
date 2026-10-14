@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Tabs, TabList, Tab } from "@zendeskgarden/react-tabs";
 import classNames from "classnames";
+import { isMacOS } from "@/utils/platform";
 // import BrowserView from "react-electron-browser-view";
 
 const TabsPage = () => {
@@ -58,15 +59,14 @@ const TabsPage = () => {
     window.api.toggleMaximumWindow();
   };
 
-  const isMacOS = window.os === "darwin" || window.os === "Darwin";
-  // const isMacOS = false;
+  const isMac = isMacOS();
 
   return (
     <div className="flex flex-col h-screen">
       <div
         className={classNames("flex flex-row justify-between h-9", {
-          ["mr-30"]: !isMacOS,
-          ["ml-20"]: isMacOS,
+          ["mr-30"]: !isMac,
+          ["ml-20"]: isMac,
         })}
         id="drag-title"
         onDoubleClick={handleToggleMaximumWindow}
@@ -74,8 +74,8 @@ const TabsPage = () => {
         <Tabs selectedItem={selectedTab} onChange={handleSelectTab}>
           <TabList
             className={classNames("box-content m-0 border-b-0", {
-              ["bg-gray-500"]: !isMacOS,
-              ["bg-gray-300"]: isMacOS,
+              ["bg-gray-500"]: !isMac,
+              ["bg-gray-300"]: isMac,
             })}
           >
             {tabList.map((tab) => (
@@ -86,8 +86,8 @@ const TabsPage = () => {
                   "py-2 px-8 border-0 text-left group relative",
                   {
                     ["bg-white"]: tab === selectedTab,
-                    ["text-white"]: !isMacOS && tab !== selectedTab,
-                    ["text-gray-600"]: isMacOS && tab !== selectedTab,
+                    ["text-white"]: !isMac && tab !== selectedTab,
+                    ["text-gray-600"]: isMac && tab !== selectedTab,
                   }
                 )}
               >
@@ -112,8 +112,8 @@ const TabsPage = () => {
             <Tab
               item="add"
               className={classNames("px-3 py-2 border-0", {
-                ["text-white"]: !isMacOS,
-                ["text-gray-600"]: isMacOS,
+                ["text-white"]: !isMac,
+                ["text-gray-600"]: isMac,
               })}
             >
               <svg
@@ -129,7 +129,7 @@ const TabsPage = () => {
           </TabList>
         </Tabs>
         <section className="draggable-containers p-3 xl:w-auto flex-1  md:w-auto sm:w-auto"></section>
-        {!isMacOS && (
+        {!isMac && (
           <div className="flex flex-row items-stretch justify-center">
             <div
               className="p-3 hover:bg-gray-600"

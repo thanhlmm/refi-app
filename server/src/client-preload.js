@@ -1,32 +1,117 @@
-const { ipcRenderer, shell } = require('electron')
-const uuid = require('uuid')
-const ContextMenu = require("./lib/electron-context-menu").default;
-const os = require("os"); // Comes with node.js
-const { webFrame } = require('electron')
+const { contextBridge, ipcRenderer, webFrame } = require('electron')
 
-window.ipc = {
-  request: (msg) => ipcRenderer.send('worker-request', msg),
-  onMessage: (cb) => ipcRenderer.on('worker-message', (event, msg) => cb(msg)),
-  uuid: uuid
+// Channel names must match lib/electron-context-menu
+const contextMenuRequest = 'ContextMenu-Request'
+const contextMenuResponse = 'ContextMenu-Response'
+const contextMenuClicked = 'ContextMenu-Clicked'
+
+const templateAttribute = 'data-cm-template'
+const payloadAttribute = 'data-cm-payload'
+const idAttribute = 'data-cm-id'
+
+let menuId = ''
+let selectedElementAttributes = {}
+let contextMenuParams = {}
+let callbacks = {}
+
+const findContextElement = (element, x, y) => {
+  if (!element) {
+    return null
+  }
+
+  const { top, left, right, bottom } = element.getBoundingClientRect()
+  if (x < left || x > right || y < top || y > bottom) {
+    return null
+  }
+
+  const template = element.getAttribute(templateAttribute)
+  if (template !== '' && template !== null) {
+    return element
+  }
+
+  return findContextElement(element.parentElement, x, y)
 }
 
-window.os = os.type()
+const onContextMenuRequest = (event, args) => {
+  let template = null
+  selectedElementAttributes = {}
+  contextMenuParams = args.params
 
-window.api = {
-  contextMenu: ContextMenu.preloadBindings(ipcRenderer),
-  openUrl: (url) => shell.openExternal(url),
+  const element = findContextElement(document.elementFromPoint(args.params.x, args.params.y), args.params.x, args.params.y)
+  if (element !== null) {
+    const elementTemplate = element.getAttribute(templateAttribute)
+    if (elementTemplate !== '' && elementTemplate !== null) {
+      for (const attribute of element.attributes) {
+        if (attribute.name.indexOf(payloadAttribute) >= 0) {
+          selectedElementAttributes[attribute.name.replace(`${payloadAttribute}-`, '')] = attribute.value
+        } else if (attribute.name.indexOf(idAttribute) >= 0) {
+          menuId = attribute.value
+        }
+      }
+      template = elementTemplate
+    }
+  }
+
+  ipcRenderer.send(contextMenuResponse, { id: menuId, params: args.params, template })
+}
+
+const onContextMenuClicked = (event, args) => {
+  if (typeof callbacks[args.id] !== 'undefined') {
+    callbacks[args.id]({ params: contextMenuParams, attributes: selectedElementAttributes })
+  }
+}
+
+ipcRenderer.on(contextMenuRequest, onContextMenuRequest)
+ipcRenderer.on(contextMenuClicked, onContextMenuClicked)
+
+const contextMenu = {
+  onReceive: (actionId, func, id) => {
+    callbacks[id === undefined ? actionId : `${id}___${actionId}`] = func
+  },
+  clearRendererBindings: (actionId, id) => {
+    if (actionId) {
+      delete callbacks[id === undefined ? actionId : `${id}___${actionId}`]
+      return
+    }
+
+    callbacks = {}
+    contextMenuParams = {}
+    menuId = ''
+  },
+}
+
+let workerPort = null
+let pendingRequests = []
+const messageListeners = []
+
+ipcRenderer.on('worker-port', (event) => {
+  workerPort = event.ports[0]
+  workerPort.onmessage = (portEvent) => messageListeners.forEach((cb) => cb(portEvent.data))
+  pendingRequests.forEach((msg) => workerPort.postMessage(msg))
+  pendingRequests = []
+})
+ipcRenderer.send('connect-worker')
+
+contextBridge.exposeInMainWorld('ipc', {
+  request: (msg) => {
+    if (workerPort) {
+      workerPort.postMessage(msg)
+    } else {
+      pendingRequests.push(msg)
+    }
+  },
+  onMessage: (cb) => messageListeners.push(cb),
+})
+
+contextBridge.exposeInMainWorld('platform', process.platform)
+
+contextBridge.exposeInMainWorld('api', {
+  contextMenu,
+  openUrl: (url) => ipcRenderer.invoke('open-url', url),
   webFrame: {
-    setZoomFactor: (factor) => {
-      webFrame.setZoomFactor(factor)
-    },
-    getZoomFactor: () => webFrame.getZoomFactor()
+    setZoomFactor: (factor) => webFrame.setZoomFactor(factor),
+    getZoomFactor: () => webFrame.getZoomFactor(),
   },
-  newTab: () => {
-    ipcRenderer.invoke('new-tab', window.location.href);
-  },
-  renameTab: (name) => {
-    return ipcRenderer.invoke('rename-tab', name);
-  },
-}
-
-console.log('Done preload client');
+  newTab: () => ipcRenderer.invoke('new-tab', window.location.href),
+  renameTab: (name) => ipcRenderer.invoke('rename-tab', name),
+})

@@ -17,8 +17,7 @@ if (!isDev) {
 
 process.on('unhandledRejection', log.error);
 
-import { app, BrowserWindow, ipcMain, Menu, dialog, BrowserView, globalShortcut, MenuItem } from 'electron';
-import { fork, ChildProcess } from "child_process";
+import { app, BrowserWindow, ipcMain, Menu, dialog, WebContentsView, globalShortcut, MenuItem, shell, utilityProcess, MessageChannelMain, UtilityProcess } from 'electron';
 import * as path from 'path';
 import fs from 'fs';
 import db from './client/db';
@@ -32,10 +31,11 @@ serve({ directory: 'build' });
 app.disableHardwareAcceleration()
 
 interface IWindowInstance {
-  window: BrowserView;
-  serverProcess: ChildProcess;
+  view: WebContentsView;
+  serverProcess: UtilityProcess | null;
   workerReady: boolean;
-  pendingRequests: any[];
+  workerExited: boolean;
+  connectRequested: boolean;
   name: string;
 }
 
@@ -43,8 +43,18 @@ let listWindow: IWindowInstance[] = [];
 
 let mainWindow: BrowserWindow;
 
+let activeInstance: IWindowInstance | null = null;
+
 const isMacOS = process.platform === 'darwin';
 // const isMacOS = false;
+
+const canOpenExternally = (url: string) => {
+  try {
+    return ["http:", "https:", "mailto:"].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+};
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -64,7 +74,7 @@ if (!isDev) {
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
     log.debug('Downloaded new update');
     const dialogOpts = {
-      type: 'info',
+      type: 'info' as const,
       buttons: ['Restart', 'Later'],
       title: 'Application Update',
       message: process.platform === 'win32' ? releaseNotes : releaseName,
@@ -97,7 +107,8 @@ const createMainWindow = async () => {
     webPreferences: {
       devTools: isDev,
       // enableRemoteModule: false,
-      contextIsolation: false,
+      contextIsolation: true,
+      sandbox: true,
       nodeIntegration: false,
       preload: __dirname + "/tab-preload.js",
       disableDialogs: false,
@@ -114,12 +125,12 @@ const createMainWindow = async () => {
 
   window.on('closed', () => {
     mainWindow = null;
-    listWindow.forEach(instance => {
-      instance.serverProcess.kill();
-      (instance.window.webContents as any)?.destroy() // TODO: electron haven't make document for it. Ref: https://github.com/electron/electron/issues/26929
-    });
+    activeInstance = null;
+    listWindow.forEach(releaseInstance);
     listWindow = [];
   })
+
+  window.on('resize', layoutActiveView);
 
   if (isDev) {
     window.loadURL("http://localhost:3000/tabs.html");
@@ -131,17 +142,16 @@ const createMainWindow = async () => {
   window.maximize();
   window.show();
 
-  const windowView = await createWindow();
-  setTab(windowView);
+  setTab(await createWindow());
 }
 
 const createWindow = async (href?: string) => {
-  // Create the browser view.
-  const window = new BrowserView({
+  const view = new WebContentsView({
     webPreferences: {
       devTools: isDev,
       // enableRemoteModule: false,
-      contextIsolation: false,
+      contextIsolation: true,
+      sandbox: true,
       nodeIntegration: false,
       preload: __dirname + "/client-preload.js",
       disableDialogs: false,
@@ -150,52 +160,71 @@ const createWindow = async (href?: string) => {
     },
   });
 
+  const name = uniqueId('Tab ');
   const instance: IWindowInstance = {
-    window,
-    serverProcess: createBackgroundProcess(),
+    view,
+    serverProcess: null,
     workerReady: false,
-    pendingRequests: [],
-    name: uniqueId('Tab '),
+    workerExited: false,
+    connectRequested: false,
+    name,
   };
   listWindow.push(instance);
-  attachWorkerRelay(instance);
+  startWorker(instance);
 
   // and load the index.html of the app.
 
   // if (href) {
   //   // New tab with same location
-  //   window.webContents.loadURL(href);
+  //   view.webContents.loadURL(href);
   // } else {
   //   if (isDev) {
-  //     window.webContents.loadURL("http://localhost:3000");
+  //     view.webContents.loadURL("http://localhost:3000");
   //   } else {
-  //     window.webContents.loadURL("app://-");
+  //     view.webContents.loadURL("app://-");
   //   }
   // }
 
   if (isDev) {
-    window.webContents.loadURL("http://localhost:3000");
+    view.webContents.loadURL("http://localhost:3000");
   } else {
-    window.webContents.loadURL("app://-");
+    view.webContents.loadURL("app://-");
   }
 
   if (isDev) {
-    window.webContents.openDevTools({ mode: 'detach' })
+    view.webContents.openDevTools({ mode: 'detach' })
   }
 
   mainWindow.webContents.send('tabChange', getTabData());
-  return window;
+  return instance;
 };
 
-// Set active tab
-const setTab = (instance: BrowserView) => {
-  ContextMenu.clearMainBindings(ipcMain);
-  ContextMenu.mainBindings(ipcMain, instance, Menu, isDev, contextConfig);
+const tabBarHeight = 36;
 
-  mainWindow.setBrowserView(instance);
-  instance.setBounds({ x: 0, y: 36, width: mainWindow.getBounds().width, height: mainWindow.getBounds().height - 36 })
-  instance.setAutoResize({ width: true, height: true, horizontal: false, vertical: false });
+const layoutActiveView = () => {
+  if (!mainWindow || !activeInstance) {
+    return;
+  }
+  const { width, height } = mainWindow.getContentBounds();
+  activeInstance.view.setBounds({ x: 0, y: tabBarHeight, width, height: height - tabBarHeight });
+}
+
+const setTab = (instance: IWindowInstance) => {
+  ContextMenu.clearMainBindings(ipcMain);
+  ContextMenu.mainBindings(ipcMain, instance.view, mainWindow, Menu, isDev, contextConfig);
+
+  if (activeInstance && activeInstance !== instance) {
+    mainWindow.contentView.removeChildView(activeInstance.view);
+  }
+  activeInstance = instance;
+  mainWindow.contentView.addChildView(instance.view);
+  layoutActiveView();
   mainWindow.webContents.send('tabChange', getTabData());
+}
+
+const releaseInstance = (instance: IWindowInstance) => {
+  instance.serverProcess?.kill();
+  instance.view.webContents.close();
 }
 
 interface TabList {
@@ -206,62 +235,80 @@ interface TabList {
 const getTabData = (): TabList => {
   return {
     tabs: listWindow.map((instance) => instance.name),
-    active: listWindow.find((instance) => instance.window.webContents.id === mainWindow.getBrowserView()?.webContents?.id)?.name || ''
+    active: activeInstance?.name || ''
   }
 }
 
 // TODO: Also restart background process when user reload the app
-function createBackgroundProcess() {
-  const serverProcess = fork(__dirname + "/workers/server.js", [
-    "--subprocess",
+function startWorker(instance: IWindowInstance) {
+  const serverProcess = createBackgroundProcess(instance.name);
+  instance.serverProcess = serverProcess;
+  instance.workerReady = false;
+  instance.workerExited = false;
+
+  serverProcess.on("message", (msg: any) => {
+    if (msg?.type === "ready") {
+      instance.workerReady = true;
+      connectWorker(instance);
+    }
+  });
+  serverProcess.on("exit", (code) => {
+    if (instance.serverProcess !== serverProcess || !listWindow.includes(instance)) {
+      return;
+    }
+    log.error(`Worker of ${instance.name} exited with code ${code}`);
+    instance.workerReady = false;
+    instance.workerExited = true;
+  });
+}
+
+function createBackgroundProcess(name: string) {
+  const serverProcess = utilityProcess.fork(__dirname + "/workers/server.js", [
     app.getVersion(),
+    name,
+    isDev ? "dev" : "prod",
   ], {
-    cwd: app.getPath('userData')
+    cwd: app.getPath('userData'),
+    serviceName: name,
+    stdio: isDev ? "pipe" : "ignore",
   });
 
-  log.info(`Done create background process #${serverProcess.pid}`);
+  serverProcess.once("spawn", () => log.info(`Done create background process #${serverProcess.pid}`));
 
   if (isDev) {
-    // Print log.info of child process
-    serverProcess?.stdout?.on("data", function (data: any) {
+    serverProcess.stdout?.on("data", function (data: any) {
       log.info(data.toString());
+    });
+    serverProcess.stderr?.on("data", function (data: any) {
+      log.error(data.toString());
     });
   }
 
   return serverProcess;
 }
 
-function attachWorkerRelay(instance: IWindowInstance) {
-  instance.serverProcess.on("message", (msg: any) => {
-    log.debug(`${instance.name} worker -> page`, msg);
+function connectWorker(instance: IWindowInstance) {
+  if (!instance.workerReady || !instance.connectRequested) {
+    return;
+  }
+  instance.connectRequested = false;
 
-    if (msg?.type === "ready") {
-      instance.workerReady = true;
-      instance.pendingRequests.forEach(request => instance.serverProcess.send(request));
-      instance.pendingRequests = [];
-      return;
-    }
-
-    const { webContents } = instance.window;
-    if (!webContents.isDestroyed()) {
-      webContents.send("worker-message", msg);
-    }
-  });
+  const { port1, port2 } = new MessageChannelMain();
+  instance.serverProcess?.postMessage({ type: "port" }, [port1]);
+  instance.view.webContents.postMessage("worker-port", null, [port2]);
 }
 
-ipcMain.on("worker-request", (event, msg) => {
-  const instance = listWindow.find(item => item.window.webContents.id === event.sender.id);
+ipcMain.on("connect-worker", (event) => {
+  const instance = listWindow.find(item => item.view.webContents.id === event.sender.id);
   if (!instance) {
     return;
   }
 
-  log.debug(`${instance.name} page -> worker`, msg);
-
-  if (instance.workerReady) {
-    instance.serverProcess.send(msg);
-  } else {
-    instance.pendingRequests.push(msg);
+  if (instance.workerExited) {
+    startWorker(instance);
   }
+  instance.connectRequested = true;
+  connectWorker(instance);
 });
 
 function bootstrap() {
@@ -274,9 +321,15 @@ function bootstrap() {
 }
 
 const newTab = async () => {
-  const window = await createWindow(mainWindow.getBrowserView()?.webContents.getURL());
-  setTab(window);
+  const instance = await createWindow(activeInstance?.view.webContents.getURL());
+  setTab(instance);
 }
+ipcMain.handle('open-url', async (event, url: string) => {
+  if (canOpenExternally(url)) {
+    await shell.openExternal(url);
+  }
+});
+
 ipcMain.handle('new-tab', async (event, href: string) => {
   // Create new tab
   await newTab();
@@ -288,15 +341,14 @@ ipcMain.handle('get-tabs', async (event, href: string) => {
 
 ipcMain.handle('rename-tab', async (event, newName: string) => {
   // return getTabData();
-  const activeTab = listWindow.find((instance) => instance.window.webContents.id === mainWindow.getBrowserView()?.webContents?.id)
-  if (activeTab) {
-    activeTab.name = newName;
+  if (activeInstance) {
+    activeInstance.name = newName;
     mainWindow.webContents.send('tabChange', getTabData());
   }
 });
 
 ipcMain.handle('set-tab', async (event, tabName: string) => {
-  setTab(listWindow.find(instance => instance.name === tabName).window || listWindow[0].window)
+  setTab(listWindow.find(instance => instance.name === tabName) || listWindow[0])
 });
 
 const closeTab = (tabName: string) => {
@@ -306,7 +358,11 @@ const closeTab = (tabName: string) => {
     const currentState = getTabData();
     const closeIndex = listWindow.findIndex(instance => instance === closeInstance);
 
-    closeInstance.serverProcess.kill(); // Kill the server
+    if (closeInstance === activeInstance) {
+      mainWindow.contentView.removeChildView(closeInstance.view);
+      activeInstance = null;
+    }
+    releaseInstance(closeInstance);
     listWindow = listWindow.filter(instance => instance.name !== tabName); // Update the list
     if (listWindow.length === 0) {
       mainWindow.close();
@@ -316,18 +372,13 @@ const closeTab = (tabName: string) => {
     if (closeInstance.name === currentState.active) {
       // If close the active one, try to set new active to the previous tab
       log.verbose(`Try to set new active tab`);
-      setTab(listWindow[closeIndex <= 0 ? 0 : closeIndex - 1].window);
+      setTab(listWindow[closeIndex <= 0 ? 0 : closeIndex - 1]);
       return;
     }
 
     mainWindow.webContents.send('tabChange', getTabData());
     return;
   }
-}
-
-const getActiveInstance = () => {
-  const data = getTabData();
-  return listWindow.find(instance => instance.name === data.active);
 }
 
 ipcMain.handle('close-tab', async (event, tabName: string) => {
@@ -359,8 +410,8 @@ ipcMain.handle('toggle-maximum-window', async (event, tabName: string) => {
 });
 
 app.on('new-window-for-tab', () => {
-  if (listWindow[0]?.window) {
-    createWindow(listWindow[0]?.window.webContents.getURL());
+  if (listWindow[0]?.view) {
+    createWindow(listWindow[0]?.view.webContents.getURL());
   }
 });
 
@@ -389,19 +440,22 @@ app.on('window-all-closed', () => {
 });
 
 app.on('web-contents-created', (e, contents) => {
-  contents.on('new-window', (e, url) => {
-    e.preventDefault();
-    require('open')(url);
+  contents.setWindowOpenHandler(({ url }) => {
+    if (canOpenExternally(url)) shell.openExternal(url);
+    return { action: "deny" };
   });
   contents.on('will-navigate', (e, url) => {
-    if (url !== contents.getURL()) e.preventDefault(), require('open')(url);
+    if (url !== contents.getURL()) {
+      e.preventDefault();
+      if (canOpenExternally(url)) shell.openExternal(url);
+    }
   });
 });
 
 app.on("before-quit", () => {
   log.info("Before quit");
   listWindow.forEach(instance => {
-    instance.serverProcess.kill();
+    instance.serverProcess?.kill();
   })
 });
 
@@ -488,10 +542,7 @@ const template = [
         label: 'Reload',
         accelerator: 'CommandOrControl+R',
         click: () => {
-          const instance = getActiveInstance();
-          if (instance) {
-            instance.window.webContents.reload();
-          }
+          activeInstance?.view.webContents.reload();
         }
       },
       { role: 'toggleDevTools' },

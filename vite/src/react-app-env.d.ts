@@ -21,7 +21,13 @@ declare module "*.svg" {
 declare module "react-grid-layout";
 declare module "react-window";
 
-type SendFuncType = (name: string, args?: any) => Promise<any>;
+type WorkerRequests = import("refi-ipc").WorkerRequests;
+type SendFuncType = <Name extends keyof WorkerRequests>(
+  name: Name,
+  ...args: WorkerRequests[Name]["args"] extends void
+    ? []
+    : [WorkerRequests[Name]["args"]]
+) => Promise<WorkerRequests[Name]["result"]>;
 type ListenFuncType = (name: string, cb: Function) => Function;
 
 interface IContextMenu {
@@ -67,5 +73,5 @@ interface Window {
     renameTab: (name: string) => void;
   };
   projectId: string;
-  os: "Darwin" | string;
+  platform: string;
 }

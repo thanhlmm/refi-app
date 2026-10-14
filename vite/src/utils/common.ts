@@ -3,6 +3,7 @@ import { chunk, flatten, intersection, uniq } from "lodash";
 import { isObject, simplify } from "./simplifr";
 import firebase from "firebase/app";
 import { IArrayOperator, INormalOperator } from "@/atoms/navigator";
+import { isMacOS } from "./platform";
 
 export const isCollection = (path = ""): boolean => {
   if (path === "/") {
@@ -261,7 +262,7 @@ export function isNumeric(input: string | number): boolean {
 
 export function mapHotKeys(sequences: string | string[]): string | string[] {
   const replacer = (input: string) =>
-    window.os === "Darwin" ? input : input.replaceAll("command", "Control");
+    isMacOS() ? input : input.replaceAll("command", "Control");
 
   if (Array.isArray(sequences)) {
     return sequences.map(replacer);
