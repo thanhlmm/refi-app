@@ -1,7 +1,8 @@
 import log from 'electron-log';
 import type { MessagePortMain } from 'electron';
+import { workerArgs } from './args';
 
-const tabName = process.argv[4];
+const { tabName } = workerArgs;
 
 let currentPort: MessagePortMain | null = null;
 

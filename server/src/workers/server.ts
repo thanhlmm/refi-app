@@ -1,10 +1,11 @@
 import log from 'electron-log';
 import * as path from 'path';
+import { workerArgs } from './args';
 
 // A utility process can't ask Electron for userData; main passes it as cwd
 log.transports.file.resolvePath = () => path.join(process.cwd(), 'logs', 'worker.log');
 
-if (process.argv[5] !== 'dev') {
+if (!workerArgs.isDev) {
   log.transports.file.level = 'verbose';
 }
 
@@ -19,8 +20,7 @@ import serverHandlers from './server-handlers';
 import ipc from './server-ipc';
 
 log.info("Starting IPC server");
-log.debug(process.argv);
-const version = process.argv[3];
+log.debug(workerArgs);
 ipc.init(serverHandlers);
 
-log.info(`Initiated IPC server v${version}`);
+log.info(`Initiated IPC server v${workerArgs.version}`);

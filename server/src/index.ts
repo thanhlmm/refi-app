@@ -264,7 +264,6 @@ function startWorker(instance: IWindowInstance) {
 
 function createBackgroundProcess(name: string) {
   const serverProcess = utilityProcess.fork(__dirname + "/workers/server.js", [
-    "--subprocess",
     app.getVersion(),
     name,
     isDev ? "dev" : "prod",
