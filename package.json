@@ -13,8 +13,7 @@
     "node": ">=22"
   },
   "trustedDependencies": [
-    "electron",
-    "esbuild"
+    "electron"
   ],
   "resolutions": {
     "react": "17.0.2",

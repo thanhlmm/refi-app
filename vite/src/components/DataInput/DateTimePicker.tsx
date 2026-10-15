@@ -2,11 +2,7 @@ import classNames from "classnames";
 import firebase from "firebase/app";
 import moment from "moment";
 import React, { ReactElement, useState } from "react";
-import * as DatetimeModule from "react-datetime";
-const Datetime =
-  process.env.NODE_ENV === "production"
-    ? (DatetimeModule as any).default.default
-    : (DatetimeModule as any).default;
+import Datetime from "react-datetime";
 import "./DateTimePicker.css";
 
 interface IDateTimePickerProps {
