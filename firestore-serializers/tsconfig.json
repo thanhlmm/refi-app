@@ -6,7 +6,7 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "outDir": "dist",
-    "target": "ES3",
+    "target": "ES5",
     "types": ["node"]
   },
   "include": ["src/**/*"],
