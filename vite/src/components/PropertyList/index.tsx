@@ -28,7 +28,7 @@ interface IPropertyItemProps {
   provided: DraggableProvided;
   snapshot: DraggableStateSnapshot;
   property: string;
-  onRemove: (string) => void;
+  onRemove: (property: string) => void;
 }
 
 const PropertyItem = ({

@@ -23,7 +23,7 @@ interface IPropertyItemProps {
   provided: DraggableProvided;
   snapshot: DraggableStateSnapshot;
   sorter: ISorterEntity;
-  onRemove: (string) => void;
+  onRemove: (property: string) => void;
 }
 
 const SorterItem = ({

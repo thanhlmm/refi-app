@@ -7,7 +7,7 @@ import { newFieldAtom } from "@/atoms/ui";
 
 interface IObjectInputProps {
   fieldPath: string;
-  toggleExpand: (boolean) => void;
+  toggleExpand: (expanded: boolean) => void;
 }
 
 const ObjectInput = ({ fieldPath, toggleExpand }: IObjectInputProps) => {

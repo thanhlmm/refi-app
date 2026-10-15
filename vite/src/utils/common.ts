@@ -195,7 +195,7 @@ export const removeFirebaseSerializeMetaData = (
         }
         return Object.keys(value)
           .sort()
-          .reduce((s, k) => {
+          .reduce<Record<string, unknown>>((s, k) => {
             s[k] = value[k];
             return s;
           }, {});
@@ -254,7 +254,7 @@ export const newId = (): string => {
   return firebase.firestore().collection("feedbacks").doc().id;
 };
 
-export function isNumeric(input: string | number): boolean {
+export function isNumeric(input: unknown): boolean {
   if (typeof input === "number") return true;
   if (typeof input !== "string") return false;
   return !isNaN(+input) && !isNaN(parseFloat(input));

@@ -26,7 +26,7 @@ export const actionToggleImportModal = (
   );
 };
 
-export const actionTriggerLoadData = (totalDocs): void => {
+export const actionTriggerLoadData = (totalDocs: number): void => {
   setRecoilExternalState(isParsingLargeDataAtom, { totalDocs }); // AUTO Trigger loading suspense
 };
 

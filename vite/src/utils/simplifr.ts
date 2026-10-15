@@ -51,26 +51,30 @@ export function simplify(
   return simplifyNode({}, root, obj, dilimiter);
 }
 
-export function desimplify(data, path, dilimiter) {
+export function desimplify(
+  data: Record<string, any>,
+  path?: string,
+  dilimiter?: string
+) {
   dilimiter = dilimiter || defaults().dilimiter;
   path = path || defaults().root;
 
   return dive(path);
 
-  function dive(path) {
-    let obj;
+  function dive(path: string): any {
+    let obj: any;
     const node = data[path];
 
     if (typeof node === "undefined" || node === null) return node;
 
     if (node.type === "array") {
       obj = [];
-      node.childs.forEach(function (key) {
+      node.childs.forEach(function (key: string | number) {
         obj.push(dive(path + dilimiter + key));
       });
     } else if (node.type === "object") {
       obj = {};
-      node.childs.forEach(function (key) {
+      node.childs.forEach(function (key: string) {
         obj[key] = dive(path + dilimiter + key);
       });
     } else obj = node;
@@ -80,7 +84,7 @@ export function desimplify(data, path, dilimiter) {
 }
 
 function simplifyNode(
-  data: Record<string, any> | any[],
+  data: Record<string, any>,
   path: string,
   obj: unknown,
   dilimiter: string
@@ -91,7 +95,7 @@ function simplifyNode(
 
   return data;
 
-  function dive(obj, path) {
+  function dive(obj: any, path: string) {
     data[path] = {
       type: "map",
       childs: [],

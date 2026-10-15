@@ -57,7 +57,7 @@ export const actionStoreDocs = (
     } else {
       batches.push({
         atom: docAtom(doc.ref.path),
-        valOrUpdater: (curDoc) => {
+        valOrUpdater: (curDoc: ClientDocumentSnapshot | null) => {
           if (curDoc?.isChanged()) {
             return curDoc;
           }
@@ -78,7 +78,7 @@ export const actionStoreDocs = (
   batches.push({
     // Synchronize data with docsLibraryAtom. Why I need to do it manually ?_?
     atom: docsLibraryAtom,
-    valOrUpdater: (curPath) =>
+    valOrUpdater: (curPath: string[]) =>
       uniq([...curPath, ...[...added, ...modified].map((doc) => doc.ref.path)]),
   });
 
@@ -138,13 +138,13 @@ export const actionDeleteCollection = async (path: string): Promise<void> => {
 
   updater.push({
     atom: deletedDocsAtom,
-    valOrUpdater: (docs) =>
+    valOrUpdater: (docs: ClientDocumentSnapshot[]) =>
       uniqBy([...docs, ...docsInCollection], (doc) => doc.ref.path),
   });
 
   updater.push({
     atom: collectionHasBeenDeleteAtom,
-    valOrUpdater: (paths) => uniq([...paths, path]),
+    valOrUpdater: (paths: string[]) => uniq([...paths, path]),
   });
 
   requestAnimationFrame(() => {

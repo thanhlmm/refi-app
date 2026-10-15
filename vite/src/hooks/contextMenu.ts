@@ -8,7 +8,7 @@ export const useContextMenu = <T>(
   useEffect(() => {
     window.api.contextMenu.onReceive(
       actionId,
-      function (args) {
+      function (args: { attributes: T }) {
         cb(args.attributes);
       }.bind(this),
       elementId

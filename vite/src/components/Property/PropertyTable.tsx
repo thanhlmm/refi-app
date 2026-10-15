@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from "react";
-import { useTable, useExpanded } from "react-table";
+import { Cell, useTable, useExpanded } from "react-table";
 import classNames from "classnames";
 import EditablePropertyField from "@/components/EditableCell/EditablePropertyField";
 import EditablePropertyValue from "../EditableCell/EditablePropertyValue";
@@ -132,7 +132,7 @@ const PropertyTable = ({ searchInput, doc }: IPropertyTableProps) => {
               : (row.depth as number);
             return (
               <tr key={row.original.field}>
-                {row.cells.map((cell) => {
+                {row.cells.map((cell: Cell) => {
                   return (
                     <td
                       key={row.original.field + "." + cell.column.id}

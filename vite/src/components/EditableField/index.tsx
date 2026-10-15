@@ -8,7 +8,7 @@ interface IEditableFieldProps {
     value: string | number;
   };
   exitEdit: () => void;
-  onChange: (string) => void;
+  onChange: (value: string | number) => void;
   submitEdit: () => void;
 }
 

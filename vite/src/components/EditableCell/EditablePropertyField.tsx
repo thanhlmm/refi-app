@@ -29,7 +29,7 @@ interface IEditablePropertyFieldProps {
   canExpand: boolean;
   isExpanded: boolean;
   depth: number;
-  toggleExpand: (boolean) => void;
+  toggleExpand: (expanded: boolean) => void;
 }
 
 export const EditablePropertyField = ({

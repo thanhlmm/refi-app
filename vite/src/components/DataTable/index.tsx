@@ -42,6 +42,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Scrollbars } from "react-custom-scrollbars";
 import {
   useFlexLayout,
+  Row,
   useResizeColumns,
   useSortBy,
   useTable,
@@ -89,7 +90,7 @@ function TableWrapper({
     rows,
     prepareRow,
     state,
-  } = useTable(
+  } = useTable<ClientDocumentSnapshot>(
     {
       columns,
       data,
@@ -178,7 +179,15 @@ function TableWrapper({
   );
 
   const RenderRow = useCallback(
-    ({ data, index, style }) => {
+    ({
+      data,
+      index,
+      style,
+    }: {
+      data: Row<ClientDocumentSnapshot>[];
+      index: number;
+      style: React.CSSProperties;
+    }) => {
       const row = data[index];
       prepareRow(row);
       const rowOrigin = row.original as ClientDocumentSnapshot;
@@ -308,7 +317,9 @@ function TableWrapper({
                 itemSize={36}
                 width={width}
                 itemData={rows}
-                itemKey={(id, data) => data[id].original.id}
+                itemKey={(id: number, data: Row<ClientDocumentSnapshot>[]) =>
+                  data[id].original.id
+                }
                 ref={listRef}
                 style={{ overflow: false }}
               >
@@ -331,6 +342,11 @@ interface IColumnHeaderProps {
   toggleSortBy: (descending: boolean, isMulti: boolean) => void;
   isIdColumn?: boolean;
 }
+
+type IHeaderRenderProps = Omit<
+  IColumnHeaderProps,
+  "fieldPath" | "collectionPath" | "isIdColumn"
+>;
 
 function ColumnHeader({
   fieldPath,
@@ -456,14 +472,14 @@ function DataTable() {
 
   const columnViewer = useMemo(() => {
     const docColumns = properties.map((key, index) => ({
-      Header: (props) => (
+      Header: (props: IHeaderRenderProps) => (
         <ColumnHeader
           {...props}
           fieldPath={key}
           collectionPath={collectionPath}
         />
       ),
-      accessor: (originalRow) => get(originalRow, key),
+      accessor: (originalRow: ClientDocumentSnapshot) => get(originalRow, key),
       id: key,
       width: Math.max(
         Math.min(
@@ -492,7 +508,7 @@ function DataTable() {
 
     return [
       {
-        Header: (props) => (
+        Header: (props: IHeaderRenderProps) => (
           <ColumnHeader
             {...props}
             fieldPath="_id"
@@ -665,7 +681,7 @@ function DataTable() {
   );
 
   const handleSortColumn = useCallback(
-    (sortBy) => {
+    (sortBy: { id: string; desc: boolean }[]) => {
       setRecoilExternalState(
         sorterAtom(collectionPath),
         sortBy.map((sorter) => ({

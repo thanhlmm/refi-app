@@ -3,7 +3,7 @@ import { Checkbox, Field, Label } from "@zendeskgarden/react-forms";
 
 interface IBooleanInputProps {
   value: boolean;
-  onChange: (boolean) => void;
+  onChange: (value: boolean) => void;
 }
 
 const BooleanInput = ({ value, onChange }: IBooleanInputProps) => {

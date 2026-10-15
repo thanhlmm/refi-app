@@ -32,7 +32,7 @@ const CommandOption = ({
 }: {
   isActive?: boolean;
   command: ICommand;
-  onClickItem?: (string) => void;
+  onClickItem?: (id: string) => void;
 }) => (
   <a
     href="#"

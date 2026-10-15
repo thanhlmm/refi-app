@@ -25,7 +25,7 @@ const ProductBar = (): ReactElement => {
     register("emotion", { required: true });
   }, []);
 
-  const onSubmit = (value) => {
+  const onSubmit = (value: Record<string, unknown>) => {
     // TODO: Integrate with user id
     firebase
       .firestore()

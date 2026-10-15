@@ -2,7 +2,10 @@ import { buildFSUrl, fieldAtom, fieldChangedAtom } from "@/atoms/firestore";
 import { navigatorPathAtom } from "@/atoms/navigator";
 import { actionGoTo } from "@/atoms/navigator.action";
 import { useContextMenu } from "@/hooks/contextMenu";
-import { ClientDocumentSnapshot } from "@/types/ClientDocumentSnapshot";
+import {
+  ClientDocumentSnapshot,
+  IFieldValue,
+} from "@/types/ClientDocumentSnapshot";
 import { getPathEntities, isNumeric } from "@/utils/common";
 import { getFirestoreType } from "@/utils/simplifr";
 import { Checkbox, Field, Label } from "@zendeskgarden/react-forms";
@@ -49,7 +52,7 @@ const EditableCell = ({
     return getFirestoreType(value);
   }, [value]);
 
-  const onChange = (newInstanceValue) => {
+  const onChange = (newInstanceValue: IFieldValue | undefined) => {
     if (isUndefined(value)) {
       setValue(newInstanceValue);
       return;

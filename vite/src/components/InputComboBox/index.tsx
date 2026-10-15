@@ -7,8 +7,8 @@ interface IInputComboBoxProps<T> {
   inputRef?: HTMLInputElement;
   items: T[];
   selectedItem: T;
-  handleSelectedItemChange: (T) => void;
-  onSelect?: (T) => void;
+  handleSelectedItemChange: (item: T) => void;
+  onSelect?: (item: T) => void;
   placeholder?: string;
 }
 
@@ -36,9 +36,9 @@ const InputComboBox = ({
     onSelectedItemChange: ({ selectedItem }) => {
       if (onSelect) {
         // If we got onSelect, only fire onSelect event
-        onSelect(selectedItem);
+        onSelect(selectedItem!);
       } else {
-        handleSelectedItemChange(selectedItem);
+        handleSelectedItemChange(selectedItem!);
       }
 
       return;
@@ -51,7 +51,7 @@ const InputComboBox = ({
             : true
         )
       );
-      handleSelectedItemChange(inputValue);
+      handleSelectedItemChange(inputValue!);
     },
   });
 

@@ -34,7 +34,7 @@ interface IEditableCell {
   };
   tabIndex: number;
   canChangeType?: boolean;
-  toggleExpand: (boolean) => void;
+  toggleExpand: (expanded: boolean) => void;
 }
 
 export const EditablePropertyValue = ({
@@ -127,7 +127,11 @@ export const EditablePropertyValue = ({
   // console.log(fieldPath, fieldType, instanceValue);
 
   const handleClickFollowLink = useCallback(
-    (e: MouseEvent | null, link: string, isInternal = true) => {
+    (
+      e: Pick<MouseEvent, "ctrlKey" | "metaKey"> | null,
+      link: string,
+      isInternal = true
+    ) => {
       if (e === null || e.ctrlKey || e.metaKey) {
         if (isInternal) {
           actionGoTo(link);
@@ -193,10 +197,14 @@ export const EditablePropertyValue = ({
           <DataInput
             ref={inputEl}
             className="text-blue-400 underline focus:ring-1 focus:ring-blue-400"
-            onClick={(e) => handleClickFollowLink(e, refValue.path)}
+            onClick={(e: React.MouseEvent) =>
+              handleClickFollowLink(e, refValue.path)
+            }
             tabIndex={tabIndex}
             value={refValue.path}
-            onChange={(e) => onChange(new DocRef(e.target.value))}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              onChange(new DocRef(e.target.value))
+            }
             onBlur={onBlur}
             onKeyDown={onKeyDown}
           />
@@ -252,12 +260,14 @@ export const EditablePropertyValue = ({
             })}
             minRows={2}
             maxRows={12}
-            onClick={(e) =>
+            onClick={(e: React.MouseEvent) =>
               handleClickFollowLink(e, instanceValue?.toString() || "", false)
             }
             tabIndex={tabIndex}
             value={instanceValue}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              onChange(e.target.value)
+            }
             onBlur={onBlur}
             onKeyDown={onKeyDown}
           />

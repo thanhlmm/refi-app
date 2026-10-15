@@ -6,7 +6,7 @@ import React, { ReactElement, useMemo, useRef, useState } from "react";
 interface ISelectComboBoxProps<T> {
   items: T[];
   selectedItem: T;
-  handleSelectedItemChange: (T) => void;
+  handleSelectedItemChange: (item: T) => void;
   className?: string;
 }
 

@@ -9,7 +9,7 @@ import { IFieldValue } from "@/types/ClientDocumentSnapshot";
 
 interface IArrayInputProps {
   fieldPath: string;
-  toggleExpand: (boolean) => void;
+  toggleExpand: (expanded: boolean) => void;
 }
 
 const ArrayInput = ({ fieldPath, toggleExpand }: IArrayInputProps) => {

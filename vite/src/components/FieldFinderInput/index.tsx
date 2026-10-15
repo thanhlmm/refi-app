@@ -10,10 +10,10 @@ import InputComboBox from "../InputComboBox";
 
 interface IFieldFinderInputProps {
   value: string;
-  onChange: (string) => void;
+  onChange: (value: string) => void;
   inputRef?: HTMLInputElement;
   placeholder?: string;
-  onSelect?: (string) => void;
+  onSelect?: (value: string) => void;
 }
 
 const FieldFinderInput = ({

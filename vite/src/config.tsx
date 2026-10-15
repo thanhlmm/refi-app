@@ -19,7 +19,7 @@ loader.config({
   },
 });
 
-function createDependencyProposals(range) {
+function createDependencyProposals(range: monaco.IRange) {
   return [
     {
       label: "/geopoint",
@@ -85,7 +85,7 @@ const legend = {
 
 const tokenPattern = /__(.*)__/g;
 
-function getType(type) {
+function getType(type: string) {
   return legend.tokenTypes.indexOf(type);
 }
 

@@ -34,7 +34,7 @@ export type IGlobalHotKeys = Record<
     name: string;
     group: "navigator" | "action" | "general";
     sequences: string | string[];
-    handler: (event: any) => void;
+    handler: (event?: any) => void;
   }
 >;
 
@@ -256,11 +256,14 @@ export const globalHotKeys: IGlobalHotKeys = {
   },
 };
 
-type IGlobalHotKeysHandler = Record<string, () => void>;
+type IGlobalHotKeysHandler = Record<
+  string,
+  IGlobalHotKeys[string]["handler"]
+>;
 
 export const globalHotKeysHandler: IGlobalHotKeysHandler = Object.keys(
   globalHotKeys
-).reduce((handlers, action) => {
+).reduce<IGlobalHotKeysHandler>((handlers, action) => {
   handlers[action] = globalHotKeys[action].handler;
   return handlers;
 }, {});

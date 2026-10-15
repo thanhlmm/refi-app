@@ -2,7 +2,10 @@ import { Textarea } from "@zendeskgarden/react-forms";
 import React, { useMemo } from "react";
 import classNames from "classnames";
 
-const DataInput = (props: any, ref) => {
+const DataInput = (
+  props: any,
+  ref: React.ForwardedRef<HTMLTextAreaElement>
+) => {
   const isMultipleLine = useMemo(() => {
     return String(props.value)?.split("\n").length >= 2;
   }, [props.value]);

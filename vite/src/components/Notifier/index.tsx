@@ -9,12 +9,12 @@ import Linkify from "react-linkify";
 const Notifier = () => {
   const [notifications, setNotification] = useRecoilState(notifierAtom);
 
-  const handleCloseNotification = (id) => {
+  const handleCloseNotification = (id: string) => {
     setNotification((list) => list.filter((notif) => notif.id !== id));
   };
 
   useEffect(() => {
-    const listener = window.listen("error", ({ error }) => {
+    const listener = window.listen("error", ({ error }: { error: string }) => {
       actionSendNotification("error", error);
     });
 

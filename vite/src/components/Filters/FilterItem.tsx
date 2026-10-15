@@ -1,4 +1,6 @@
 import {
+  IArrayOperator,
+  WhereFilterOp,
   navigatorCollectionPathAtom,
   querierAtom,
   querierOptionAtom,
@@ -17,6 +19,8 @@ import React, { useLayoutEffect, useMemo, useRef } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import DateTimePicker from "../DataInput/DateTimePicker";
 import DropdownMenu from "../DropdownMenu";
+
+type IOperatorValue = IArrayOperator["values"][number];
 
 const arrayInput = ["in", "not-in", "array-contains"];
 
@@ -42,7 +46,7 @@ const FilterItem = ({ id }: { id: string }) => {
     );
   };
 
-  const handleSetField = (value) => {
+  const handleSetField = (value: string) => {
     setFilter(
       immer((curFilter) => {
         if (curFilter) {
@@ -52,7 +56,7 @@ const FilterItem = ({ id }: { id: string }) => {
     );
   };
 
-  const handleSetOperatorType = (value) => {
+  const handleSetOperatorType = (value: string) => {
     if (value === filter?.operator.type) {
       return;
     }
@@ -60,7 +64,7 @@ const FilterItem = ({ id }: { id: string }) => {
     setFilter(
       immer((curFilter) => {
         if (curFilter) {
-          curFilter.operator.type = value;
+          curFilter.operator.type = value as WhereFilterOp;
           if (isArrayInput && !Array.isArray(curFilter.operator.values)) {
             curFilter.operator.values = [curFilter.operator.values];
           }
@@ -73,7 +77,7 @@ const FilterItem = ({ id }: { id: string }) => {
     );
   };
 
-  const handleChangeValue = (value) => {
+  const handleChangeValue = (value: IOperatorValue | IOperatorValue[]) => {
     const newValue =
       (typeof filter?.operator.values === "number" && isNumeric(value)) ||
       value === ""
@@ -125,7 +129,10 @@ const FilterItem = ({ id }: { id: string }) => {
 
   const inputComponent = useMemo(() => {
     if (isArrayOp(filter.operator)) {
-      const handleChangeArrayItemValue = (value, index: number) => {
+      const handleChangeArrayItemValue = (
+        value: IOperatorValue,
+        index: number
+      ) => {
         const newValueArray = [...(filter.operator.values as any[])];
         const newValue =
           (typeof value === "number" && isNumeric(value)) || value === ""
@@ -136,7 +143,7 @@ const FilterItem = ({ id }: { id: string }) => {
         handleChangeValue(newValueArray);
       };
 
-      const menuOptions = (value, index) =>
+      const menuOptions = (value: IOperatorValue, index: number) =>
         ["string", "number", "true", "false", "timestamp"].map((fieldType) => ({
           title: fieldType,
           hint: fieldType,
@@ -163,7 +170,7 @@ const FilterItem = ({ id }: { id: string }) => {
         handleChangeValue([...(filter.operator.values as any[]), ""]);
       };
 
-      const handleRemoveItem = (index) => {
+      const handleRemoveItem = (index: number) => {
         handleChangeValue(
           (filter.operator.values as any[]).filter((_, i) => i !== index)
         );

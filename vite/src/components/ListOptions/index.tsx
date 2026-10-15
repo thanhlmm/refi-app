@@ -5,7 +5,7 @@ interface IListOptionsProps {
     element: ReactElement;
     key: string;
   }[];
-  onChange: (string) => void;
+  onChange: (value: string) => void;
   currentOption: string;
 }
 
